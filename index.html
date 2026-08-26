@@ -161,6 +161,15 @@
           <span id="res-payable-amt" class="score-num" style="font-size:2.2rem; color:#34D399;">₹150</span>
         </div>
 
+        <!-- Razorpay Primary Instant Payment Button -->
+        <button id="btn-pay-razorpay" onclick="launchRazorpayCheckout()" type="button" class="btn-primary" style="background: linear-gradient(135deg, #FF7700, #F59E0B); padding:16px; font-size:1.05rem; width:100%; margin-bottom:16px; box-shadow: 0 8px 25px rgba(255,119,0,0.4); font-weight:800;">
+          Pay <span id="btn-rzp-amt">₹150</span> via Razorpay / GPay / PhonePe / Cards 💳
+        </button>
+
+        <div style="text-align:center; font-size:0.85rem; color:var(--text-muted); margin-bottom:14px;">
+          — OR Pay Directly via QR / UPI Handle below —
+        </div>
+
         <div class="qr-box-wrapper">
           <div id="qrcode-container"></div>
         </div>
@@ -431,6 +440,11 @@
         <input type="password" id="input-supabase-key" class="form-input" placeholder="eyJhbGciOi...">
       </div>
 
+      <div class="form-group" style="margin-top:12px;">
+        <label class="form-label" for="input-razorpay-key">Razorpay Key ID (Test or Live)</label>
+        <input type="text" id="input-razorpay-key" class="form-input" placeholder="rzp_test_XXXXXXXXXXXXXX">
+      </div>
+
       <button id="btn-save-settings" class="btn-primary" style="margin-top:16px;">
         Save Settings
       </button>
@@ -438,8 +452,9 @@
   </div>
 
   <!-- JavaScript Modules -->
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="qrcode.min.js"></script>
-  <script src="app.js?v=26.0"></script>
+  <script src="app.js?v=27.0"></script>
 </body>
 </html>

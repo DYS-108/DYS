@@ -30,7 +30,8 @@ let appConfig = {
   upiId: '1979.ravi.agarwal-3@okhdfcbank',
   payeeName: 'Discover Your Self',
   supabaseUrl: 'https://phiuzlbeizzxqzxgpbiq.supabase.co',
-  supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBoaXV6bGJlaXp6eHF6eGdwYmlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc3MjExNDEsImV4cCI6MjEwMzI5NzE0MX0.cggUAxqSe4FsfvPvEsPQUKVJy5e_t9kus1KInViXaKU'
+  supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBoaXV6bGJlaXp6eHF6eGdwYmlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc3MjExNDEsImV4cCI6MjEwMzI5NzE0MX0.cggUAxqSe4FsfvPvEsPQUKVJy5e_t9kus1KInViXaKU',
+  razorpayKeyId: localStorage.getItem('dys_rzp_key') || ''
 };
 
 // WhatsApp Group Target Links
@@ -1214,7 +1215,11 @@ function generateUpiQR(amount) {
   const encodedPn = encodeURIComponent(appConfig.payeeName);
   const pa = appConfig.upiId;
 
-  // Clean P2P UPI Link (Removes mode=02 to fix bank limit error on personal VPAs)
+  // Update Razorpay Button Dynamic Amount Tag
+  const rzpAmtSpan = document.getElementById('btn-rzp-amt');
+  if (rzpAmtSpan) rzpAmtSpan.innerText = `₹${amount}`;
+
+  // Clean P2P UPI Link
   const upiUri = `upi://pay?pa=${pa}&pn=${encodedPn}&am=${amount}&cu=INR`;
 
   // Android Specific Intent Deep Links
@@ -1267,6 +1272,71 @@ function generateUpiQR(amount) {
   if (linkBhim) { linkBhim.href = bhimUri; linkBhim.onclick = autoCopy; }
   const btnPayDirect = document.getElementById('btn-pay-direct');
   if (btnPayDirect) { btnPayDirect.href = upiUri; btnPayDirect.onclick = autoCopy; }
+}
+
+// Launch Razorpay Dynamic Checkout (Test Mode or Live Mode)
+function launchRazorpayCheckout() {
+  const currentPayable = lastCalculatedResult ? lastCalculatedResult.payableAmount : 150;
+  const amountInPaise = currentPayable * 100;
+  let key = appConfig.razorpayKeyId || localStorage.getItem('dys_rzp_key');
+
+  if (!window.Razorpay) {
+    alert("Razorpay SDK is initializing. Please check your internet connection.");
+    return;
+  }
+
+  if (!key || key === 'rzp_test_YOUR_KEY_HERE') {
+    const userKey = prompt("Enter your Razorpay Key ID (Test Key e.g. rzp_test_XXXXXX):");
+    if (userKey) {
+      key = userKey.trim();
+      appConfig.razorpayKeyId = key;
+      localStorage.setItem('dys_rzp_key', key);
+    } else {
+      return;
+    }
+  }
+
+  const options = {
+    key: key,
+    amount: amountInPaise,
+    currency: "INR",
+    name: "Discover Your Self",
+    description: `DYS Course Fee (Score Discounted)`,
+    image: "iskcon_logo.png",
+    prefill: {
+      name: studentData.name || "",
+      contact: studentData.phone || ""
+    },
+    theme: {
+      color: "#FF7700"
+    },
+    handler: function (response) {
+      console.log("Razorpay Payment Success Response:", response);
+      showToast("Payment Completed Successfully! 🎉");
+      
+      // Auto-populate transaction ID into UTR field
+      const utrInput = document.getElementById('input-utr');
+      if (utrInput) {
+        utrInput.value = response.razorpay_payment_id || response.razorpay_order_id || 'RZP-' + Date.now();
+      }
+
+      // Automatically proceed to registration screen & ticket generation
+      gotoRegistrationScreen();
+    },
+    modal: {
+      ondismiss: function() {
+        console.log("Razorpay checkout modal dismissed by user.");
+      }
+    }
+  };
+
+  try {
+    const rzp = new Razorpay(options);
+    rzp.open();
+  } catch (err) {
+    console.error("Razorpay Launch Error:", err);
+    alert("Razorpay Launch Error: " + err.message);
+  }
 }
 
 function copyUpiId() {
@@ -1322,6 +1392,7 @@ function openAdminSettings() {
     if (document.getElementById('input-payee-name')) document.getElementById('input-payee-name').value = appConfig.payeeName;
     if (document.getElementById('input-supabase-url')) document.getElementById('input-supabase-url').value = appConfig.supabaseUrl || '';
     if (document.getElementById('input-supabase-key')) document.getElementById('input-supabase-key').value = appConfig.supabaseKey || '';
+    if (document.getElementById('input-razorpay-key')) document.getElementById('input-razorpay-key').value = appConfig.razorpayKeyId || '';
 
     openModal('settings-modal');
   } else if (pass) {
@@ -1345,6 +1416,7 @@ function saveConfig() {
   const payeeName = document.getElementById('input-payee-name').value.trim();
   const sbUrl = document.getElementById('input-supabase-url') ? document.getElementById('input-supabase-url').value.trim() : '';
   const sbKey = document.getElementById('input-supabase-key') ? document.getElementById('input-supabase-key').value.trim() : '';
+  const rzpKey = document.getElementById('input-razorpay-key') ? document.getElementById('input-razorpay-key').value.trim() : '';
 
   if (baseFee) appConfig.baseFee = baseFee;
   if (upiId) appConfig.upiId = upiId;
@@ -1357,11 +1429,15 @@ function saveConfig() {
     appConfig.supabaseKey = sbKey;
     localStorage.setItem('dys_supabase_key', sbKey);
   }
+  if (rzpKey) {
+    appConfig.razorpayKeyId = rzpKey;
+    localStorage.setItem('dys_rzp_key', rzpKey);
+  }
 
   initSupabase();
 
   closeModal('settings-modal');
-  showToast("Admin & Supabase Settings Saved!");
+  showToast("Admin Settings Saved!");
 }
 
 // Celebration Confetti & Flowers Cannon

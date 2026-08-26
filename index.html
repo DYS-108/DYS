@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Discover Your Self - Bhagavad Gita Quiz & Course Registration</title>
+  <meta name="description" content="Discover Your Self Course Registration & Bhagavad Gita Quiz. Earn up to 50% scholarship discount!">
+  <link rel="stylesheet" href="style.css?v=17.0">
+</head>
+<body>
+
+  <!-- Celebration Confetti & Flowers Canvas Layer -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <div class="app-container">
+
+    <!-- Top App Header -->
+    <header class="app-header">
+      <div class="brand-badge" title="Discover Your Self (Click 5 times for Admin)">
+        <!-- Official ISKCON Pune Logo -->
+        <img src="iskcon_logo.png" alt="ISKCON Logo" class="brand-logo-img">
+        <div>
+          <div id="txt-app-title" class="brand-title">Discover Your Self</div>
+          <div id="txt-app-sub" class="brand-subtitle">Based on Bhagavad Gita As It Is</div>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button id="lang-toggle-btn" onclick="toggleLanguage()" type="button" class="lang-btn" aria-label="Toggle Language">
+          🇮🇳 हिंदी
+        </button>
+      </div>
+    </header>
+
+    <!-- SCREEN 1: 10 Q&A Test Stepper (Starts Directly After Language Select) -->
+    <main id="screen-quiz" class="view-screen">
+      <!-- Dynamic Motivational Progress Banner (Strict 1-line quote) -->
+      <div id="quiz-motivation-box" class="motivation-banner-box">
+        Taking your first step towards self-discovery! ✨
+      </div>
+
+      <div class="quiz-meta-row" style="margin-top: 6px;">
+        <span id="quiz-progress-text" class="question-badge">Question 1 / 10</span>
+        <span id="txt-marking-notice" class="marking-info-tag">+2 / -1 Marking</span>
+      </div>
+
+      <div class="quiz-progress-bar">
+        <div id="quiz-progress-fill" class="quiz-progress-fill"></div>
+      </div>
+
+      <div class="question-card">
+        <h2 id="question-title" class="question-text">Loading question...</h2>
+
+        <div id="options-list" class="options-list">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <div class="quiz-controls" style="margin-top: 10px;">
+        <button id="btn-prev" onclick="prevQuestion()" type="button" class="btn-secondary">⬅ Previous</button>
+        <button id="btn-next" onclick="nextQuestion()" type="button" class="btn-primary" style="margin-top:0;">Next Question ➔</button>
+      </div>
+    </main>
+
+    <!-- SCREEN 2: Results Page (Simplified) -->
+    <main id="screen-result" class="view-screen hidden">
+      <div class="result-card">
+        <h2 id="txt-congrats-title" class="hero-title" style="font-size:1.4rem;">Test Completed Successfully!</h2>
+
+        <div class="score-display-box">
+          <span id="res-score-num" class="score-num">20</span>
+          <span id="lbl-score-total" class="score-total">/ 20 Marks</span>
+        </div>
+
+        <!-- Score Breakdown Summary -->
+        <div class="breakdown-box">
+          <div class="breakdown-row">
+            <span id="lbl-correct-row">Correct Answers (+2):</span>
+            <span id="res-correct-count" style="color:var(--correct-green); font-weight:700;">+20</span>
+          </div>
+          <div class="breakdown-row">
+            <span id="lbl-wrong-row">Wrong Answers (-1):</span>
+            <span id="res-wrong-count" style="color:var(--wrong-red); font-weight:700;">-0</span>
+          </div>
+          <div class="breakdown-row">
+            <span id="lbl-unattempted-row">Unattempted (0):</span>
+            <span id="res-unattempted-count" style="color:var(--text-muted); font-weight:600;">0</span>
+          </div>
+        </div>
+
+        <!-- Toggle Detailed Explanations Button -->
+        <button id="btn-toggle-review" onclick="toggleAnswerReview()" type="button" class="btn-secondary" style="width:100%; border-color:var(--gold-accent); color:var(--text-gold); margin-bottom:16px;">
+          View Correct Answers & Explanations 📖
+        </button>
+
+        <!-- Explanations Container (Collapsible) -->
+        <div id="review-answers-container" class="review-container hidden" style="margin-bottom:16px;">
+          <!-- Dynamically populated -->
+        </div>
+
+        <!-- Score-Based Conditional CTA Box (< 60% vs >= 60%) -->
+        <div id="res-conditional-cta-box" style="margin-top:16px;">
+          <!-- Dynamically populated in app.js -->
+        </div>
+      </div>
+    </main>
+
+    <!-- SCREEN 3: DYS Course Details Page -->
+    <main id="screen-course" class="view-screen hidden">
+      <!-- Back Navigation Row -->
+      <div class="screen-nav-bar" style="display:flex; align-items:center; justify-content:flex-start; margin-bottom:8px;">
+        <button id="btn-back-course" onclick="goBackFrom('screen-course')" type="button" class="btn-secondary" style="width:auto; padding:6px 14px; font-size:0.82rem; border-color:rgba(255,255,255,0.2);">
+          ⬅ Back to Results
+        </button>
+      </div>
+
+      <!-- Scholarship Bold Banner (Displayed ONLY for >= 60% candidates) -->
+      <div id="course-scholarship-banner" class="scholarship-bold-banner hidden">
+        🎉 YOU GOT 50% SCHOLARSHIP ON DYS COURSE!
+      </div>
+
+      <!-- Course Showcase Section -->
+      <div class="course-showcase-section" style="margin-top:0;">
+        <h3 id="lbl-course-highlights-title" class="course-section-title">🌟 Why Join Discover Your Self Course?</h3>
+
+        <div class="highlights-grid">
+          <div class="highlight-chip" style="grid-column: 1 / -1;"><span id="lbl-tag-gita">📖 Learn Basics of Bhagavad Gita in Just 8 Sessions</span></div>
+          <div class="highlight-chip"><span id="lbl-tag-enlighten">✨ Spiritually Enlightened Lifestyle</span></div>
+          <div class="highlight-chip"><span id="lbl-tag-friends">👥 Make Genuine Spiritual Friends</span></div>
+          <div class="highlight-chip"><span id="lbl-tag-stress">🧠 Stress Relief & Focus Techniques</span></div>
+          <div class="highlight-chip"><span id="lbl-tag-counseling">🤝 Personal 1-on-1 Counseling</span></div>
+          <div class="highlight-chip"><span id="lbl-tag-meditation">✨ Mantra Meditation</span></div>
+        </div>
+
+        <!-- 8-Session Journey Poster Section -->
+        <div style="margin: 20px 0;">
+          <img src="dys_poster_new.png?v=16.0" alt="Discover Your Self 8-Session Journey Poster" class="rsp-poster-img">
+        </div>
+
+        <button id="btn-goto-payment" onclick="gotoPaymentScreen()" type="button" class="btn-primary" style="margin-top:20px; background: linear-gradient(135deg, #FF7700, #F59E0B);">
+          Proceed to Register & Pay Fee 💳
+        </button>
+      </div>
+    </main>
+
+    <!-- SCREEN 4: Payment Section -->
+    <main id="screen-payment" class="view-screen hidden">
+      <!-- Back Navigation Row -->
+      <div class="screen-nav-bar" style="display:flex; align-items:center; justify-content:flex-start; margin-bottom:8px;">
+        <button id="btn-back-payment" onclick="goBackFrom('screen-payment')" type="button" class="btn-secondary" style="width:auto; padding:6px 14px; font-size:0.82rem; border-color:rgba(255,255,255,0.2);">
+          ⬅ Back to Course Details
+        </button>
+      </div>
+
+      <div id="payment-step-box" class="payment-section" style="margin-top:0;">
+        <h3 id="lbl-pay-title" class="payment-title">Scan & Complete Your Enrollment</h3>
+        <p id="lbl-pay-sub" class="payment-sub">Scan using GPay, PhonePe, Paytm, or BHIM UPI app</p>
+
+        <div class="score-display-box" style="margin: 10px 0 16px;">
+          <span id="lbl-fee-display-tag" style="font-size:0.9rem; color:var(--text-muted);">Amount to Pay:</span>
+          <span id="res-payable-amt" class="score-num" style="font-size:2.2rem; color:#34D399;">₹150</span>
+        </div>
+
+        <div class="qr-box-wrapper">
+          <div id="qrcode-container"></div>
+        </div>
+
+        <div class="upi-id-box">
+          <span id="display-upi-id">1979.ravi.agarwal-3@okhdfcbank</span>
+          <button id="btn-copy-upi" onclick="copyUpiId()" type="button" class="copy-btn">Copy UPI</button>
+        </div>
+
+        <a id="btn-pay-direct" class="btn-primary" href="#" style="background: linear-gradient(135deg, #10B981, #059669); margin-top:0; text-decoration:none;">
+          Open UPI App Directly 📲
+        </a>
+
+        <div class="payment-apps-row" style="margin-top: 14px;">
+          <a id="link-gpay" class="app-chip" href="#" style="text-decoration:none; cursor:pointer;">GPay 📱</a>
+          <a id="link-phonepe" class="app-chip" href="#" style="text-decoration:none; cursor:pointer;">PhonePe 📱</a>
+          <a id="link-paytm" class="app-chip" href="#" style="text-decoration:none; cursor:pointer;">Paytm 📱</a>
+          <a id="link-bhim" class="app-chip" href="#" style="text-decoration:none; cursor:pointer;">BHIM 📱</a>
+        </div>
+
+        <!-- Confirm Payment Box -->
+        <div style="margin-top:20px; border-top:1px dashed rgba(255,255,255,0.15); padding-top:16px;">
+          <div class="form-group" style="margin-bottom:10px;">
+            <label id="lbl-utr" class="form-label" style="text-align:center;" for="input-utr">Enter UTR / Ref No. (Optional):</label>
+            <input type="text" id="input-utr" class="form-input" placeholder="e.g. 4239XXXXXXXX" style="text-align:center;">
+          </div>
+          <button id="btn-verify-payment" onclick="gotoRegistrationScreen()" type="button" class="btn-primary" style="background: linear-gradient(135deg, #F59E0B, #D97706); color:#000; font-weight:800;">
+            I Have Paid / Proceed to Registration ⚡
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- SCREEN 5: Candidate Registration Form (Post-Payment) -->
+    <main id="screen-registration" class="view-screen hidden">
+      <!-- Back Navigation Row -->
+      <div class="screen-nav-bar" style="display:flex; align-items:center; justify-content:flex-start; margin-bottom:8px;">
+        <button id="btn-back-registration" onclick="goBackFrom('screen-registration')" type="button" class="btn-secondary" style="width:auto; padding:6px 14px; font-size:0.82rem; border-color:rgba(255,255,255,0.2);">
+          ⬅ Back to Payment
+        </button>
+      </div>
+
+      <div class="hero-card">
+        <h2 id="lbl-reg-screen-title" class="hero-title" style="font-size:1.35rem;">Candidate Registration 📝</h2>
+        <p id="lbl-reg-screen-desc" style="font-size:0.85rem; color:var(--text-muted); margin-bottom:16px;">
+          Please enter your details to generate your official DYS Pass Ticket.
+        </p>
+
+        <div class="form-group">
+          <label id="lbl-name" class="form-label" for="input-name">👤 Full Name *</label>
+          <input type="text" id="input-name" class="form-input" placeholder="e.g. Rahul Sharma" required>
+        </div>
+
+        <div class="form-group">
+          <label id="lbl-age" class="form-label" for="input-age">🎂 Age *</label>
+          <input type="number" id="input-age" class="form-input" placeholder="e.g. 21" min="10" max="99" required>
+        </div>
+
+        <div class="form-group">
+          <label id="lbl-phone" class="form-label" for="input-phone">💬 WhatsApp Number *</label>
+          <input type="tel" id="input-phone" class="form-input" placeholder="e.g. 9876543210" required>
+        </div>
+
+        <!-- Occupation Selection -->
+        <div class="form-group">
+          <label id="lbl-occupation" class="form-label">💼 Occupation *</label>
+          <div class="radio-cards-grid">
+            <button id="btn-occ-student" type="button" onclick="setOccupation('student')" class="radio-card-btn active">
+              🎓 <span id="lbl-occ-student">Student</span>
+            </button>
+            <button id="btn-occ-job" type="button" onclick="setOccupation('job')" class="radio-card-btn">
+              👔 <span id="lbl-occ-job">Job / Self-Employed</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Conditional Field Box 1: Student Details -->
+        <div id="box-occ-student">
+          <div class="form-group">
+            <label id="lbl-college" class="form-label" for="input-college">🏛️ College / School Name *</label>
+            <input type="text" id="input-college" class="form-input" placeholder="e.g. COEP / VIT Pune">
+          </div>
+          <div class="form-group">
+            <label id="lbl-degree" class="form-label" for="input-degree">🎓 Degree *</label>
+            <input type="text" id="input-degree" class="form-input" placeholder="e.g. B.Tech / B.Sc">
+          </div>
+          <div class="form-group">
+            <label id="lbl-branch" class="form-label" for="input-branch">📚 Branch / Year *</label>
+            <input type="text" id="input-branch" class="form-input" placeholder="e.g. CS / 3rd Year">
+          </div>
+        </div>
+
+        <!-- Conditional Field Box 2: Job / Self-Employed Details -->
+        <div id="box-occ-job" class="hidden">
+          <div class="form-group">
+            <label id="lbl-company" class="form-label" for="input-company">🏢 Company / Business Name *</label>
+            <input type="text" id="input-company" class="form-input" placeholder="e.g. TCS / Infosys / Business">
+          </div>
+          <div class="form-group">
+            <label id="lbl-position" class="form-label" for="input-position">💼 Position / Role *</label>
+            <input type="text" id="input-position" class="form-input" placeholder="e.g. Software Engineer / Manager">
+          </div>
+        </div>
+
+        <!-- Marital Status Selection Integrated Directly Into Registration Form -->
+        <div class="form-group" style="margin-top:16px;">
+          <label id="lbl-marital-status" class="form-label">💍 Marital Status *</label>
+          <div class="radio-cards-grid">
+            <button id="btn-marital-single" type="button" onclick="setMaritalStatus('single')" class="radio-card-btn active">
+              🙋 <span id="lbl-marital-single">Single</span>
+            </button>
+            <button id="btn-marital-married" type="button" onclick="setMaritalStatus('married')" class="radio-card-btn">
+              👩‍❤️‍👨 <span id="lbl-marital-married">Married</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Single Gender Selection (Revealed ONLY when Single is selected) -->
+        <div id="box-single-gender" class="form-group" style="margin-top:16px;">
+          <label id="lbl-gender" class="form-label">👤 Gender *</label>
+          <div class="radio-cards-grid">
+            <button id="btn-gender-male" type="button" onclick="setGender('male')" class="radio-card-btn active">
+              👨 <span id="lbl-gender-male">Male</span>
+            </button>
+            <button id="btn-gender-female" type="button" onclick="setGender('female')" class="radio-card-btn">
+              👩 <span id="lbl-gender-female">Female</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Remarks (Optional) -->
+        <div class="form-group" style="margin-top:16px;">
+          <label id="lbl-remarks" class="form-label" for="input-remarks">📝 Remarks (Optional)</label>
+          <textarea id="input-remarks" class="form-input" rows="2" placeholder="Any specific requirements or notes..." style="resize:none;"></textarea>
+        </div>
+
+        <button id="btn-complete-registration" onclick="completeRegistrationAndGeneratePass()" type="button" class="btn-primary" style="margin-top:20px; background: linear-gradient(135deg, #10B981, #059669);">
+          Complete Registration & Get Pass Ticket 🎫
+        </button>
+      </div>
+    </main>
+
+    <!-- SCREEN 6: Registration Pass Ticket -->
+    <main id="screen-pass" class="view-screen hidden">
+      <div id="success-pass-card" class="result-card pass-receipt-card" style="margin-top:0;">
+        <!-- Pass Ticket Header -->
+        <div class="pass-ticket-header">
+          <img src="iskcon_logo.png" alt="ISKCON Logo" style="width:48px; height:auto; background:#FFF; padding:3px; border-radius:50%;">
+          <div>
+            <div class="pass-org-name">DISCOVER YOUR SELF</div>
+            <div class="pass-course-name">Official Course Pass</div>
+          </div>
+        </div>
+
+        <div id="lbl-verified-badge" class="congrats-badge" style="background: rgba(16, 185, 129, 0.25); border-color: #10B981; color: #34D399; margin-top:10px;">
+          ✅ PAYMENT VERIFIED & REGISTERED
+        </div>
+        
+        <div class="breakdown-box" style="margin-top:14px; background: rgba(15, 23, 42, 0.95); border-color: #10B981; text-align:left;">
+          <div class="breakdown-row">
+            <span id="lbl-pass-id-title">Pass ID:</span>
+            <span id="pass-reg-id" class="gold-text" style="font-weight:900; font-size:1.05rem;">ISKCON-REG-2001</span>
+          </div>
+          <div class="breakdown-row">
+            <span id="lbl-student-name-title">Student Name:</span>
+            <span id="pass-student-name" style="font-weight:700; color:#FFF;">Participant</span>
+          </div>
+          <div class="breakdown-row">
+            <span id="lbl-age-pass-title">Age:</span>
+            <span id="pass-age" style="color:#FFF;">-</span>
+          </div>
+          <div class="breakdown-row">
+            <span id="lbl-phone-title">WhatsApp Number:</span>
+            <span id="pass-phone" style="color:#FFF;">-</span>
+          </div>
+          <div class="breakdown-row">
+            <span id="lbl-occ-pass-title">Occupation / Info:</span>
+            <span id="pass-occupation" style="color:#FFF;">-</span>
+          </div>
+          <div class="breakdown-row">
+            <span id="lbl-score-pass-title">Quiz Score:</span>
+            <span id="pass-score" style="color:var(--text-gold); font-weight:800;">20 / 20 Marks</span>
+          </div>
+          <div class="breakdown-row">
+            <span id="lbl-paid-amt-title">Paid Amount:</span>
+            <span id="pass-amount" style="color:#34D399; font-weight:900; font-size:1.1rem;">₹150</span>
+          </div>
+          <div class="breakdown-row">
+            <span id="lbl-datetime-title">Date & Time:</span>
+            <span id="pass-time" style="font-size:0.8rem; color:var(--text-muted);">-</span>
+          </div>
+        </div>
+
+        <div class="pass-note-box">
+          📌 <span id="lbl-pass-note">Please keep a screenshot or printout of this pass for entry at the venue.</span>
+        </div>
+
+        <div class="no-print" style="display:flex; flex-direction:column; gap:10px; margin-top:16px;">
+          <button id="btn-print-pass" onclick="window.print()" class="btn-primary" style="background: linear-gradient(135deg, #10B981, #059669); margin-top:0;">
+            Download Registration Pass 📄
+          </button>
+          <a id="btn-whatsapp-group" href="https://chat.whatsapp.com/" target="_blank" class="btn-secondary" style="text-decoration:none; text-align:center; border-color:#25D366; color:#25D366; font-size:1rem; font-weight:800;">
+            Join WhatsApp Group 💬
+          </a>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer-note">
+      <span id="lbl-footer-text">© Discover Your Self Course</span>
+    </footer>
+
+  </div>
+
+  <!-- Initial Language Selection Modal (Shows on website load) -->
+  <div id="lang-select-modal" class="modal-overlay">
+    <div class="modal-card" style="text-align:center;">
+      <img src="iskcon_logo.png" alt="ISKCON Logo" style="width:68px; height:auto; background:#FFF; border-radius:50%; padding:4px; margin:0 auto 12px; display:block;">
+      <h2 style="color:#FFF; font-size:1.4rem; margin-bottom:6px;">Discover Your Self</h2>
+      <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:20px;">Select Preferred Language / भाषा चुनें</p>
+      
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <button onclick="selectInitialLanguage('en')" class="btn-primary" style="background: linear-gradient(135deg, #FF7700, #F59E0B);">
+          Continue in English →
+        </button>
+        <button onclick="selectInitialLanguage('hi')" class="btn-primary" style="background: linear-gradient(135deg, #F59E0B, #E65100);">
+          हिंदी में आगे बढ़ें →
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Organizer Settings Modal (Secret Admin Only) -->
+  <div id="settings-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-title">
+        <span>Organizer Settings (Admin)</span>
+        <button id="close-settings" class="close-modal-btn">&times;</button>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="input-base-fee">Base Fee (₹)</label>
+        <input type="number" id="input-base-fee" class="form-input" value="300">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="input-upi-id">Organizer UPI ID (VPA)</label>
+        <input type="text" id="input-upi-id" class="form-input" value="1979.ravi.agarwal-3@okhdfcbank">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="input-payee-name">Payee Name</label>
+        <input type="text" id="input-payee-name" class="form-input" value="Discover Your Self">
+      </div>
+
+      <button id="btn-save-settings" class="btn-primary" style="margin-top:16px;">
+        Save Settings
+      </button>
+    </div>
+  </div>
+
+  <!-- JavaScript Modules -->
+  <script src="qrcode.min.js"></script>
+  <script src="app.js?v=17.0"></script>
+</body>
+</html>

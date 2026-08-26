@@ -1,0 +1,1341 @@
+/**
+ * Discover Your Self (DYS) - Engine & Student Portal
+ * Based on Bhagavad Gita
+ */
+
+// App State
+let currentLang = 'en'; // 'en' or 'hi'
+let currentQuestionIndex = 0;
+let userAnswers = {}; // { 0: 'C', 1: 'D', ... }
+let studentData = {
+  name: '',
+  age: '',
+  phone: '',
+  occupation: 'student', // 'student' or 'job'
+  college: '',
+  degree: '',
+  branch: '',
+  company: '',
+  position: '',
+  remarks: '',
+  maritalStatus: 'single', // 'single' or 'married'
+  gender: 'male' // 'male' or 'female'
+};
+let currentAttemptRecord = null;
+let lastCalculatedResult = null;
+
+// Config Default Values
+let appConfig = {
+  baseFee: 300,
+  upiId: '1979.ravi.agarwal-3@okhdfcbank',
+  payeeName: 'Discover Your Self'
+};
+
+// WhatsApp Group Target Links
+const whatsappGroups = {
+  male: 'https://chat.whatsapp.com/sample-male-group',
+  female: 'https://chat.whatsapp.com/sample-female-group',
+  married: 'https://chat.whatsapp.com/sample-married-group'
+};
+
+// Motivation Messages per Question Stepper (Strict 1-line quotes)
+const motivationMessages = {
+  en: [
+    "Taking your first step towards self-discovery! ✨",
+    "Great start! Uncover your inner wisdom 🌟",
+    "Excellent progress! Building momentum 🚀",
+    "Doing amazing! Halfway through 🧠",
+    "Fantastic focus! Spiritual insights unfolding ✨",
+    "Keep going! Discovering your result soon 🎯",
+    "Close to unlocking your reward! 🌟",
+    "Almost at the finish line! 🔥",
+    "Only 2 questions left! Almost there 🔥",
+    "Final question! Reveal your score 🎯"
+  ],
+  hi: [
+    "आत्म-खोज की ओर आपका पहला कदम! ✨",
+    "शानदार शुरुआत! आंतरिक ज्ञान खोजें 🌟",
+    "उत्कृष्ट प्रगति! आगे बढ़ते रहें 🚀",
+    "अद्भुत! आधा पड़ाव पार 🧠",
+    "गहरी एकाग्रता! आध्यात्मिक विचार ✨",
+    "आगे बढ़ें! शीघ्र अपना परिणाम देखें 🎯",
+    "इनाम पाने के बेहद करीब! 🌟",
+    "अंतिम रेखा के करीब! 🔥",
+    "केवल 2 प्रश्न शेष! 🎯",
+    "अंतिम प्रश्न! अपना स्कोर देखें 🎯"
+  ]
+};
+
+// Quiz Question Dataset (10 Qs with Scriptural Explanations)
+const quizData = [
+  {
+    id: 1,
+    correctAnswer: 'C',
+    question: {
+      en: "1. What is your real identity?",
+      hi: "1. आपकी वास्तविक पहचान क्या है?"
+    },
+    options: {
+      en: [
+        { key: 'A', text: "I am an Engineer/doctor/professional." },
+        { key: 'B', text: "I am a human being and my name is so and so." },
+        { key: 'C', text: "I am an immortal spirit soul." },
+        { key: 'D', text: "I am an Indian." }
+      ],
+      hi: [
+        { key: 'A', text: "मैं एक अभियंता/चिकित्सक/व्यवसायी हूँ।" },
+        { key: 'B', text: "मैं एक मनुष्य हूँ और मेरा कुछ नाम है।" },
+        { key: 'C', text: "मैं एक अमर आत्मा हूँ।" },
+        { key: 'D', text: "मैं एक भारतीय हूँ।" }
+      ]
+    },
+    explanation: {
+      en: "As explained in Bhagavad-gita (2.13 & 2.20), we are not this temporary material body made of 5 elements, but eternal immortal spirit souls (aham brahmasmi).",
+      hi: "भगवद गीता (2.13 और 2.20) के अनुसार, हम यह 5 तत्वों का नश्वर शरीर नहीं बल्कि अजर-अमर आत्मा हैं (अहम ब्रह्मास्मि)।"
+    }
+  },
+  {
+    id: 2,
+    correctAnswer: 'D',
+    question: {
+      en: "2. What happens when we die? (in general)",
+      hi: "2. सामान्यतः जब हम मर जाते हैं तो हमारा क्या होता है?"
+    },
+    options: {
+      en: [
+        { key: 'A', text: "Everything is finished; we do not exist after death." },
+        { key: 'B', text: "We live only once." },
+        { key: 'C', text: "We go to heaven. (Swarga-vasa)" },
+        { key: 'D', text: "We take birth again in a different body according to our Karma (Reincarnation)." }
+      ],
+      hi: [
+        { key: 'A', text: "सब कुछ खत्म हो जाता है; हम मौत के बाद अस्तित्व में नहीं हैं।" },
+        { key: 'B', text: "हम केवल एक बार रहते हैं।" },
+        { key: 'C', text: "हम स्वर्ग में जाते हैं। (स्वर्ग-वास)" },
+        { key: 'D', text: "हम अपने कर्म के अनुसार एक नए शरीर में फिर से जन्म लेते हैं। (पुनर्जन्म)" }
+      ]
+    },
+    explanation: {
+      en: "Bhagavad-gita (2.22) states that just as a person puts on new garments, giving up old ones, the soul similarly accepts new material bodies based on past desires and karma.",
+      hi: "भगवद गीता (2.22) में भगवान कृष्ण बताते हैं कि जैसे मनुष्य पुराने कपड़ों को त्यागकर नए कपड़े धारण करता है, वैसे ही आत्मा कर्मों के अनुसार नया शरीर प्राप्त करती है।"
+    }
+  },
+  {
+    id: 3,
+    correctAnswer: 'A',
+    question: {
+      en: "3. What is the SPECIALITY of humans over animals?",
+      hi: "3. पशुओं की तुलना में मनुष्य की विशेषताएँ क्या हैं?"
+    },
+    options: {
+      en: [
+        { key: 'A', text: "Intelligence to know the goal of life & cause of suffering." },
+        { key: 'B', text: "Eating in hotels & sleeping on costly beds." },
+        { key: 'C', text: "To work hard and be successful in life." },
+        { key: 'D', text: "Maintaining family and social relations." }
+      ],
+      hi: [
+        { key: 'A', text: "अपने और भगवान के संबंध को जानना तथा इस दुनिया में दुःख के कारण को समझने की क्षमता।" },
+        { key: 'B', text: "होटलों में भोजन करना तथा महंगे बिस्तरों पर सोना।" },
+        { key: 'C', text: "जीवन में कठोर परिश्रम करना।" },
+        { key: 'D', text: "पारिवारिक और सामाजिक संबंधों को बनाए रखना।" }
+      ]
+    },
+    explanation: {
+      en: "Eating, sleeping, mating, and defending are common to both humans and animals. Human life is uniquely gifted with higher intelligence for spiritual inquiry (athato brahma jijnasa).",
+      hi: "आहार, निद्रा, भय और मैथुन पशुओं और मनुष्यों में समान हैं। मानव जीवन की विशेष सार्थकता भगवान और जीवन के लक्ष्य की जिज्ञासा करने में है (अथातो ब्रह्म जिज्ञासा)।"
+    }
+  },
+  {
+    id: 4,
+    correctAnswer: 'C',
+    question: {
+      en: "4. What are the Vedas?",
+      hi: "4. वेद क्या हैं?"
+    },
+    options: {
+      en: [
+        { key: 'A', text: "Ancient textbooks given by some ancient people though not much relevance in modern day & age." },
+        { key: 'B', text: "Mythological stories carried down by tradition." },
+        { key: 'C', text: "Manuals given by God to know goal of life." },
+        { key: 'D', text: "Some books to maintain morality in society." }
+      ],
+      hi: [
+        { key: 'A', text: "प्राचीन लोगों द्वारा दिए गए प्राचीन पुस्तकें, जिनका आधुनिक युग में कोई उपयोग नहीं है।" },
+        { key: 'B', text: "परंपराओं द्वारा चली आ रही काल्पनिक कहानियाँ।" },
+        { key: 'C', text: "भगवान द्वारा दिए गए ग्रंथ जो हमें भगवान की शिक्षाओं के अनुसार जीना सिखाते हैं।" },
+        { key: 'D', text: "समाज में शांति बनाए रखने के लिए कुछ पुस्तकें।" }
+      ]
+    },
+    explanation: {
+      en: "Just as a complex machine comes with a user manual from the manufacturer, the Vedas are divine instructions spoken by God for humanity to achieve perfection.",
+      hi: "जैसे किसी उपकरण के साथ निर्माता का यूजर मैनुअल आता है, वैसे ही वेद परमपिता परमेश्वर द्वारा दिए गए जीवन जीने के प्रामाणिक मार्गदर्शक ग्रंथ हैं।"
+    }
+  },
+  {
+    id: 5,
+    correctAnswer: 'B',
+    question: {
+      en: "5. What is YOGA?",
+      hi: "5. योग क्या है?"
+    },
+    options: {
+      en: [
+        { key: 'A', text: "Bodily exercises to keep the body fit." },
+        { key: 'B', text: "To connect with God through an authentic process." },
+        { key: 'C', text: "A technique to get free from stress." },
+        { key: 'D', text: "None of the above." }
+      ],
+      hi: [
+        { key: 'A', text: "स्वस्थ रहने के लिए शारीरिक व्यायाम।" },
+        { key: 'B', text: "भगवान से जुड़ने की प्रामाणिक प्रक्रिया।" },
+        { key: 'C', text: "तनाव से मुक्त होने की विधि।" },
+        { key: 'D', text: "इनमें से कोई भी नहीं।" }
+      ]
+    },
+    explanation: {
+      en: "The root word 'Yoga' means 'to connect' - uniting the individual spirit soul with the Supreme Lord through authentic devotional process.",
+      hi: "'योग' का शाब्दिक अर्थ है 'जोड़ना' - जीवात्मा का परमात्मा (भगवान श्री कृष्ण) से स्थायी आध्यात्मिक संबंध स्थापित करना ही सच्चा योग है।"
+    }
+  },
+  {
+    id: 6,
+    correctAnswer: 'B',
+    question: {
+      en: "6. What are the real problems of life? (no one wants; yet everyone gets)",
+      hi: "6. जीवन की वास्तविक समस्या क्या है? (कोई नहीं चाहता फिर भी सभी को मिलती है)"
+    },
+    options: {
+      en: [
+        { key: 'A', text: "Traffic jams, neighbours' issues, high prices." },
+        { key: 'B', text: "Birth, old age, disease & death." },
+        { key: 'C', text: "Unemployment, poverty, corruption." },
+        { key: 'D', text: "Relationship issues." }
+      ],
+      hi: [
+        { key: 'A', text: "ट्रैफिक जाम, पड़ोसियों के मुद्दे, महंगाई।" },
+        { key: 'B', text: "जन्म, बुढ़ापा, बीमारी और मौत।" },
+        { key: 'C', text: "बेरोजगारी, गरीबी, भ्रष्टाचार।" },
+        { key: 'D', text: "संबंधों में तनाव।" }
+      ]
+    },
+    explanation: {
+      en: "Bhagavad-gita (13.9) highlights janma-mrityu-jara-vyadhi (birth, death, old age, disease) as the primary, unavoidable tribulations of material existence.",
+      hi: "श्रीमद्भगवद्गीता (13.9) में जन्म-मृत्यु-जरा-व्याधि को जीवन की वास्तविक और सार्वभौमिक समस्याएँ बताया गया है।"
+    }
+  },
+  {
+    id: 7,
+    correctAnswer: 'A',
+    question: {
+      en: "7. Who is God?",
+      hi: "7. भगवान कौन हैं?"
+    },
+    options: {
+      en: [
+        { key: 'A', text: "God is the origin of everything; He owns & controls everything." },
+        { key: 'B', text: "Anybody who excels in his field." },
+        { key: 'C', text: "One who helps me is God." },
+        { key: 'D', text: "God is just a concept; actually, there is no God." }
+      ],
+      hi: [
+        { key: 'A', text: "ईश्वर ही नियंत्रणकर्ता तथा हमारे परमपिता।" },
+        { key: 'B', text: "जो अपने क्षेत्र में दक्ष हो।" },
+        { key: 'C', text: "जो मेरी मदद करे।" },
+        { key: 'D', text: "ईश्वर एक कल्पना है।" }
+      ]
+    },
+    explanation: {
+      en: "Brahma-samhita (5.1) states: Isvarah paramah krsnah — God is the Supreme Controller, the origin of everything, owning and sustaining all existence.",
+      hi: "ब्रह्म-संहिता (5.1) के अनुसार ईश्वर ही समस्त कारणों के मूल कारण, सर्वव्यापी नियंत्रणकर्ता और संपूर्ण ब्रह्मांड के स्वामी हैं।"
+    }
+  },
+  {
+    id: 8,
+    correctAnswer: 'D',
+    question: {
+      en: "8. How can we become TRULY happy in life forever?",
+      hi: "8. हम सदा के लिए वास्तविक सुख कैसे प्राप्त कर सकते हैं?"
+    },
+    options: {
+      en: [
+        { key: 'A', text: "By social networking, watching movies and going for picnics." },
+        { key: 'B', text: "By going to foreign countries & accumulating a lot of wealth and becoming a famous person." },
+        { key: 'C', text: "By watching TV." },
+        { key: 'D', text: "By serving the supreme Lord with devotion." }
+      ],
+      hi: [
+        { key: 'A', text: "सामाजिक नेटवर्किंग करके, फ़िल्में देखकर, सैरसपाटे करके।" },
+        { key: 'B', text: "विदेशों में जाकर और अत्यधिक धन कमाकर तथा प्रसिद्धि पाकर।" },
+        { key: 'C', text: "टेलीविजन देखने के द्वारा।" },
+        { key: 'D', text: "भगवान की भक्तिमय सेवा करके।" }
+      ]
+    },
+    explanation: {
+      en: "Material pleasures are temporary and end in distress. True eternal bliss (ananda) is realized only through unmotivated, loving devotional service to Krishna.",
+      hi: "भौतिक सुख क्षणिक होते हैं। आत्मा को स्थायी आनंद केवल भगवान की निष्काम भक्तिमय सेवा (भक्ति-योग) से ही प्राप्त हो सकता है।"
+    }
+  },
+  {
+    id: 9,
+    correctAnswer: 'B',
+    question: {
+      en: "9. Why do bad things happen to good people?",
+      hi: "9. अच्छे लोगों के साथ बुरा क्यों होता है?"
+    },
+    options: {
+      en: [
+        { key: 'A', text: "Just by chance." },
+        { key: 'B', text: "Due to some wrong activity undertaken by them in the past. (Law of Karma)" },
+        { key: 'C', text: "Probably because of some mistake in God." },
+        { key: 'D', text: "Because of devil's plan." }
+      ],
+      hi: [
+        { key: 'A', text: "बस संयोग से।" },
+        { key: 'B', text: "उनके द्वारा भूतकाल में किए गए बुरे कर्मों के कारण। (कर्म का नियम)" },
+        { key: 'C', text: "शायद भगवान की गलती के कारण।" },
+        { key: 'D', text: "शैतानी शक्तियों की वजह से।" }
+      ]
+    },
+    explanation: {
+      en: "Every action has an equal reaction (Law of Karma). Suffering in the present life is the culmination of unfulfilled reactions from past activities.",
+      hi: "प्रत्येक कर्म की प्रतिक्रिया होती है (कर्म का नियम)। वर्तमान जीवन के कष्ट अतीत या पूर्वजन्मों के कर्मफल का ही परिणाम होते हैं।"
+    }
+  },
+  {
+    id: 10,
+    correctAnswer: 'D',
+    question: {
+      en: "10. According to Scriptures (shaastra), which is the most simple and practical way of attaining GOD in this present age of Kali yuga?",
+      hi: "10. शास्त्रों के अनुसार, कलियुग के वर्तमान युग में भगवान का साक्षात्कार करने का सबसे सरल तथा व्यावहारिक मार्ग क्या है?"
+    },
+    options: {
+      en: [
+        { key: 'A', text: "By modern scientific research." },
+        { key: 'B', text: "Going to meditate in Himalayas (Dhyana-yoga)." },
+        { key: 'C', text: "Performing fire Yajnas or havans." },
+        { key: 'D', text: "Chanting of the Holy Names of God (Bhakti-yoga)." }
+      ],
+      hi: [
+        { key: 'A', text: "आधुनिक विज्ञान के द्वारा।" },
+        { key: 'B', text: "पर्वत की चोटी तथा जंगल में जाकर ध्यान करके। (ध्यान-योग)" },
+        { key: 'C', text: "विशाल यज्ञ तथा हवन कुंड आयोजित करके।" },
+        { key: 'D', text: "भगवान के पवित्र नाम का कीर्तन करना। (भक्ति-योग)" }
+      ]
+    },
+    explanation: {
+      en: "Vedic scriptures state: 'harer nama harer nama harer namaiva kevalam' - Chanting the Holy Names of God (Bhakti-yoga) is the supreme method in Kali-yuga.",
+      hi: "बृहन्नारदीय पुराण के अनुसार 'हरेर्नाम हरेर्नाम हरेर्नामैव केवलम्'। कलियुग में भगवान का साक्षात्कार करने का सबसे सरल साधन भक्ति-योग (हरिनाम कीर्तन) है।"
+    }
+  }
+];
+
+// Complete Dual-Language UI Text
+const uiText = {
+  en: {
+    appTitle: "Discover Your Self",
+    appSub: "Based on Bhagavad Gita As It Is",
+    nextBtn: "Next Question ➔",
+    prevBtn: "⬅ Previous",
+    submitBtn: "Submit Test & Review Score 🎯",
+    markingNotice: "Marking Scheme: +2 for Correct | -1 for Wrong | 0 for Unattempted",
+    congratsTitle: "Test Completed Successfully!",
+    scoreTotal: "/ 20 Marks",
+    correctCountLabel: "Correct Answers (+2):",
+    wrongCountLabel: "Wrong Answers (-1):",
+    unattemptedCountLabel: "Unattempted (0):",
+    viewExplanationsBtn: "View Correct Answers & Explanations 📖",
+    hideExplanationsBtn: "Hide Answer Explanations ⬆",
+    scripturalTitle: "💡 Scriptural Reason & Explanation:",
+    yourAnsText: "Your Answer:",
+    correctAnsText: "Correct Answer:",
+    unansweredText: "⚪ Unanswered",
+    questionPrefix: "Question",
+    courseHighlightsTitle: "🌟 Why Join Discover Your Self Course?",
+    counselingTag: "🤝 Personal 1-on-1 Counseling",
+    friendsTag: "👥 Make Genuine Spiritual Friends",
+    stressTag: "🧠 Stress Relief & Focus Techniques",
+    enlightenTag: "✨ Spiritually Enlightened Lifestyle",
+    gitaTag: "📖 Learn Basics of Bhagavad Gita in Just 8 Sessions",
+    meditationTag: "✨ Mantra Meditation",
+    journeyBanner: "DISCOVER...",
+    j1: "Inner Self",
+    j2: "Ultimate Genius",
+    j3: "Manual of Life",
+    j4: "Lasting Solutions",
+    j5: "Sublime Joy Through Sound",
+    j6: "Real Eternal Love",
+    j7: "The Happy Planet",
+    j8: "True Unity in Diversity",
+    gotoPaymentBtn: "Proceed to Register & Pay Fee 💳",
+    payTitle: "Scan & Complete Your Enrollment",
+    paySub: "Scan using GPay, PhonePe, Paytm, or BHIM UPI app",
+    amountToPayTag: "Amount to Pay:",
+    copyUpiBtn: "Copy UPI",
+    openUpiBtn: "Open UPI App Directly 📲",
+    utrLabel: "Enter UTR / Ref No. (Optional):",
+    confirmPayBtn: "I Have Paid / Proceed to Registration ⚡",
+    regScreenTitle: "Candidate Registration 📝",
+    regScreenDesc: "Please enter your details to generate your official DYS Pass Ticket.",
+    nameLabel: "👤 Full Name *",
+    ageLabel: "🎂 Age *",
+    phoneLabel: "💬 WhatsApp Number *",
+    occupationLabel: "💼 Occupation *",
+    occStudent: "Student",
+    occJob: "Job / Self-Employed",
+    collegeLabel: "🏛️ College / School Name *",
+    degreeLabel: "🎓 Degree *",
+    branchLabel: "📚 Branch / Year *",
+    companyLabel: "🏢 Company / Business Name *",
+    positionLabel: "💼 Position / Role *",
+    remarksLabel: "📝 Remarks (Optional)",
+    gotoMaritalBtn: "Proceed to Marital Status ➔",
+    maritalStatusLabel: "💍 Marital Status *",
+    maritalSingle: "Single",
+    maritalMarried: "Married",
+    genderLabel: "👤 Gender *",
+    genderMale: "Male",
+    genderFemale: "Female",
+    completeRegistrationBtn: "Complete Registration & Get Pass Ticket 🎫",
+    verifiedBadge: "✅ PAYMENT VERIFIED & REGISTERED",
+    passOrgName: "DISCOVER YOUR SELF",
+    passCourseName: "Official Course Pass",
+    passIdLabel: "Pass ID:",
+    studentNameLabel: "Student Name:",
+    agePassTitle: "Age:",
+    phoneNumLabel: "WhatsApp Number:",
+    occPassTitle: "Occupation / Info:",
+    scorePassTitle: "Quiz Score:",
+    paidAmtLabel: "Paid Amount:",
+    dateTimeLabel: "Date & Time:",
+    passNote: "Please keep a screenshot or printout of this pass for entry at the venue.",
+    printPassBtn: "Download Registration Pass 📄",
+    whatsappBtn: "Join WhatsApp Group 💬",
+    btnBackResult: "⬅ Back to Quiz",
+    btnBackCourse: "⬅ Back to Results",
+    btnBackPayment: "⬅ Back to Course Details",
+    btnBackRegistration: "⬅ Back to Payment",
+    btnBackPass: "⬅ Back to Registration Form",
+    footerText: "© Discover Your Self Course",
+    copiedToast: "UPI ID copied to clipboard!",
+    fillErrorReg: "Please fill in all required registration fields.",
+    paymentSuccessToast: "Registration Completed Successfully 🎉"
+  },
+  hi: {
+    appTitle: "डिस्कवर योर सेल्फ",
+    appSub: "भगवद गीता यथारूप पर आधारित",
+    nextBtn: "अगला प्रश्न ➔",
+    prevBtn: "⬅ पिछला",
+    submitBtn: "टेस्ट जमा करें और स्कोर देखें 🎯",
+    markingNotice: "अंकन नियम: सही पर +2 | गलत पर -1 | अनउत्तरित पर 0",
+    congratsTitle: "परीक्षण सफलतापूर्वक पूर्ण!",
+    scoreTotal: "/ 20 अंक",
+    correctCountLabel: "सही उत्तर (+2):",
+    wrongCountLabel: "गलत उत्तर (-1):",
+    unattemptedCountLabel: "अनुत्तरित (0):",
+    viewExplanationsBtn: "सही उत्तर और व्याख्या देखें 📖",
+    hideExplanationsBtn: "उत्तर व्याख्या छिपाएं ⬆",
+    scripturalTitle: "💡 शास्त्रगत कारण और व्याख्या:",
+    yourAnsText: "आपका उत्तर:",
+    correctAnsText: "सही उत्तर:",
+    unansweredText: "⚪ कोई उत्तर नहीं दिया",
+    questionPrefix: "प्रश्न",
+    courseHighlightsTitle: "🌟 डिस्कवर योर सेल्फ कोर्स में क्यों शामिल हों?",
+    counselingTag: "🤝 व्यक्तिगत 1-ऑन-1 परामर्श",
+    friendsTag: "👥 सच्चे आध्यात्मिक मित्र बनाएं",
+    stressTag: "🧠 मानसिक तनाव मुक्ति और एकाग्रता तकनीक",
+    enlightenTag: "✨ आध्यात्मिक रूप से प्रबुद्ध जीवन शैली",
+    gitaTag: "📖 केवल 8 सत्रों में भगवद गीता का मूल ज्ञान सीखें",
+    meditationTag: "✨ मंत्र ध्यान",
+    journeyBanner: "खोजें...",
+    j1: "आंतरिक स्वरूप (Inner Self)",
+    j2: "परम प्रतिभा (Ultimate Genius)",
+    j3: "जीवन की नियमावली (Manual of Life)",
+    j4: "स्थायी समाधान (Lasting Solutions)",
+    j5: "दिव्य नाद द्वारा आनंद (Sublime Joy Through Sound)",
+    j6: "वास्तविक शाश्वत प्रेम (Real Eternal Love)",
+    j7: "आनंदमय ग्रह (The Happy Planet)",
+    j8: "विविधता में एकता (True Unity in Diversity)",
+    gotoPaymentBtn: "पंजीकरण और शुल्क भुगतान के लिए आगे बढ़ें 💳",
+    payTitle: "स्कैन करें और अपना नामांकन पूरा करें",
+    paySub: "GPay, PhonePe, Paytm या BHIM UPI ऐप से स्कैन करें",
+    amountToPayTag: "भुगतान की जाने वाली राशि:",
+    copyUpiBtn: "UPI ID कॉपी करें",
+    openUpiBtn: "सीधे UPI ऐप खोलें 📲",
+    utrLabel: "UTR / संदर्भ संख्या दर्ज करें (वैकल्पिक):",
+    confirmPayBtn: "मैंने भुगतान कर दिया है / पंजीकरण करें ⚡",
+    regScreenTitle: "उम्मीदवार पंजीकरण 📝",
+    regScreenDesc: "कृपया अपना आधिकारिक DYS पास टिकट बनाने के लिए विवरण दर्ज करें।",
+    nameLabel: "👤 पूरा नाम *",
+    ageLabel: "🎂 उम्र *",
+    phoneLabel: "💬 व्हाट्सएप नंबर *",
+    occupationLabel: "💼 व्यवसाय *",
+    occStudent: "छात्र",
+    occJob: "नौकरी / स्वरोजगार",
+    collegeLabel: "🏛️ कॉलेज / स्कूल का नाम *",
+    degreeLabel: "🎓 डिग्री *",
+    branchLabel: "📚 शाखा / वर्ष *",
+    companyLabel: "🏢 कंपनी / व्यवसाय का नाम *",
+    positionLabel: "💼 पद / भूमिका *",
+    remarksLabel: "📝 टिप्पणी (वैकल्पिक)",
+    gotoMaritalBtn: "वैवाहिक स्थिति के लिए आगे बढ़ें ➔",
+    maritalStatusLabel: "💍 वैवाहिक स्थिति *",
+    maritalSingle: "अविवाहित",
+    maritalMarried: "विवाहित",
+    genderLabel: "👤 लिंग *",
+    genderMale: "पुरुष",
+    genderFemale: "महिला",
+    completeRegistrationBtn: "पंजीकरण पूरा करें और पास टिकट प्राप्त करें 🎫",
+    verifiedBadge: "✅ भुगतान सत्यापित एवं पंजीकृत",
+    passOrgName: "डिस्कवर योर सेल्फ",
+    passCourseName: "आधिकारिक कोर्स पास",
+    passIdLabel: "पास आईडी:",
+    studentNameLabel: "छात्र का नाम:",
+    agePassTitle: "उम्र:",
+    phoneNumLabel: "व्हाट्सएप नंबर:",
+    occPassTitle: "व्यवसाय / विवरण:",
+    scorePassTitle: "क्विज़ स्कोर:",
+    paidAmtLabel: "भुगतान की गई राशि:",
+    dateTimeLabel: "दिनांक एवं समय:",
+    passNote: "कृपया वेन्यू पर प्रवेश के लिए इस पास का स्क्रीनशॉट या प्रिंटआउट अपने पास रखें।",
+    printPassBtn: "रजिस्ट्रेशन पास डाउनलोड करें 📄",
+    whatsappBtn: "व्हाट्सएप ग्रुप से जुड़ें 💬",
+    btnBackResult: "⬅ क्विज़ पर वापस आएं",
+    btnBackCourse: "⬅ परिणामों पर वापस जाएं",
+    btnBackPayment: "⬅ कोर्स विवरण पर वापस जाएं",
+    btnBackRegistration: "⬅ भुगतान पर वापस जाएं",
+    btnBackPass: "⬅ पंजीकरण फ़ॉर्म पर वापस जाएं",
+    footerText: "© डिस्कवर योर सेल्फ कोर्स",
+    copiedToast: "UPI ID क्लिपबोर्ड पर कॉपी हो गई!",
+    fillErrorReg: "कृपया सभी आवश्यक पंजीकरण फ़ील्ड भरें।",
+    paymentSuccessToast: "पंजीकरण सफलतापूर्वक पूरा हुआ 🎉"
+  }
+};
+
+// Initial Load Event Listener
+document.addEventListener('DOMContentLoaded', () => {
+  const savedLang = localStorage.getItem('dys_app_lang');
+  if (savedLang && (savedLang === 'en' || savedLang === 'hi')) {
+    currentLang = savedLang;
+  }
+  
+  // Show Initial Language Selection Modal on Load
+  const modal = document.getElementById('lang-select-modal');
+  if (modal) modal.classList.remove('hidden');
+
+  renderLanguageUI();
+  setupEventListeners();
+});
+
+// Navigation Back Handler for Every Screen
+function goBackFrom(screenId) {
+  if (screenId === 'screen-result') {
+    switchScreen('screen-result', 'screen-quiz');
+    renderQuestion(currentQuestionIndex);
+  } else if (screenId === 'screen-course') {
+    switchScreen('screen-course', 'screen-result');
+  } else if (screenId === 'screen-payment') {
+    switchScreen('screen-payment', 'screen-course');
+  } else if (screenId === 'screen-registration') {
+    switchScreen('screen-registration', 'screen-payment');
+  } else if (screenId === 'screen-pass') {
+    switchScreen('screen-pass', 'screen-registration');
+  }
+}
+
+// Helper for Screen Navigation
+function switchScreen(fromId, toId) {
+  const screens = document.querySelectorAll('.view-screen');
+  screens.forEach(s => s.classList.add('hidden'));
+
+  const target = document.getElementById(toId);
+  if (target) {
+    target.classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+// Initial Language Selection Callback
+function selectInitialLanguage(lang) {
+  currentLang = lang;
+  localStorage.setItem('dys_app_lang', currentLang);
+  
+  const modal = document.getElementById('lang-select-modal');
+  if (modal) modal.classList.add('hidden');
+
+  renderLanguageUI();
+  switchScreen(null, 'screen-quiz');
+  renderQuestion(0);
+}
+
+// Toggle Language Button Handler
+function toggleLanguage() {
+  currentLang = currentLang === 'en' ? 'hi' : 'en';
+  localStorage.setItem('dys_app_lang', currentLang);
+  
+  renderLanguageUI();
+
+  // Re-render active view content dynamically
+  if (!document.getElementById('screen-quiz').classList.contains('hidden')) {
+    renderQuestion(currentQuestionIndex);
+  } else if (!document.getElementById('screen-result').classList.contains('hidden') && lastCalculatedResult) {
+    calculateResultsAndShow(lastCalculatedResult.existingRecord);
+  } else if (!document.getElementById('screen-course').classList.contains('hidden')) {
+    if (lastCalculatedResult) updateCoursePageUI(lastCalculatedResult.finalPercent, lastCalculatedResult.discountPercentage);
+  } else if (!document.getElementById('screen-pass').classList.contains('hidden')) {
+    updatePassWhatsAppButton();
+  }
+}
+
+// Render Language UI Tokens
+function renderLanguageUI() {
+  const t = uiText[currentLang];
+  const setTxt = (id, txt) => {
+    const el = document.getElementById(id);
+    if (el) el.innerText = txt;
+  };
+
+  const langToggleBtn = document.getElementById('lang-toggle-btn');
+  if (langToggleBtn) {
+    langToggleBtn.innerHTML = currentLang === 'en' ? '🇮🇳 हिंदी' : '🇬🇧 English';
+  }
+
+  setTxt('txt-app-title', t.appTitle);
+  setTxt('txt-app-sub', t.appSub);
+  setTxt('txt-marking-notice', t.markingNotice);
+  setTxt('txt-deselect-notice', t.deselectNotice);
+
+  setTxt('btn-back-result', t.btnBackResult);
+  setTxt('btn-back-course', t.btnBackCourse);
+  setTxt('btn-back-payment', t.btnBackPayment);
+  setTxt('btn-back-registration', t.btnBackRegistration);
+  setTxt('btn-back-pass', t.btnBackPass);
+
+  setTxt('txt-congrats-title', t.congratsTitle);
+  setTxt('lbl-score-total', t.scoreTotal);
+  setTxt('lbl-correct-row', t.correctCountLabel);
+  setTxt('lbl-wrong-row', t.wrongCountLabel);
+  setTxt('lbl-unattempted-row', t.unattemptedCountLabel);
+
+  const btnToggleReview = document.getElementById('btn-toggle-review');
+  if (btnToggleReview) {
+    const isHidden = document.getElementById('review-answers-container').classList.contains('hidden');
+    btnToggleReview.innerText = isHidden ? t.viewExplanationsBtn : t.hideExplanationsBtn;
+  }
+
+  setTxt('lbl-course-highlights-title', t.courseHighlightsTitle);
+  setTxt('lbl-tag-gita', t.gitaTag);
+  setTxt('lbl-tag-enlighten', t.enlightenTag);
+  setTxt('lbl-tag-friends', t.friendsTag);
+  setTxt('lbl-tag-stress', t.stressTag);
+  setTxt('lbl-tag-counseling', t.counselingTag);
+  setTxt('lbl-tag-meditation', t.meditationTag);
+
+  setTxt('lbl-journey-banner', t.journeyBanner);
+  setTxt('lbl-j-1', t.j1);
+  setTxt('lbl-j-2', t.j2);
+  setTxt('lbl-j-3', t.j3);
+  setTxt('lbl-j-4', t.j4);
+  setTxt('lbl-j-5', t.j5);
+  setTxt('lbl-j-6', t.j6);
+  setTxt('lbl-j-7', t.j7);
+  setTxt('lbl-j-8', t.j8);
+
+  setTxt('btn-goto-payment', t.gotoPaymentBtn);
+
+  setTxt('lbl-pay-title', t.payTitle);
+  setTxt('lbl-pay-sub', t.paySub);
+  setTxt('lbl-fee-display-tag', t.amountToPayTag);
+  setTxt('btn-copy-upi', t.copyUpiBtn);
+  setTxt('btn-pay-direct', t.openUpiBtn);
+  setTxt('lbl-utr', t.utrLabel);
+  setTxt('btn-verify-payment', t.confirmPayBtn);
+
+  setTxt('lbl-reg-screen-title', t.regScreenTitle);
+  setTxt('lbl-reg-screen-desc', t.regScreenDesc);
+  setTxt('lbl-name', t.nameLabel);
+  setTxt('lbl-age', t.ageLabel);
+  setTxt('lbl-phone', t.phoneLabel);
+  setTxt('lbl-occupation', t.occupationLabel);
+  setTxt('lbl-occ-student', t.occStudent);
+  setTxt('lbl-occ-job', t.occJob);
+  setTxt('lbl-college', t.collegeLabel);
+  setTxt('lbl-degree', t.degreeLabel);
+  setTxt('lbl-branch', t.branchLabel);
+  setTxt('lbl-company', t.companyLabel);
+  setTxt('lbl-position', t.positionLabel);
+  setTxt('lbl-marital-status', t.maritalStatusLabel);
+  setTxt('lbl-marital-single', t.maritalSingle);
+  setTxt('lbl-marital-married', t.maritalMarried);
+  setTxt('lbl-gender', t.genderLabel);
+  setTxt('lbl-gender-male', t.genderMale);
+  setTxt('lbl-gender-female', t.genderFemale);
+  setTxt('lbl-remarks', t.remarksLabel);
+  setTxt('btn-complete-registration', t.completeRegistrationBtn);
+
+  setTxt('lbl-verified-badge', t.verifiedBadge);
+  setTxt('lbl-pass-id-title', t.passIdLabel);
+  setTxt('lbl-student-name-title', t.studentNameLabel);
+  setTxt('lbl-age-pass-title', t.agePassTitle);
+  setTxt('lbl-phone-title', t.phoneNumLabel);
+  setTxt('lbl-occ-pass-title', t.occPassTitle);
+  setTxt('lbl-score-pass-title', t.scorePassTitle);
+  setTxt('lbl-paid-amt-title', t.paidAmtLabel);
+  setTxt('lbl-datetime-title', t.dateTimeLabel);
+  setTxt('lbl-pass-note', t.passNote);
+  setTxt('btn-print-pass', t.printPassBtn);
+  setTxt('btn-whatsapp-group', t.whatsappBtn);
+
+  setTxt('lbl-footer-text', t.footerText);
+
+  updatePrevNextButtons();
+}
+
+// Update Question Stepper Prev / Next Button Labels
+function updatePrevNextButtons() {
+  const t = uiText[currentLang];
+  const prevBtn = document.getElementById('btn-prev');
+  const nextBtn = document.getElementById('btn-next');
+
+  if (prevBtn) {
+    prevBtn.style.visibility = currentQuestionIndex === 0 ? 'hidden' : 'visible';
+    prevBtn.innerText = t.prevBtn;
+  }
+  if (nextBtn) {
+    nextBtn.innerText = currentQuestionIndex === 9 ? t.submitBtn : t.nextBtn;
+  }
+}
+
+// Render Single Question in Stepper
+function renderQuestion(index) {
+  currentQuestionIndex = index;
+  const q = quizData[index];
+  const t = uiText[currentLang];
+
+  // Update Motivational Progress Box
+  const motiBox = document.getElementById('quiz-motivation-box');
+  if (motiBox) {
+    motiBox.innerText = motivationMessages[currentLang][index];
+  }
+
+  // Update Meta Header Progress
+  document.getElementById('quiz-progress-text').innerText = `${t.questionPrefix} ${index + 1} / 10`;
+  const progressPercent = ((index + 1) / 10) * 100;
+  document.getElementById('quiz-progress-fill').style.width = `${progressPercent}%`;
+
+  // Render Title
+  document.getElementById('question-title').innerText = q.question[currentLang];
+
+  // Render Options
+  const optionsList = document.getElementById('options-list');
+  optionsList.innerHTML = '';
+
+  const opts = q.options[currentLang];
+  opts.forEach(opt => {
+    const isSelected = userAnswers[index] === opt.key;
+    const optionEl = document.createElement('div');
+    optionEl.className = `option-item ${isSelected ? 'selected' : ''}`;
+    optionEl.onclick = () => selectOption(index, opt.key);
+
+    optionEl.innerHTML = `
+      <div class="option-prefix">${opt.key}</div>
+      <div class="option-label">${opt.text}</div>
+    `;
+    optionsList.appendChild(optionEl);
+  });
+
+  updatePrevNextButtons();
+}
+
+// Option Selection & Deselection Toggle
+function selectOption(qIdx, optionKey) {
+  if (userAnswers[qIdx] === optionKey) {
+    delete userAnswers[qIdx]; // Deselect
+  } else {
+    userAnswers[qIdx] = optionKey;
+  }
+  renderQuestion(qIdx);
+}
+
+function nextQuestion() {
+  if (currentQuestionIndex < 9) {
+    currentQuestionIndex++;
+    renderQuestion(currentQuestionIndex);
+  } else {
+    calculateResultsAndShow();
+  }
+}
+
+function prevQuestion() {
+  if (currentQuestionIndex > 0) {
+    currentQuestionIndex--;
+    renderQuestion(currentQuestionIndex);
+  }
+}
+
+// Calculate Score & Show Results Page (Simplified)
+function calculateResultsAndShow(existingRecord) {
+  try {
+    if (existingRecord) {
+      if (existingRecord.userAnswers) userAnswers = existingRecord.userAnswers;
+      if (existingRecord.studentData) studentData = existingRecord.studentData;
+    }
+
+    let netScore = 0;
+    let correctCount = 0;
+    let wrongCount = 0;
+    let unattemptedCount = 0;
+
+    quizData.forEach((q, idx) => {
+      const ans = userAnswers[idx];
+      if (!ans) {
+        unattemptedCount++;
+      } else if (ans === q.correctAnswer) {
+        correctCount++;
+        netScore += 2; // +2 for correct
+      } else {
+        wrongCount++;
+        netScore -= 1; // -1 for wrong
+      }
+    });
+
+    const maxMarks = 20; // 10 Qs * 2 = 20
+    const rawPercent = (netScore / maxMarks) * 100;
+    const finalPercent = Math.max(0, Math.round(rawPercent));
+
+    // Discount percentage formula
+    let discountPercentage = 0;
+    if (finalPercent >= 95) discountPercentage = 50;
+    else if (finalPercent >= 90) discountPercentage = 45;
+    else if (finalPercent >= 85) discountPercentage = 40;
+    else if (finalPercent >= 80) discountPercentage = 35;
+    else if (finalPercent >= 75) discountPercentage = 30;
+    else if (finalPercent >= 70) discountPercentage = 25;
+    else if (finalPercent >= 65) discountPercentage = 20;
+    else if (finalPercent >= 60) discountPercentage = 15;
+
+    const baseFee = appConfig.baseFee;
+    const discountAmount = Math.round((baseFee * discountPercentage) / 100);
+    const payableAmount = baseFee - discountAmount;
+
+    lastCalculatedResult = {
+      existingRecord,
+      netScore,
+      correctCount,
+      wrongCount,
+      unattemptedCount,
+      finalPercent,
+      discountPercentage,
+      payableAmount
+    };
+
+    // Update Result UI
+    document.getElementById('res-score-num').innerText = netScore;
+    document.getElementById('res-correct-count').innerText = `+${correctCount * 2} (${correctCount} Qs)`;
+    document.getElementById('res-wrong-count').innerText = `-${wrongCount} (${wrongCount} Qs)`;
+    
+    const resUnattempted = document.getElementById('res-unattempted-count');
+    if (resUnattempted) resUnattempted.innerText = `0 (${unattemptedCount} Qs)`;
+
+    // Render Answer Review List
+    renderAnswerReviewList();
+
+    // Render Score-Based Conditional CTA Box (< 60% vs >= 60%)
+    const ctaBox = document.getElementById('res-conditional-cta-box');
+    if (ctaBox) {
+      if (finalPercent < 60) {
+        const missedPercent = Math.max(1, 60 - finalPercent);
+        const msgText = currentLang === 'en'
+          ? `✨ You were just ${missedPercent}% away from unlocking your scholarship!<br>Don’t lose hope. Every sincere step towards Wisdom is valuable. Continue your journey of self-discovery through the wisdom of Bhagavad-gītā As It is with Discover Your Self. 🙏`
+          : `✨ आप अपनी छात्रवृत्ति अनलॉक करने से केवल ${missedPercent}% दूर थे!<br>उम्मीद न छोड़ें। ज्ञान की ओर उठाया गया हर सच्चा कदम मूल्यवान है। डिस्कवर योर सेल्फ के साथ भगवद-गीता यथारूप के ज्ञान के माध्यम से अपनी आत्म-खोज की यात्रा जारी रखें। 🙏`;
+        const btnText = currentLang === 'en' ? 'Explore DYS Course ➔' : 'DYS कोर्स देखें ➔';
+
+        ctaBox.innerHTML = `
+          <div style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.18), rgba(255, 153, 0, 0.12)); border: 1px solid var(--gold-accent); padding: 16px; border-radius: 14px; margin-bottom: 14px; text-align: center;">
+            <p style="font-size: 0.95rem; color: var(--text-gold); line-height: 1.5; font-weight: 700;">${msgText}</p>
+          </div>
+          <button id="btn-result-cta" onclick="gotoCourseDetailsPage()" type="button" class="btn-primary" style="background: linear-gradient(135deg, #FF7700, #F59E0B);">
+            ${btnText}
+          </button>
+        `;
+      } else {
+        const msgText = currentLang === 'en'
+          ? `🎉 Congratulations! Click here to redeem your reward.`
+          : `🎉 बधाई हो! अपना इनाम पाने के लिए यहाँ क्लिक करें।`;
+        const btnText = currentLang === 'en' ? 'Redeem Your Reward 🎁' : 'अपना इनाम पाएं 🎁';
+
+        ctaBox.innerHTML = `
+          <div style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(255, 119, 0, 0.15)); border: 1px solid var(--gold-accent); padding: 16px; border-radius: 14px; margin-bottom: 14px; text-align: center;">
+            <p style="font-size: 0.98rem; color: var(--text-gold); font-weight: 800;">${msgText}</p>
+          </div>
+          <button id="btn-result-cta" onclick="gotoCourseDetailsPage()" type="button" class="btn-primary" style="background: linear-gradient(135deg, #FF7700, #F59E0B);">
+            ${btnText}
+          </button>
+        `;
+      }
+    }
+
+    switchScreen('screen-quiz', 'screen-result');
+    triggerConfetti();
+  } catch (err) {
+    console.error("Results calculation error:", err);
+  }
+}
+
+// Redirect to DYS Course Details Page
+function gotoCourseDetailsPage() {
+  if (!lastCalculatedResult) return;
+
+  const { finalPercent, discountPercentage } = lastCalculatedResult;
+  updateCoursePageUI(finalPercent, discountPercentage);
+
+  switchScreen('screen-result', 'screen-course');
+  
+  // Trigger Celebration Confetti Canvas
+  triggerConfetti();
+}
+
+function updateCoursePageUI(finalPercent, discountPercentage) {
+  const banner = document.getElementById('course-scholarship-banner');
+  if (banner) {
+    if (finalPercent >= 60) {
+      banner.classList.remove('hidden');
+      banner.innerText = currentLang === 'en'
+        ? `🎉 YOU GOT ${discountPercentage}% SCHOLARSHIP ON DYS COURSE!`
+        : `🎉 आपको DYS कोर्स पर ${discountPercentage}% स्कॉलरशिप मिली!`;
+    } else {
+      banner.classList.add('hidden');
+    }
+  }
+}
+
+// Redirect to Payment Screen
+function gotoPaymentScreen() {
+  if (!lastCalculatedResult) return;
+
+  const { payableAmount } = lastCalculatedResult;
+  document.getElementById('res-payable-amt').innerText = `₹${payableAmount}`;
+  document.getElementById('display-upi-id').innerText = appConfig.upiId;
+
+  // Generate UPI QR
+  try {
+    generateUpiQR(payableAmount);
+  } catch (qrErr) {}
+
+  switchScreen('screen-course', 'screen-payment');
+}
+
+// Redirect to Post-Payment Registration Form
+function gotoRegistrationScreen() {
+  switchScreen('screen-payment', 'screen-registration');
+}
+
+// Occupation Selector Toggle ('student' vs 'job')
+function setOccupation(occ) {
+  studentData.occupation = occ;
+  
+  const btnStudent = document.getElementById('btn-occ-student');
+  const btnJob = document.getElementById('btn-occ-job');
+  const boxStudent = document.getElementById('box-occ-student');
+  const boxJob = document.getElementById('box-occ-job');
+
+  if (occ === 'student') {
+    if (btnStudent) btnStudent.classList.add('active');
+    if (btnJob) btnJob.classList.remove('active');
+    if (boxStudent) boxStudent.classList.remove('hidden');
+    if (boxJob) boxJob.classList.add('hidden');
+  } else {
+    if (btnJob) btnJob.classList.add('active');
+    if (btnStudent) btnStudent.classList.remove('active');
+    if (boxJob) boxJob.classList.remove('hidden');
+    if (boxStudent) boxStudent.classList.add('hidden');
+  }
+}
+
+// Marital Status Selector Toggle ('single' vs 'married')
+function setMaritalStatus(status) {
+  studentData.maritalStatus = status;
+
+  const btnSingle = document.getElementById('btn-marital-single');
+  const btnMarried = document.getElementById('btn-marital-married');
+  const boxSingleGender = document.getElementById('box-single-gender');
+
+  if (status === 'single') {
+    if (btnSingle) btnSingle.classList.add('active');
+    if (btnMarried) btnMarried.classList.remove('active');
+    if (boxSingleGender) boxSingleGender.classList.remove('hidden');
+  } else {
+    if (btnMarried) btnMarried.classList.add('active');
+    if (btnSingle) btnSingle.classList.remove('active');
+    if (boxSingleGender) boxSingleGender.classList.add('hidden');
+  }
+}
+
+// Gender Selector Toggle ('male' vs 'female')
+function setGender(g) {
+  studentData.gender = g;
+
+  const btnMale = document.getElementById('btn-gender-male');
+  const btnFemale = document.getElementById('btn-gender-female');
+
+  if (g === 'male') {
+    if (btnMale) btnMale.classList.add('active');
+    if (btnFemale) btnFemale.classList.remove('active');
+  } else {
+    if (btnFemale) btnFemale.classList.add('active');
+    if (btnMale) btnMale.classList.remove('active');
+  }
+}
+
+// Sequential Pass ID Generator Counter (ISKCON-REG-2001, 2002...)
+function getNextPassId() {
+  let counter = parseInt(localStorage.getItem('dys_pass_counter') || '2000');
+  counter++;
+  localStorage.setItem('dys_pass_counter', counter.toString());
+  return 'ISKCON-REG-' + counter;
+}
+
+// Complete Registration & Generate Pass Ticket
+function completeRegistrationAndGeneratePass() {
+  const name = document.getElementById('input-name').value.trim();
+  const age = document.getElementById('input-age').value.trim();
+  const phone = document.getElementById('input-phone').value.trim();
+
+  if (!name || !age || !phone) {
+    showToast(uiText[currentLang].fillErrorReg);
+    return;
+  }
+
+  studentData.name = name;
+  studentData.age = age;
+  studentData.phone = phone;
+  studentData.college = document.getElementById('input-college') ? document.getElementById('input-college').value.trim() : '';
+  studentData.degree = document.getElementById('input-degree') ? document.getElementById('input-degree').value.trim() : '';
+  studentData.branch = document.getElementById('input-branch') ? document.getElementById('input-branch').value.trim() : '';
+  studentData.company = document.getElementById('input-company') ? document.getElementById('input-company').value.trim() : '';
+  studentData.position = document.getElementById('input-position') ? document.getElementById('input-position').value.trim() : '';
+  studentData.remarks = document.getElementById('input-remarks') ? document.getElementById('input-remarks').value.trim() : '';
+
+  let regPassId = getNextPassId();
+  const nowStr = new Date().toLocaleString();
+
+  document.getElementById('pass-reg-id').innerText = regPassId;
+  document.getElementById('pass-student-name').innerText = studentData.name || 'Participant';
+  document.getElementById('pass-age').innerText = studentData.age || '-';
+  document.getElementById('pass-phone').innerText = studentData.phone || '-';
+
+  const occText = studentData.occupation === 'student'
+    ? `${studentData.college || ''} (${studentData.degree || ''} ${studentData.branch || ''})`.trim()
+    : `${studentData.company || ''} (${studentData.position || ''})`.trim();
+  document.getElementById('pass-occupation').innerText = occText || '-';
+
+  const scoreNum = lastCalculatedResult ? lastCalculatedResult.netScore : '20';
+  document.getElementById('pass-score').innerText = `${scoreNum} / 20 Marks`;
+  
+  const paidAmt = lastCalculatedResult ? `₹${lastCalculatedResult.payableAmount}` : '₹150';
+  document.getElementById('pass-amount').innerText = paidAmt;
+  document.getElementById('pass-time').innerText = nowStr;
+
+  // Targeted WhatsApp Group Routing (Behind the scenes target URL, generic button text)
+  updatePassWhatsAppButton();
+
+  // Save Complete Record to LocalStorage
+  const record = {
+    studentData,
+    userAnswers,
+    result: lastCalculatedResult,
+    regPassId,
+    timestamp: new Date().toISOString(),
+    isPaid: true
+  };
+  if (studentData.phone) {
+    localStorage.setItem('dys_user_' + studentData.phone, JSON.stringify(record));
+  }
+
+  switchScreen('screen-registration', 'screen-pass');
+  
+  // Confetti Explosion
+  triggerConfetti();
+  showToast(uiText[currentLang].paymentSuccessToast);
+}
+
+// Targeted WhatsApp Group URL Configurator (Generic Button Text)
+function updatePassWhatsAppButton() {
+  const btnWa = document.getElementById('btn-whatsapp-group');
+  if (!btnWa) return;
+
+  const t = uiText[currentLang];
+  let targetUrl = whatsappGroups.married;
+
+  if (studentData.maritalStatus === 'single') {
+    if (studentData.gender === 'female') {
+      targetUrl = whatsappGroups.female;
+    } else {
+      targetUrl = whatsappGroups.male;
+    }
+  }
+
+  btnWa.href = targetUrl;
+  btnWa.innerText = t.whatsappBtn; // Always simple "Join WhatsApp Group 💬"
+}
+
+// Render Answer Review Cards
+function renderAnswerReviewList() {
+  const container = document.getElementById('review-answers-container');
+  if (!container) return;
+
+  container.innerHTML = '';
+  const t = uiText[currentLang];
+
+  quizData.forEach((q, idx) => {
+    const userAnsKey = userAnswers[idx];
+    const isCorrect = userAnsKey === q.correctAnswer;
+    const opts = q.options[currentLang];
+    
+    const userAnsObj = opts.find(o => o.key === userAnsKey);
+    const userAnsText = userAnsObj ? `${userAnsKey}) ${userAnsObj.text}` : t.unansweredText;
+
+    const correctAnsObj = opts.find(o => o.key === q.correctAnswer);
+    const correctAnsText = correctAnsObj ? `${q.correctAnswer}) ${correctAnsObj.text}` : '';
+
+    const qCard = document.createElement('div');
+    qCard.className = `review-card ${isCorrect ? 'review-correct' : (userAnsKey ? 'review-wrong' : '')}`;
+
+    qCard.innerHTML = `
+      <div class="review-header">
+        <span class="review-q-badge">${t.questionPrefix} ${idx + 1}</span>
+        <span class="status-chip ${isCorrect ? 'chip-correct' : (userAnsKey ? 'chip-wrong' : '')}">
+          ${isCorrect ? '✓ Correct (+2)' : (userAnsKey ? '✗ Wrong (-1)' : t.unansweredText + ' (0)')}
+        </span>
+      </div>
+
+      <div class="review-q-title">${q.question[currentLang]}</div>
+
+      <div class="review-ans-box">
+        <div class="ans-line ${isCorrect ? 'text-green' : (userAnsKey ? 'text-red' : '')}">
+          <strong>${t.yourAnsText}</strong> ${userAnsText}
+        </div>
+        ${!isCorrect ? `
+          <div class="ans-line text-green" style="margin-top:4px;">
+            <strong>${t.correctAnsText}</strong> ${correctAnsText}
+          </div>
+        ` : ''}
+      </div>
+
+      <div class="explanation-box">
+        <div class="explanation-title">
+          <span>${t.scripturalTitle}</span>
+        </div>
+        <div class="explanation-text">${q.explanation[currentLang]}</div>
+      </div>
+    `;
+
+    container.appendChild(qCard);
+  });
+}
+
+function toggleAnswerReview() {
+  const container = document.getElementById('review-answers-container');
+  const btn = document.getElementById('btn-toggle-review');
+  const t = uiText[currentLang];
+
+  if (!container) return;
+
+  renderAnswerReviewList();
+
+  if (container.classList.contains('hidden')) {
+    container.classList.remove('hidden');
+    if (btn) btn.innerText = t.hideExplanationsBtn;
+    container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } else {
+    container.classList.add('hidden');
+    if (btn) btn.innerText = t.viewExplanationsBtn;
+  }
+}
+
+// Generate UPI QR Code
+function generateUpiQR(amount) {
+  const encodedPn = encodeURIComponent(appConfig.payeeName);
+  const encodedTn = encodeURIComponent('Discover Your Self Course');
+  const pa = appConfig.upiId;
+
+  const upiUri = `upi://pay?pa=${pa}&pn=${encodedPn}&am=${amount}&cu=INR&tn=${encodedTn}`;
+
+  const qrContainer = document.getElementById('qrcode-container');
+  if (!qrContainer) return;
+  qrContainer.innerHTML = '';
+  
+  if (window.QRCode) {
+    new QRCode(qrContainer, {
+      text: upiUri,
+      width: 190,
+      height: 190,
+      colorDark: "#0F172A",
+      colorLight: "#FFFFFF"
+    });
+  }
+
+  // Update App Links
+  const linkGpay = document.getElementById('link-gpay');
+  if (linkGpay) linkGpay.href = upiUri;
+  const linkPhonepe = document.getElementById('link-phonepe');
+  if (linkPhonepe) linkPhonepe.href = upiUri;
+  const linkPaytm = document.getElementById('link-paytm');
+  if (linkPaytm) linkPaytm.href = upiUri;
+  const linkBhim = document.getElementById('link-bhim');
+  if (linkBhim) linkBhim.href = upiUri;
+  const btnPayDirect = document.getElementById('btn-pay-direct');
+  if (btnPayDirect) btnPayDirect.href = upiUri;
+}
+
+function copyUpiId() {
+  navigator.clipboard.writeText(appConfig.upiId).then(() => {
+    showToast(uiText[currentLang].copiedToast);
+  }).catch(() => {
+    const tempInput = document.createElement('input');
+    tempInput.value = appConfig.upiId;
+    document.body.appendChild(tempInput);
+    tempInput.select();
+    document.execCommand('copy');
+    document.body.removeChild(tempInput);
+    showToast(uiText[currentLang].copiedToast);
+  });
+}
+
+function setupEventListeners() {
+  const closeSettings = document.getElementById('close-settings');
+  if (closeSettings) closeSettings.addEventListener('click', () => closeModal('settings-modal'));
+  
+  const saveSettings = document.getElementById('btn-save-settings');
+  if (saveSettings) saveSettings.addEventListener('click', saveConfig);
+
+  // Secret Admin Trigger (5 clicks on logo)
+  let logoClicks = 0;
+  const brandBadge = document.querySelector('.brand-badge');
+  if (brandBadge) {
+    brandBadge.addEventListener('click', () => {
+      logoClicks++;
+      if (logoClicks >= 5) {
+        logoClicks = 0;
+        const pass = prompt("Enter Admin Secret Password:");
+        if (pass === "108") {
+          openModal('settings-modal');
+        } else if (pass) {
+          alert("Incorrect Admin Password.");
+        }
+      }
+    });
+  }
+}
+
+function openModal(id) {
+  const modal = document.getElementById(id);
+  if (modal) modal.classList.remove('hidden');
+}
+
+function closeModal(id) {
+  const modal = document.getElementById(id);
+  if (modal) modal.classList.add('hidden');
+}
+
+function saveConfig() {
+  const baseFee = parseInt(document.getElementById('input-base-fee').value);
+  const upiId = document.getElementById('input-upi-id').value.trim();
+  const payeeName = document.getElementById('input-payee-name').value.trim();
+
+  if (baseFee) appConfig.baseFee = baseFee;
+  if (upiId) appConfig.upiId = upiId;
+  if (payeeName) appConfig.payeeName = payeeName;
+
+  closeModal('settings-modal');
+  showToast("Admin Settings Saved!");
+}
+
+// Celebration Confetti & Flowers Cannon
+function triggerConfetti() {
+  const canvas = document.getElementById('confetti-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const particles = [];
+  const colors = ['#FF7700', '#F59E0B', '#10B981', '#3B82F6', '#EC4899', '#8B5CF6'];
+
+  for (let i = 0; i < 90; i++) {
+    particles.push({
+      x: canvas.width / 2,
+      y: canvas.height / 2,
+      vx: (Math.random() - 0.5) * 16,
+      vy: (Math.random() - 0.7) * 16,
+      size: Math.random() * 8 + 4,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      rotation: Math.random() * 360,
+      rSpeed: (Math.random() - 0.5) * 10,
+      opacity: 1
+    });
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    let active = false;
+
+    particles.forEach(p => {
+      if (p.opacity > 0) {
+        active = true;
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.25; // gravity
+        p.rotation += p.rSpeed;
+        p.opacity -= 0.012;
+
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate((p.rotation * Math.PI) / 180);
+        ctx.globalAlpha = Math.max(0, p.opacity);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+        ctx.restore();
+      }
+    });
+
+    if (active) {
+      requestAnimationFrame(animate);
+    } else {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+
+  animate();
+}
+
+function showToast(msg) {
+  const existing = document.querySelector('.toast-msg');
+  if (existing) existing.remove();
+
+  const toast = document.createElement('div');
+  toast.className = 'toast-msg';
+  toast.innerText = msg;
+  document.body.appendChild(toast);
+
+  setTimeout(() => {
+    toast.remove();
+  }, 2500);
+}
+
+// Global Window Function Bindings
+window.toggleLanguage = toggleLanguage;
+window.selectInitialLanguage = selectInitialLanguage;
+window.nextQuestion = nextQuestion;
+window.prevQuestion = prevQuestion;
+window.toggleAnswerReview = toggleAnswerReview;
+window.gotoCourseDetailsPage = gotoCourseDetailsPage;
+window.gotoPaymentScreen = gotoPaymentScreen;
+window.gotoRegistrationScreen = gotoRegistrationScreen;
+window.setOccupation = setOccupation;
+window.setMaritalStatus = setMaritalStatus;
+window.setGender = setGender;
+window.completeRegistrationAndGeneratePass = completeRegistrationAndGeneratePass;
+window.copyUpiId = copyUpiId;
+window.goBackFrom = goBackFrom;

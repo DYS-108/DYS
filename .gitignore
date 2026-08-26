@@ -1,0 +1,9 @@
+# Dependencies & System files
+node_modules/
+.DS_Store
+Thumbs.db
+
+# Gemini & Local Temp
+.gemini/
+.system_generated/
+*.log

@@ -859,16 +859,12 @@ function calculateResultsAndShow(existingRecord) {
           </button>
         `;
       } else {
-        const msgText = currentLang === 'en'
-          ? `🎉 Congratulations! Click here to redeem your reward.`
-          : `🎉 बधाई हो! अपना इनाम पाने के लिए यहाँ क्लिक करें।`;
-        const btnText = currentLang === 'en' ? 'Redeem Your Reward 🎁' : 'अपना इनाम पाएं 🎁';
+        const btnText = currentLang === 'en'
+          ? `🎉 Congratulations! Click here to redeem your reward 🎁`
+          : `🎉 बधाई हो! अपना इनाम पाने के लिए यहाँ क्लिक करें 🎁`;
 
         ctaBox.innerHTML = `
-          <div style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(255, 119, 0, 0.15)); border: 1px solid var(--gold-accent); padding: 16px; border-radius: 14px; margin-bottom: 14px; text-align: center;">
-            <p style="font-size: 0.98rem; color: var(--text-gold); font-weight: 800;">${msgText}</p>
-          </div>
-          <button id="btn-result-cta" onclick="gotoCourseDetailsPage()" type="button" class="btn-primary" style="background: linear-gradient(135deg, #FF7700, #F59E0B);">
+          <button id="btn-result-cta" onclick="gotoCourseDetailsPage()" type="button" class="btn-primary" style="background: linear-gradient(135deg, #FF7700, #F59E0B); padding: 18px 16px; font-size: 1.05rem; width: 100%; border-radius: 14px; box-shadow: 0 8px 25px rgba(255, 119, 0, 0.4);">
             ${btnText}
           </button>
         `;

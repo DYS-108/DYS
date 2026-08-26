@@ -1078,7 +1078,10 @@ function initSupabase() {
 
 async function saveRegistrationToSupabase(record) {
   initSupabase();
-  if (!supabaseClient) return;
+  if (!supabaseClient) {
+    console.warn("Supabase Client is not initialized. Please configure Supabase URL & Anon Key in Admin Settings (⚙️).");
+    return;
+  }
 
   try {
     const payload = {
@@ -1102,7 +1105,8 @@ async function saveRegistrationToSupabase(record) {
 
     const { data, error } = await supabaseClient.from('registrations').insert([payload]);
     if (error) {
-      console.error("Supabase Cloud DB Save Error:", error);
+      console.error("Supabase Cloud DB Save Error Details:", error);
+      alert(`Supabase Cloud Save Issue: ${error.message} (Code: ${error.code || 'RLS/Table Mismatch'})`);
     } else {
       console.log("Registration successfully saved to Supabase Cloud DB!", data);
     }

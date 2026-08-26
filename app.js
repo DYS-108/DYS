@@ -1209,13 +1209,32 @@ function toggleAnswerReview() {
   }
 }
 
-// Generate UPI QR Code
+// Generate UPI QR Code & App Deep Links
 function generateUpiQR(amount) {
   const encodedPn = encodeURIComponent(appConfig.payeeName);
-  const encodedTn = encodeURIComponent('Discover Your Self Course');
   const pa = appConfig.upiId;
 
-  const upiUri = `upi://pay?pa=${pa}&pn=${encodedPn}&am=${amount}&cu=INR&tn=${encodedTn}`;
+  // Clean NPCI Standard Universal Deep Link (Works for QR & Universal UPI)
+  const upiUri = `upi://pay?pa=${pa}&pn=${encodedPn}&am=${amount}&cu=INR&mode=02`;
+
+  // Android Specific Intent Deep Links (Directly launches specific target app without browser blocking)
+  const isAndroid = /android/i.test(navigator.userAgent || '');
+  
+  const gpayUri = isAndroid 
+    ? `intent://pay?pa=${pa}&pn=${encodedPn}&am=${amount}&cu=INR#Intent;scheme=upi;package=com.google.android.apps.nfc.plugin.cardmfe;end`
+    : upiUri;
+
+  const phonepeUri = isAndroid
+    ? `intent://pay?pa=${pa}&pn=${encodedPn}&am=${amount}&cu=INR#Intent;scheme=upi;package=com.phonepe.app;end`
+    : upiUri;
+
+  const paytmUri = isAndroid
+    ? `intent://pay?pa=${pa}&pn=${encodedPn}&am=${amount}&cu=INR#Intent;scheme=upi;package=net.one97.paytm;end`
+    : upiUri;
+
+  const bhimUri = isAndroid
+    ? `intent://pay?pa=${pa}&pn=${encodedPn}&am=${amount}&cu=INR#Intent;scheme=upi;package=in.org.npci.upiapp;end`
+    : upiUri;
 
   const qrContainer = document.getElementById('qrcode-container');
   if (!qrContainer) return;
@@ -1231,17 +1250,23 @@ function generateUpiQR(amount) {
     });
   }
 
-  // Update App Links
+  // Update App Links & Add Auto-Copy Fallback
+  const autoCopy = () => {
+    if (navigator.clipboard && appConfig.upiId) {
+      navigator.clipboard.writeText(appConfig.upiId).catch(() => {});
+    }
+  };
+
   const linkGpay = document.getElementById('link-gpay');
-  if (linkGpay) linkGpay.href = upiUri;
+  if (linkGpay) { linkGpay.href = gpayUri; linkGpay.onclick = autoCopy; }
   const linkPhonepe = document.getElementById('link-phonepe');
-  if (linkPhonepe) linkPhonepe.href = upiUri;
+  if (linkPhonepe) { linkPhonepe.href = phonepeUri; linkPhonepe.onclick = autoCopy; }
   const linkPaytm = document.getElementById('link-paytm');
-  if (linkPaytm) linkPaytm.href = upiUri;
+  if (linkPaytm) { linkPaytm.href = paytmUri; linkPaytm.onclick = autoCopy; }
   const linkBhim = document.getElementById('link-bhim');
-  if (linkBhim) linkBhim.href = upiUri;
+  if (linkBhim) { linkBhim.href = bhimUri; linkBhim.onclick = autoCopy; }
   const btnPayDirect = document.getElementById('btn-pay-direct');
-  if (btnPayDirect) btnPayDirect.href = upiUri;
+  if (btnPayDirect) { btnPayDirect.href = upiUri; btnPayDirect.onclick = autoCopy; }
 }
 
 function copyUpiId() {

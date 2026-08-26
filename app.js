@@ -36,7 +36,7 @@ let appConfig = {
 
 // WhatsApp Group Target Links
 const whatsappGroups = {
-  male: 'https://chat.whatsapp.com/sample-male-group',
+  male: ' https://chat.whatsapp.com/I4PRrccEFHvDJocyMLjoc7?s=sw&p=a&ilr=0',
   female: 'https://chat.whatsapp.com/sample-female-group',
   married: 'https://chat.whatsapp.com/sample-married-group'
 };
@@ -515,6 +515,62 @@ const uiText = {
   }
 };
 
+// State Persistence Helpers (Survives app switching to GPay & page reloads)
+function saveAppState(activeScreenId) {
+  try {
+    const state = {
+      activeScreenId: activeScreenId || 'screen-quiz',
+      currentLang,
+      userAnswers,
+      currentQuestionIndex,
+      studentData,
+      lastCalculatedResult
+    };
+    sessionStorage.setItem('dys_app_session_state', JSON.stringify(state));
+  } catch (e) {}
+}
+
+function restoreAppState() {
+  try {
+    const raw = sessionStorage.getItem('dys_app_session_state');
+    if (!raw) return false;
+
+    const state = JSON.parse(raw);
+    if (!state || !state.activeScreenId) return false;
+
+    currentLang = state.currentLang || currentLang;
+    userAnswers = state.userAnswers || {};
+    currentQuestionIndex = state.currentQuestionIndex || 0;
+    studentData = state.studentData || studentData;
+    lastCalculatedResult = state.lastCalculatedResult || null;
+
+    renderLanguageUI();
+
+    const modal = document.getElementById('lang-select-modal');
+    if (modal && state.activeScreenId !== 'screen-quiz') {
+      modal.classList.add('hidden');
+    }
+
+    const screens = document.querySelectorAll('.view-screen');
+    screens.forEach(s => s.classList.add('hidden'));
+
+    const target = document.getElementById(state.activeScreenId);
+    if (target) {
+      target.classList.remove('hidden');
+    }
+
+    if (state.activeScreenId === 'screen-payment' && lastCalculatedResult) {
+      generateUpiQR(lastCalculatedResult.payableAmount);
+    } else if (state.activeScreenId === 'screen-course' && lastCalculatedResult) {
+      updateCoursePageUI(lastCalculatedResult.finalPercent, lastCalculatedResult.discountPercentage);
+    }
+
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
 // Initial Load Event Listener
 document.addEventListener('DOMContentLoaded', () => {
   const savedLang = localStorage.getItem('dys_app_lang');
@@ -522,12 +578,14 @@ document.addEventListener('DOMContentLoaded', () => {
     currentLang = savedLang;
   }
 
-  // Show Initial Language Selection Modal on Load
-  const modal = document.getElementById('lang-select-modal');
-  if (modal) modal.classList.remove('hidden');
-
-  renderLanguageUI();
   setupEventListeners();
+
+  const restored = restoreAppState();
+  if (!restored) {
+    const modal = document.getElementById('lang-select-modal');
+    if (modal) modal.classList.remove('hidden');
+    renderLanguageUI();
+  }
 });
 
 // Navigation Back Handler for Every Screen
@@ -555,6 +613,7 @@ function switchScreen(fromId, toId) {
   if (target) {
     target.classList.remove('hidden');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    saveAppState(toId);
   }
 }
 

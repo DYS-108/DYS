@@ -1067,6 +1067,7 @@ function completeRegistrationAndGeneratePass() {
   studentData.name = name;
   studentData.age = age;
   studentData.phone = phone;
+  studentData.address = document.getElementById('input-address') ? document.getElementById('input-address').value.trim() : '';
   studentData.college = document.getElementById('input-college') ? document.getElementById('input-college').value.trim() : '';
   studentData.degree = document.getElementById('input-degree') ? document.getElementById('input-degree').value.trim() : '';
   studentData.branch = document.getElementById('input-branch') ? document.getElementById('input-branch').value.trim() : '';
@@ -1160,6 +1161,7 @@ async function saveRegistrationToSupabase(record) {
       paid_amount: lastCalculatedResult ? lastCalculatedResult.payableAmount : 150,
       utr_number: document.getElementById('input-utr') ? document.getElementById('input-utr').value.trim() : null,
       language: currentLang,
+      address: studentData.address || null,
       remarks: studentData.remarks || null
     };
 

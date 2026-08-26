@@ -1063,10 +1063,12 @@ function completeRegistrationAndGeneratePass() {
 // Supabase Cloud DB Client Integration
 let supabaseClient = null;
 function initSupabase() {
-  const url = appConfig.supabaseUrl || localStorage.getItem('dys_supabase_url');
+  let url = appConfig.supabaseUrl || localStorage.getItem('dys_supabase_url');
   const key = appConfig.supabaseKey || localStorage.getItem('dys_supabase_key');
   if (window.supabase && url && key && url !== 'YOUR_SUPABASE_PROJECT_URL') {
     try {
+      // Auto-sanitize URL format if user appended /rest/v1/ or trailing slash
+      url = url.trim().replace(/\/rest\/v1\/?$/i, '').replace(/\/+$/, '');
       supabaseClient = window.supabase.createClient(url, key);
     } catch (err) {
       console.error("Supabase Init Error:", err);

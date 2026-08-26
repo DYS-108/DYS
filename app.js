@@ -29,8 +29,8 @@ let appConfig = {
   baseFee: 300,
   upiId: '1979.ravi.agarwal-3@okhdfcbank',
   payeeName: 'Discover Your Self',
-  supabaseUrl: localStorage.getItem('dys_supabase_url') || '',
-  supabaseKey: localStorage.getItem('dys_supabase_key') || ''
+  supabaseUrl: 'https://phiuzlbeizzxqzxgpbiq.supabase.co',
+  supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBoaXV6bGJlaXp6eHF6eGdwYmlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc3MjExNDEsImV4cCI6MjEwMzI5NzE0MX0.cggUAxqSe4FsfvPvEsPQUKVJy5e_t9kus1KInViXaKU'
 };
 
 // WhatsApp Group Target Links
@@ -520,7 +520,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (savedLang && (savedLang === 'en' || savedLang === 'hi')) {
     currentLang = savedLang;
   }
-  
+
   // Show Initial Language Selection Modal on Load
   const modal = document.getElementById('lang-select-modal');
   if (modal) modal.classList.remove('hidden');
@@ -561,7 +561,7 @@ function switchScreen(fromId, toId) {
 function selectInitialLanguage(lang) {
   currentLang = lang;
   localStorage.setItem('dys_app_lang', currentLang);
-  
+
   const modal = document.getElementById('lang-select-modal');
   if (modal) modal.classList.add('hidden');
 
@@ -574,7 +574,7 @@ function selectInitialLanguage(lang) {
 function toggleLanguage() {
   currentLang = currentLang === 'en' ? 'hi' : 'en';
   localStorage.setItem('dys_app_lang', currentLang);
-  
+
   renderLanguageUI();
 
   // Re-render active view content dynamically
@@ -835,7 +835,7 @@ function calculateResultsAndShow(existingRecord) {
     document.getElementById('res-score-num').innerText = netScore;
     document.getElementById('res-correct-count').innerText = `+${correctCount * 2} (${correctCount} Qs)`;
     document.getElementById('res-wrong-count').innerText = `-${wrongCount} (${wrongCount} Qs)`;
-    
+
     const resUnattempted = document.getElementById('res-unattempted-count');
     if (resUnattempted) resUnattempted.innerText = `0 (${unattemptedCount} Qs)`;
 
@@ -888,7 +888,7 @@ function gotoCourseDetailsPage() {
   updateCoursePageUI(finalPercent, discountPercentage);
 
   switchScreen('screen-result', 'screen-course');
-  
+
   // Trigger Celebration Confetti Canvas
   triggerConfetti();
 }
@@ -918,7 +918,7 @@ function gotoPaymentScreen() {
   // Generate UPI QR
   try {
     generateUpiQR(payableAmount);
-  } catch (qrErr) {}
+  } catch (qrErr) { }
 
   switchScreen('screen-course', 'screen-payment');
 }
@@ -931,7 +931,7 @@ function gotoRegistrationScreen() {
 // Occupation Selector Toggle ('student' vs 'job')
 function setOccupation(occ) {
   studentData.occupation = occ;
-  
+
   const btnStudent = document.getElementById('btn-occ-student');
   const btnJob = document.getElementById('btn-occ-job');
   const boxStudent = document.getElementById('box-occ-student');
@@ -1029,7 +1029,7 @@ function completeRegistrationAndGeneratePass() {
 
   const scoreNum = lastCalculatedResult ? lastCalculatedResult.netScore : '20';
   document.getElementById('pass-score').innerText = `${scoreNum} / 20 Marks`;
-  
+
   const paidAmt = lastCalculatedResult ? `₹${lastCalculatedResult.payableAmount}` : '₹150';
   document.getElementById('pass-amount').innerText = paidAmt;
   document.getElementById('pass-time').innerText = nowStr;
@@ -1054,7 +1054,7 @@ function completeRegistrationAndGeneratePass() {
   saveRegistrationToSupabase(record);
 
   switchScreen('screen-registration', 'screen-pass');
-  
+
   // Confetti Explosion
   triggerConfetti();
   showToast(uiText[currentLang].paymentSuccessToast);
@@ -1147,7 +1147,7 @@ function renderAnswerReviewList() {
     const userAnsKey = userAnswers[idx];
     const isCorrect = userAnsKey === q.correctAnswer;
     const opts = q.options[currentLang];
-    
+
     const userAnsObj = opts.find(o => o.key === userAnsKey);
     const userAnsText = userAnsObj ? `${userAnsKey}) ${userAnsObj.text}` : t.unansweredText;
 
@@ -1220,7 +1220,7 @@ function generateUpiQR(amount) {
   const qrContainer = document.getElementById('qrcode-container');
   if (!qrContainer) return;
   qrContainer.innerHTML = '';
-  
+
   if (window.QRCode) {
     new QRCode(qrContainer, {
       text: upiUri,
@@ -1261,7 +1261,7 @@ function copyUpiId() {
 function setupEventListeners() {
   const closeSettings = document.getElementById('close-settings');
   if (closeSettings) closeSettings.addEventListener('click', () => closeModal('settings-modal'));
-  
+
   const saveSettings = document.getElementById('btn-save-settings');
   if (saveSettings) saveSettings.addEventListener('click', saveConfig);
 
@@ -1293,7 +1293,7 @@ function openAdminSettings() {
     if (document.getElementById('input-payee-name')) document.getElementById('input-payee-name').value = appConfig.payeeName;
     if (document.getElementById('input-supabase-url')) document.getElementById('input-supabase-url').value = appConfig.supabaseUrl || '';
     if (document.getElementById('input-supabase-key')) document.getElementById('input-supabase-key').value = appConfig.supabaseKey || '';
-    
+
     openModal('settings-modal');
   } else if (pass) {
     alert("Incorrect Admin Password.");

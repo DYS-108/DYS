@@ -31,7 +31,7 @@ let appConfig = {
   payeeName: 'Discover Your Self',
   supabaseUrl: 'https://phiuzlbeizzxqzxgpbiq.supabase.co',
   supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBoaXV6bGJlaXp6eHF6eGdwYmlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc3MjExNDEsImV4cCI6MjEwMzI5NzE0MX0.cggUAxqSe4FsfvPvEsPQUKVJy5e_t9kus1KInViXaKU',
-  razorpayKeyId: localStorage.getItem('dys_rzp_key') || ''
+  razorpayKeyId: 'rzp_test_TUMKfqBFQVTqvw'
 };
 
 // WhatsApp Group Target Links
@@ -1224,8 +1224,8 @@ function generateUpiQR(amount) {
 
   // Android Specific Intent Deep Links
   const isAndroid = /android/i.test(navigator.userAgent || '');
-  
-  const gpayUri = isAndroid 
+
+  const gpayUri = isAndroid
     ? `intent://pay?pa=${pa}&pn=${encodedPn}&am=${amount}&cu=INR#Intent;scheme=upi;package=com.google.android.apps.nfc.plugin.cardmfe;end`
     : upiUri;
 
@@ -1258,7 +1258,7 @@ function generateUpiQR(amount) {
   // Update App Links & Add Auto-Copy Fallback
   const autoCopy = () => {
     if (navigator.clipboard && appConfig.upiId) {
-      navigator.clipboard.writeText(appConfig.upiId).catch(() => {});
+      navigator.clipboard.writeText(appConfig.upiId).catch(() => { });
     }
   };
 
@@ -1278,22 +1278,16 @@ function generateUpiQR(amount) {
 function launchRazorpayCheckout() {
   const currentPayable = lastCalculatedResult ? lastCalculatedResult.payableAmount : 150;
   const amountInPaise = currentPayable * 100;
-  let key = appConfig.razorpayKeyId || localStorage.getItem('dys_rzp_key');
+  const key = appConfig.razorpayKeyId || localStorage.getItem('dys_rzp_key');
 
   if (!window.Razorpay) {
     alert("Razorpay SDK is initializing. Please check your internet connection.");
     return;
   }
 
-  if (!key || key === 'rzp_test_YOUR_KEY_HERE') {
-    const userKey = prompt("Enter your Razorpay Key ID (Test Key e.g. rzp_test_XXXXXX):");
-    if (userKey) {
-      key = userKey.trim();
-      appConfig.razorpayKeyId = key;
-      localStorage.setItem('dys_rzp_key', key);
-    } else {
-      return;
-    }
+  if (!key) {
+    alert("Razorpay Key ID is not configured. Please contact the administrator.");
+    return;
   }
 
   const options = {
@@ -1313,7 +1307,7 @@ function launchRazorpayCheckout() {
     handler: function (response) {
       console.log("Razorpay Payment Success Response:", response);
       showToast("Payment Completed Successfully! 🎉");
-      
+
       // Auto-populate transaction ID into UTR field
       const utrInput = document.getElementById('input-utr');
       if (utrInput) {
@@ -1324,7 +1318,7 @@ function launchRazorpayCheckout() {
       gotoRegistrationScreen();
     },
     modal: {
-      ondismiss: function() {
+      ondismiss: function () {
         console.log("Razorpay checkout modal dismissed by user.");
       }
     }

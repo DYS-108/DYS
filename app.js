@@ -1278,6 +1278,22 @@ function setupEventListeners() {
   }
 }
 
+function openAdminSettings() {
+  const pass = prompt("Enter Admin Password:");
+  if (pass === "108") {
+    // Populate current config values into modal inputs
+    if (document.getElementById('input-base-fee')) document.getElementById('input-base-fee').value = appConfig.baseFee;
+    if (document.getElementById('input-upi-id')) document.getElementById('input-upi-id').value = appConfig.upiId;
+    if (document.getElementById('input-payee-name')) document.getElementById('input-payee-name').value = appConfig.payeeName;
+    if (document.getElementById('input-supabase-url')) document.getElementById('input-supabase-url').value = appConfig.supabaseUrl || '';
+    if (document.getElementById('input-supabase-key')) document.getElementById('input-supabase-key').value = appConfig.supabaseKey || '';
+    
+    openModal('settings-modal');
+  } else if (pass) {
+    alert("Incorrect Admin Password.");
+  }
+}
+
 function openModal(id) {
   const modal = document.getElementById(id);
   if (modal) modal.classList.remove('hidden');

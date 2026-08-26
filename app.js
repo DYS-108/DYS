@@ -1299,7 +1299,8 @@ function launchRazorpayCheckout() {
     image: "iskcon_logo.png",
     prefill: {
       name: studentData.name || "",
-      contact: studentData.phone || ""
+      contact: studentData.phone || "",
+      email: studentData.phone ? `${studentData.phone}@dys.org` : "student@dys.org"
     },
     theme: {
       color: "#FF7700"

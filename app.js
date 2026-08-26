@@ -1214,10 +1214,10 @@ function generateUpiQR(amount) {
   const encodedPn = encodeURIComponent(appConfig.payeeName);
   const pa = appConfig.upiId;
 
-  // Clean NPCI Standard Universal Deep Link (Works for QR & Universal UPI)
-  const upiUri = `upi://pay?pa=${pa}&pn=${encodedPn}&am=${amount}&cu=INR&mode=02`;
+  // Clean P2P UPI Link (Removes mode=02 to fix bank limit error on personal VPAs)
+  const upiUri = `upi://pay?pa=${pa}&pn=${encodedPn}&am=${amount}&cu=INR`;
 
-  // Android Specific Intent Deep Links (Directly launches specific target app without browser blocking)
+  // Android Specific Intent Deep Links
   const isAndroid = /android/i.test(navigator.userAgent || '');
   
   const gpayUri = isAndroid 

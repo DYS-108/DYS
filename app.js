@@ -1270,8 +1270,12 @@ function generateUpiQR(amount) {
 }
 
 function copyUpiId() {
+  const toastMsg = currentLang === 'en'
+    ? `UPI ID Copied! Open GPay/PhonePe ➔ Pay UPI ID ➔ Paste & Pay! 📱`
+    : `UPI ID कॉपी हो गई! GPay/PhonePe खोलें ➔ Pay UPI ID ➔ पेस्ट करें! 📱`;
+
   navigator.clipboard.writeText(appConfig.upiId).then(() => {
-    showToast(uiText[currentLang].copiedToast);
+    showToast(toastMsg);
   }).catch(() => {
     const tempInput = document.createElement('input');
     tempInput.value = appConfig.upiId;
@@ -1279,7 +1283,7 @@ function copyUpiId() {
     tempInput.select();
     document.execCommand('copy');
     document.body.removeChild(tempInput);
-    showToast(uiText[currentLang].copiedToast);
+    showToast(toastMsg);
   });
 }
 

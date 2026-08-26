@@ -28,7 +28,9 @@ let lastCalculatedResult = null;
 let appConfig = {
   baseFee: 300,
   upiId: '1979.ravi.agarwal-3@okhdfcbank',
-  payeeName: 'Discover Your Self'
+  payeeName: 'Discover Your Self',
+  supabaseUrl: localStorage.getItem('dys_supabase_url') || '',
+  supabaseKey: localStorage.getItem('dys_supabase_key') || ''
 };
 
 // WhatsApp Group Target Links
@@ -1035,7 +1037,7 @@ function completeRegistrationAndGeneratePass() {
   // Targeted WhatsApp Group Routing (Behind the scenes target URL, generic button text)
   updatePassWhatsAppButton();
 
-  // Save Complete Record to LocalStorage
+  // Save Complete Record to LocalStorage & Supabase Cloud DB
   const record = {
     studentData,
     userAnswers,
@@ -1048,11 +1050,63 @@ function completeRegistrationAndGeneratePass() {
     localStorage.setItem('dys_user_' + studentData.phone, JSON.stringify(record));
   }
 
+  // Save to Supabase Cloud Database (if configured)
+  saveRegistrationToSupabase(record);
+
   switchScreen('screen-registration', 'screen-pass');
   
   // Confetti Explosion
   triggerConfetti();
   showToast(uiText[currentLang].paymentSuccessToast);
+}
+
+// Supabase Cloud DB Client Integration
+let supabaseClient = null;
+function initSupabase() {
+  const url = appConfig.supabaseUrl || localStorage.getItem('dys_supabase_url');
+  const key = appConfig.supabaseKey || localStorage.getItem('dys_supabase_key');
+  if (window.supabase && url && key && url !== 'YOUR_SUPABASE_PROJECT_URL') {
+    try {
+      supabaseClient = window.supabase.createClient(url, key);
+    } catch (err) {
+      console.error("Supabase Init Error:", err);
+    }
+  }
+}
+
+async function saveRegistrationToSupabase(record) {
+  initSupabase();
+  if (!supabaseClient) return;
+
+  try {
+    const payload = {
+      pass_id: record.regPassId,
+      full_name: studentData.name,
+      age: parseInt(studentData.age) || 0,
+      whatsapp_number: studentData.phone,
+      occupation: studentData.occupation,
+      institution_or_company: studentData.occupation === 'student' ? studentData.college : studentData.company,
+      degree_or_position: studentData.occupation === 'student' ? studentData.degree : studentData.position,
+      branch: studentData.branch || null,
+      marital_status: studentData.maritalStatus,
+      gender: studentData.gender || null,
+      quiz_score: lastCalculatedResult ? lastCalculatedResult.netScore : 20,
+      percentage: lastCalculatedResult ? lastCalculatedResult.finalPercent : 100,
+      paid_amount: lastCalculatedResult ? lastCalculatedResult.payableAmount : 150,
+      utr_number: document.getElementById('input-utr') ? document.getElementById('input-utr').value.trim() : null,
+      language: currentLang,
+      remarks: studentData.remarks || null
+    };
+
+    const { data, error } = await supabaseClient.from('registrations').insert([payload]);
+    if (error) {
+      console.error("Supabase Cloud DB Save Error:", error);
+    } else {
+      console.log("Registration successfully saved to Supabase Cloud DB!", data);
+    }
+  } catch (e) {
+    console.error("Supabase Connection Exception:", e);
+  }
 }
 
 // Targeted WhatsApp Group URL Configurator (Generic Button Text)
@@ -1238,13 +1292,25 @@ function saveConfig() {
   const baseFee = parseInt(document.getElementById('input-base-fee').value);
   const upiId = document.getElementById('input-upi-id').value.trim();
   const payeeName = document.getElementById('input-payee-name').value.trim();
+  const sbUrl = document.getElementById('input-supabase-url') ? document.getElementById('input-supabase-url').value.trim() : '';
+  const sbKey = document.getElementById('input-supabase-key') ? document.getElementById('input-supabase-key').value.trim() : '';
 
   if (baseFee) appConfig.baseFee = baseFee;
   if (upiId) appConfig.upiId = upiId;
   if (payeeName) appConfig.payeeName = payeeName;
+  if (sbUrl) {
+    appConfig.supabaseUrl = sbUrl;
+    localStorage.setItem('dys_supabase_url', sbUrl);
+  }
+  if (sbKey) {
+    appConfig.supabaseKey = sbKey;
+    localStorage.setItem('dys_supabase_key', sbKey);
+  }
+
+  initSupabase();
 
   closeModal('settings-modal');
-  showToast("Admin Settings Saved!");
+  showToast("Admin & Supabase Settings Saved!");
 }
 
 // Celebration Confetti & Flowers Cannon

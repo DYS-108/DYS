@@ -210,114 +210,167 @@
     <!-- SCREEN 5: Candidate Registration Form (Post-Payment) -->
     <main id="screen-registration" class="view-screen hidden">
       <!-- Back Navigation Row -->
-      <div class="screen-nav-bar" style="display:flex; align-items:center; justify-content:flex-start; margin-bottom:8px;">
+      <div class="screen-nav-bar" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
         <button id="btn-back-registration" onclick="goBackFrom('screen-registration')" type="button" class="btn-secondary" style="width:auto; padding:6px 14px; font-size:0.82rem; border-color:rgba(255,255,255,0.2);">
           ⬅ Back to Payment
         </button>
+        <span class="reg-step-badge">Step 2 of 2 • Candidate Profile</span>
       </div>
 
-      <div class="hero-card">
-        <h2 id="lbl-reg-screen-title" class="hero-title" style="font-size:1.35rem;">Candidate Registration 📝</h2>
-        <p id="lbl-reg-screen-desc" style="font-size:0.85rem; color:var(--text-muted); margin-bottom:16px;">
-          Please enter your details to generate your official DYS Pass Ticket.
-        </p>
-
-        <div class="form-group">
-          <label id="lbl-name" class="form-label" for="input-name">👤 Full Name *</label>
-          <input type="text" id="input-name" class="form-input" placeholder="e.g. Rahul Sharma" required>
+      <div class="hero-card reg-form-card">
+        <div class="reg-header-banner">
+          <h2 id="lbl-reg-screen-title" class="hero-title" style="font-size:1.4rem; margin-bottom:4px;">Candidate Registration 📝</h2>
+          <p id="lbl-reg-screen-desc" style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0;">
+            Please enter your details to generate your official DYS Pass Ticket.
+          </p>
         </div>
 
-        <div class="form-group">
-          <label id="lbl-age" class="form-label" for="input-age">🎂 Age *</label>
-          <input type="number" id="input-age" class="form-input" placeholder="e.g. 21" min="10" max="99" required>
-        </div>
-
-        <div class="form-group">
-          <label id="lbl-phone" class="form-label" for="input-phone">💬 WhatsApp Number *</label>
-          <input type="tel" id="input-phone" class="form-input" placeholder="e.g. 9876543210" required>
-        </div>
-
-        <!-- Occupation Selection -->
-        <div class="form-group">
-          <label id="lbl-occupation" class="form-label">💼 Occupation *</label>
-          <div class="radio-cards-grid">
-            <button id="btn-occ-student" type="button" onclick="setOccupation('student')" class="radio-card-btn active">
-              🎓 <span id="lbl-occ-student">Student</span>
-            </button>
-            <button id="btn-occ-job" type="button" onclick="setOccupation('job')" class="radio-card-btn">
-              👔 <span id="lbl-occ-job">Job / Self-Employed</span>
-            </button>
+        <!-- Section 1: Personal & Contact Details -->
+        <div class="form-section-card">
+          <div class="form-section-header">
+            <span class="section-icon">👤</span>
+            <span id="lbl-sec-personal" class="section-title">Personal & Contact Info</span>
           </div>
-        </div>
 
-        <!-- Conditional Field Box 1: Student Details -->
-        <div id="box-occ-student">
           <div class="form-group">
-            <label id="lbl-college" class="form-label" for="input-college">🏛️ College / School Name *</label>
-            <input type="text" id="input-college" class="form-input" placeholder="e.g. COEP / VIT Pune">
+            <label id="lbl-name" class="form-label" for="input-name">Full Name *</label>
+            <div class="input-with-icon">
+              <span class="input-field-icon">👤</span>
+              <input type="text" id="input-name" class="form-input" placeholder="e.g. Rahul Sharma" required>
+            </div>
           </div>
+
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label id="lbl-age" class="form-label" for="input-age">Age *</label>
+              <div class="input-with-icon">
+                <span class="input-field-icon">🎂</span>
+                <input type="number" id="input-age" class="form-input" placeholder="e.g. 21" min="10" max="99" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label id="lbl-phone" class="form-label" for="input-phone">WhatsApp Number *</label>
+              <div class="input-with-icon">
+                <span class="input-field-icon">💬</span>
+                <input type="tel" id="input-phone" class="form-input" placeholder="e.g. 9876543210" required>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom:0;">
+            <label id="lbl-address" class="form-label" for="input-address">Full Address / City *</label>
+            <div class="input-with-icon">
+              <span class="input-field-icon">📍</span>
+              <input type="text" id="input-address" class="form-input" placeholder="e.g. Kothrud, Pune / Flat No, Street, City" required>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Occupation & Institution -->
+        <div class="form-section-card">
+          <div class="form-section-header">
+            <span class="section-icon">💼</span>
+            <span id="lbl-sec-occupation" class="section-title">Occupation & Institution Profile</span>
+          </div>
+
           <div class="form-group">
-            <label id="lbl-degree" class="form-label" for="input-degree">🎓 Degree *</label>
-            <input type="text" id="input-degree" class="form-input" placeholder="e.g. B.Tech / B.Sc">
+            <label id="lbl-occupation" class="form-label">Select Occupation *</label>
+            <div class="radio-cards-grid">
+              <button id="btn-occ-student" type="button" onclick="setOccupation('student')" class="radio-card-btn active">
+                🎓 <span id="lbl-occ-student">Student</span>
+              </button>
+              <button id="btn-occ-job" type="button" onclick="setOccupation('job')" class="radio-card-btn">
+                👔 <span id="lbl-occ-job">Job / Self-Employed</span>
+              </button>
+            </div>
           </div>
+
+          <!-- Conditional Field Box 1: Student Details -->
+          <div id="box-occ-student">
+            <div class="form-group">
+              <label id="lbl-college" class="form-label" for="input-college">College / School Name *</label>
+              <div class="input-with-icon">
+                <span class="input-field-icon">🏛️</span>
+                <input type="text" id="input-college" class="form-input" placeholder="e.g. COEP / VIT Pune">
+              </div>
+            </div>
+            <div class="form-row-2col">
+              <div class="form-group" style="margin-bottom:0;">
+                <label id="lbl-degree" class="form-label" for="input-degree">Degree *</label>
+                <div class="input-with-icon">
+                  <span class="input-field-icon">🎓</span>
+                  <input type="text" id="input-degree" class="form-input" placeholder="e.g. B.Tech / B.Sc">
+                </div>
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label id="lbl-branch" class="form-label" for="input-branch">Branch / Year *</label>
+                <div class="input-with-icon">
+                  <span class="input-field-icon">📚</span>
+                  <input type="text" id="input-branch" class="form-input" placeholder="e.g. CS / 3rd Year">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Conditional Field Box 2: Job / Self-Employed Details -->
+          <div id="box-occ-job" class="hidden">
+            <div class="form-group">
+              <label id="lbl-company" class="form-label" for="input-company">Company / Business Name *</label>
+              <div class="input-with-icon">
+                <span class="input-field-icon">🏢</span>
+                <input type="text" id="input-company" class="form-input" placeholder="e.g. TCS / Infosys / Business">
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label id="lbl-position" class="form-label" for="input-position">Position / Role *</label>
+              <div class="input-with-icon">
+                <span class="input-field-icon">💼</span>
+                <input type="text" id="input-position" class="form-input" placeholder="e.g. Software Engineer / Manager">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3: Status & Demographics -->
+        <div class="form-section-card">
+          <div class="form-section-header">
+            <span class="section-icon">👥</span>
+            <span id="lbl-sec-status" class="section-title">Demographics & Remarks</span>
+          </div>
+
           <div class="form-group">
-            <label id="lbl-branch" class="form-label" for="input-branch">📚 Branch / Year *</label>
-            <input type="text" id="input-branch" class="form-input" placeholder="e.g. CS / 3rd Year">
+            <label id="lbl-marital-status" class="form-label">Marital Status *</label>
+            <div class="radio-cards-grid">
+              <button id="btn-marital-single" type="button" onclick="setMaritalStatus('single')" class="radio-card-btn active">
+                🙋 <span id="lbl-marital-single">Single</span>
+              </button>
+              <button id="btn-marital-married" type="button" onclick="setMaritalStatus('married')" class="radio-card-btn">
+                👩‍❤️‍👨 <span id="lbl-marital-married">Married</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="box-single-gender" class="form-group">
+            <label id="lbl-gender" class="form-label">Gender *</label>
+            <div class="radio-cards-grid">
+              <button id="btn-gender-male" type="button" onclick="setGender('male')" class="radio-card-btn active">
+                👨 <span id="lbl-gender-male">Male</span>
+              </button>
+              <button id="btn-gender-female" type="button" onclick="setGender('female')" class="radio-card-btn">
+                👩 <span id="lbl-gender-female">Female</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom:0;">
+            <label id="lbl-remarks" class="form-label" for="input-remarks">Remarks (Optional)</label>
+            <textarea id="input-remarks" class="form-input" rows="2" placeholder="Any specific notes or queries..." style="resize:none;"></textarea>
           </div>
         </div>
 
-        <!-- Conditional Field Box 2: Job / Self-Employed Details -->
-        <div id="box-occ-job" class="hidden">
-          <div class="form-group">
-            <label id="lbl-company" class="form-label" for="input-company">🏢 Company / Business Name *</label>
-            <input type="text" id="input-company" class="form-input" placeholder="e.g. TCS / Infosys / Business">
-          </div>
-          <div class="form-group">
-            <label id="lbl-position" class="form-label" for="input-position">💼 Position / Role *</label>
-            <input type="text" id="input-position" class="form-input" placeholder="e.g. Software Engineer / Manager">
-          </div>
-        </div>
-
-        <!-- Marital Status Selection Integrated Directly Into Registration Form -->
-        <div class="form-group" style="margin-top:16px;">
-          <label id="lbl-marital-status" class="form-label">💍 Marital Status *</label>
-          <div class="radio-cards-grid">
-            <button id="btn-marital-single" type="button" onclick="setMaritalStatus('single')" class="radio-card-btn active">
-              🙋 <span id="lbl-marital-single">Single</span>
-            </button>
-            <button id="btn-marital-married" type="button" onclick="setMaritalStatus('married')" class="radio-card-btn">
-              👩‍❤️‍👨 <span id="lbl-marital-married">Married</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Single Gender Selection (Revealed ONLY when Single is selected) -->
-        <div id="box-single-gender" class="form-group" style="margin-top:16px;">
-          <label id="lbl-gender" class="form-label">👤 Gender *</label>
-          <div class="radio-cards-grid">
-            <button id="btn-gender-male" type="button" onclick="setGender('male')" class="radio-card-btn active">
-              👨 <span id="lbl-gender-male">Male</span>
-            </button>
-            <button id="btn-gender-female" type="button" onclick="setGender('female')" class="radio-card-btn">
-              👩 <span id="lbl-gender-female">Female</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Address Field -->
-        <div class="form-group" style="margin-top:16px;">
-          <label id="lbl-address" class="form-label" for="input-address">📍 Full Address / City *</label>
-          <input type="text" id="input-address" class="form-input" placeholder="e.g. Kothrud, Pune / Flat No, Street, City" required>
-        </div>
-
-        <!-- Remarks (Optional) -->
-        <div class="form-group" style="margin-top:16px;">
-          <label id="lbl-remarks" class="form-label" for="input-remarks">📝 Remarks (Optional)</label>
-          <textarea id="input-remarks" class="form-input" rows="2" placeholder="Any specific requirements or notes..." style="resize:none;"></textarea>
-        </div>
-
-        <button id="btn-complete-registration" onclick="completeRegistrationAndGeneratePass()" type="button" class="btn-primary" style="margin-top:20px; background: linear-gradient(135deg, #10B981, #059669);">
-          Complete Registration & Get Pass Ticket 🎫
+        <button id="btn-complete-registration" onclick="completeRegistrationAndGeneratePass()" type="button" class="btn-primary btn-submit-reg">
+          <span>Complete Registration & Get Pass Ticket</span> 🎫
         </button>
       </div>
     </main>
@@ -325,63 +378,99 @@
     <!-- SCREEN 6: Registration Pass Ticket -->
     <main id="screen-pass" class="view-screen hidden">
       <div id="success-pass-card" class="result-card pass-receipt-card" style="margin-top:0;">
-        <!-- Pass Ticket Header -->
+        
+        <!-- Ticket Cutout Notches -->
+        <div class="ticket-notch notch-left"></div>
+        <div class="ticket-notch notch-right"></div>
+
+        <!-- Pass Ticket Top Banner Header -->
         <div class="pass-ticket-header">
-          <img src="iskcon_logo.png" alt="ISKCON Logo" style="width:48px; height:auto; background:#FFF; padding:3px; border-radius:50%;">
-          <div>
+          <img src="iskcon_logo.png" alt="ISKCON Logo" class="pass-brand-logo">
+          <div class="pass-header-info">
             <div class="pass-org-name">DISCOVER YOUR SELF</div>
-            <div class="pass-course-name">Official Course Pass</div>
+            <div class="pass-course-name">Official Course Enrollment Pass</div>
           </div>
+          <div class="pass-vip-tag">VIP PASS</div>
         </div>
 
-        <div id="lbl-verified-badge" class="congrats-badge" style="background: rgba(16, 185, 129, 0.25); border-color: #10B981; color: #34D399; margin-top:10px;">
+        <!-- Verification Badge -->
+        <div id="lbl-verified-badge" class="congrats-badge pass-verified-badge">
           ✅ PAYMENT VERIFIED & REGISTERED
         </div>
-        
-        <div class="breakdown-box" style="margin-top:14px; background: rgba(15, 23, 42, 0.95); border-color: #10B981; text-align:left;">
-          <div class="breakdown-row">
-            <span id="lbl-pass-id-title">Pass ID:</span>
-            <span id="pass-reg-id" class="gold-text" style="font-weight:900; font-size:1.05rem;">ISKCON-REG-2001</span>
+
+        <!-- Structured Candidate Details Grid -->
+        <div class="pass-details-box">
+          <div class="pass-grid-row">
+            <div class="pass-cell highlight-cell">
+              <span id="lbl-pass-id-title" class="pass-cell-label">Pass ID</span>
+              <span id="pass-reg-id" class="pass-cell-value pass-id-value">ISKCON-REG-2001</span>
+            </div>
+            <div class="pass-cell highlight-cell">
+              <span id="lbl-score-pass-title" class="pass-cell-label">Quiz Performance</span>
+              <span id="pass-score" class="pass-cell-value pass-score-value">20 / 20 Marks</span>
+            </div>
           </div>
-          <div class="breakdown-row">
-            <span id="lbl-student-name-title">Student Name:</span>
-            <span id="pass-student-name" style="font-weight:700; color:#FFF;">Participant</span>
+
+          <div class="pass-grid-row">
+            <div class="pass-cell">
+              <span id="lbl-student-name-title" class="pass-cell-label">Participant Name</span>
+              <span id="pass-student-name" class="pass-cell-value">Rahul Sharma</span>
+            </div>
+            <div class="pass-cell">
+              <span id="lbl-age-pass-title" class="pass-cell-label">Age & Status</span>
+              <span id="pass-age" class="pass-cell-value">21 • Single</span>
+            </div>
           </div>
-          <div class="breakdown-row">
-            <span id="lbl-age-pass-title">Age:</span>
-            <span id="pass-age" style="color:#FFF;">-</span>
+
+          <div class="pass-grid-row">
+            <div class="pass-cell">
+              <span id="lbl-phone-title" class="pass-cell-label">WhatsApp Number</span>
+              <span id="pass-phone" class="pass-cell-value">9876543210</span>
+            </div>
+            <div class="pass-cell">
+              <span id="lbl-paid-amt-title" class="pass-cell-label">Paid Amount</span>
+              <span id="pass-amount" class="pass-cell-value pass-amt-value">₹150</span>
+            </div>
           </div>
-          <div class="breakdown-row">
-            <span id="lbl-phone-title">WhatsApp Number:</span>
-            <span id="pass-phone" style="color:#FFF;">-</span>
+
+          <div class="pass-grid-row full-width-row">
+            <div class="pass-cell">
+              <span id="lbl-occ-pass-title" class="pass-cell-label">Occupation / Institution</span>
+              <span id="pass-occupation" class="pass-cell-value">COEP (B.Tech CS)</span>
+            </div>
           </div>
-          <div class="breakdown-row">
-            <span id="lbl-occ-pass-title">Occupation / Info:</span>
-            <span id="pass-occupation" style="color:#FFF;">-</span>
-          </div>
-          <div class="breakdown-row">
-            <span id="lbl-score-pass-title">Quiz Score:</span>
-            <span id="pass-score" style="color:var(--text-gold); font-weight:800;">20 / 20 Marks</span>
-          </div>
-          <div class="breakdown-row">
-            <span id="lbl-paid-amt-title">Paid Amount:</span>
-            <span id="pass-amount" style="color:#34D399; font-weight:900; font-size:1.1rem;">₹150</span>
-          </div>
-          <div class="breakdown-row">
-            <span id="lbl-datetime-title">Date & Time:</span>
-            <span id="pass-time" style="font-size:0.8rem; color:var(--text-muted);">-</span>
+
+          <div class="pass-grid-row full-width-row">
+            <div class="pass-cell">
+              <span id="lbl-datetime-title" class="pass-cell-label">Registration Date & Time</span>
+              <span id="pass-time" class="pass-cell-value pass-time-value">-</span>
+            </div>
           </div>
         </div>
 
+        <!-- Venue Entry Scanning Container (QR Code & Simulated Barcode) -->
+        <div class="pass-barcode-section">
+          <div class="barcode-header-tag">OFFICIAL VENUE SCANNER PASS</div>
+          <div class="qr-barcode-flex">
+            <div id="pass-qrcode-container" class="pass-qr-box"></div>
+            <div class="simulated-barcode-wrapper">
+              <div id="pass-barcode-lines" class="barcode-lines"></div>
+              <div id="pass-barcode-text" class="barcode-code-text">ISKCON-REG-2001</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Entry Instructions Note Box -->
         <div class="pass-note-box">
-          📌 <span id="lbl-pass-note">Please keep a screenshot or printout of this pass for entry at the venue.</span>
+          📌 <span id="lbl-pass-note">Please show this digital pass or present a screenshot/printout at the registration desk for venue entry.</span>
         </div>
 
-        <div class="no-print" style="display:flex; flex-direction:column; gap:10px; margin-top:16px;">
-          <button id="btn-print-pass" onclick="window.print()" class="btn-primary" style="background: linear-gradient(135deg, #10B981, #059669); margin-top:0;">
+        <!-- Printable & Direct Action Buttons -->
+        <div class="no-print pass-actions-row">
+          <button id="btn-print-pass" onclick="window.print()" type="button" class="btn-primary btn-download-pass">
             Download Registration Pass 📄
           </button>
-          <a id="btn-whatsapp-group" href="https://chat.whatsapp.com/" target="_blank" class="btn-secondary" style="text-decoration:none; text-align:center; border-color:#25D366; color:#25D366; font-size:1rem; font-weight:800;">
+          <a id="btn-whatsapp-group" href="https://chat.whatsapp.com/" target="_blank" class="btn-secondary btn-join-wa">
             Join WhatsApp Group 💬
           </a>
         </div>

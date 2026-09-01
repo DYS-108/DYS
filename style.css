@@ -1356,3 +1356,379 @@ body {
 .journey-row-6 { background: linear-gradient(135deg, #FFE4E6, #FECDD3); border-color: #FDA4AF; }
 .journey-row-7 { background: linear-gradient(135deg, #F3E8FF, #E9D5FF); border-color: #D8B4FE; }
 .journey-row-8 { background: linear-gradient(135deg, #FEF3C7, #FDE68A); border-color: #FCD34D; }
+
+/* ==========================================================================
+   ENHANCED PROFESSIONAL CANDIDATE REGISTRATION & PASS STYLING
+   ========================================================================== */
+
+/* Form Header & Step Indicator */
+.reg-step-badge {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(255, 119, 0, 0.15));
+  border: 1px solid var(--gold-accent);
+  color: var(--text-gold);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.reg-form-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  text-align: left;
+}
+
+.reg-header-banner {
+  text-align: center;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.12);
+  padding-bottom: 12px;
+}
+
+/* Form Section Cards */
+.form-section-card {
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 3px solid var(--gold-accent);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: var(--transition);
+}
+
+.form-section-card:hover {
+  background: rgba(22, 30, 52, 0.8);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.form-section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding-bottom: 8px;
+}
+
+.section-icon {
+  font-size: 1.1rem;
+}
+
+.section-title {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--text-gold);
+  letter-spacing: 0.3px;
+}
+
+.form-row-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media screen and (max-width: 380px) {
+  .form-row-2col {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Input Fields with Prefix Icons */
+.input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-field-icon {
+  position: absolute;
+  left: 12px;
+  font-size: 0.95rem;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0.8;
+}
+
+.input-with-icon .form-input {
+  padding-left: 38px;
+  width: 100%;
+}
+
+.btn-submit-reg {
+  background: linear-gradient(135deg, #10B981, #059669) !important;
+  color: #FFF !important;
+  font-size: 1.05rem !important;
+  font-weight: 800 !important;
+  padding: 16px !important;
+  margin-top: 8px !important;
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4) !important;
+  border-radius: var(--radius-md) !important;
+  letter-spacing: 0.3px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-submit-reg:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(16, 185, 129, 0.6) !important;
+}
+
+/* VIP PASS TICKET STYLING */
+.pass-receipt-card {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(6, 78, 59, 0.45)) !important;
+  border: 1px solid #10B981 !important;
+  border-radius: 24px !important;
+  padding: 20px !important;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7), 0 0 35px rgba(16, 185, 129, 0.25) !important;
+}
+
+/* Ticket Cutout Notches */
+.ticket-notch {
+  position: absolute;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  background: #070913;
+  border-radius: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+}
+
+.notch-left {
+  left: -10px;
+  border-right: 1px solid #10B981;
+}
+
+.notch-right {
+  right: -10px;
+  border-left: 1px solid #10B981;
+}
+
+/* Pass Ticket Top Banner Header */
+.pass-ticket-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-bottom: 1px dashed rgba(16, 185, 129, 0.3);
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+}
+
+.pass-brand-logo {
+  width: 44px;
+  height: 44px;
+  background: #FFF;
+  border-radius: 50%;
+  padding: 3px;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.5);
+  flex-shrink: 0;
+}
+
+.pass-header-info {
+  text-align: left;
+  flex: 1;
+}
+
+.pass-org-name {
+  font-size: 1.1rem;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  color: var(--text-gold);
+}
+
+.pass-course-name {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.pass-vip-tag {
+  background: linear-gradient(135deg, #FF7700, #F59E0B);
+  color: #000;
+  font-size: 0.72rem;
+  font-weight: 900;
+  padding: 4px 10px;
+  border-radius: 12px;
+  letter-spacing: 1px;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+}
+
+.pass-verified-badge {
+  background: rgba(16, 185, 129, 0.25) !important;
+  border-color: #10B981 !important;
+  color: #34D399 !important;
+  margin-bottom: 14px !important;
+  width: 100%;
+  justify-content: center;
+}
+
+/* Structured Details Box Grid */
+.pass-details-box {
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 14px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.pass-grid-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.pass-grid-row.full-width-row {
+  grid-template-columns: 1fr;
+}
+
+.pass-cell {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 8px 12px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pass-cell.highlight-cell {
+  background: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.25);
+}
+
+.pass-cell-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pass-cell-value {
+  font-size: 0.9rem;
+  color: #FFF;
+  font-weight: 700;
+  word-break: break-word;
+}
+
+.pass-id-value {
+  color: var(--text-gold) !important;
+  font-size: 1rem !important;
+  font-weight: 900 !important;
+}
+
+.pass-score-value {
+  color: #34D399 !important;
+  font-weight: 900 !important;
+}
+
+.pass-amt-value {
+  color: #34D399 !important;
+  font-size: 1.05rem !important;
+  font-weight: 900 !important;
+}
+
+.pass-time-value {
+  font-size: 0.78rem !important;
+  color: var(--text-muted) !important;
+}
+
+/* Barcode & QR Venue Scanner Section */
+.pass-barcode-section {
+  background: #FFFFFF;
+  border-radius: 14px;
+  padding: 12px;
+  margin-bottom: 14px;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.barcode-header-tag {
+  font-size: 0.7rem;
+  font-weight: 900;
+  color: #0F172A;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+  border-bottom: 1px dashed #CBD5E1;
+  padding-bottom: 4px;
+}
+
+.qr-barcode-flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 12px;
+}
+
+.pass-qr-box canvas, .pass-qr-box img {
+  width: 72px !important;
+  height: 72px !important;
+  display: block;
+}
+
+.simulated-barcode-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.barcode-lines {
+  width: 140px;
+  height: 44px;
+  background: repeating-linear-gradient(
+    90deg,
+    #000 0px, #000 2px,
+    #fff 2px, #fff 4px,
+    #000 4px, #000 7px,
+    #fff 7px, #fff 9px,
+    #000 9px, #000 10px,
+    #fff 10px, #fff 13px,
+    #000 13px, #000 17px,
+    #fff 17px, #fff 19px,
+    #000 19px, #000 22px
+  );
+  border-radius: 2px;
+}
+
+.barcode-code-text {
+  font-family: 'Courier New', monospace;
+  font-weight: 800;
+  font-size: 0.78rem;
+  color: #000000;
+  letter-spacing: 1.5px;
+}
+
+/* Action Buttons Grid */
+.pass-actions-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.btn-download-pass {
+  background: linear-gradient(135deg, #10B981, #059669) !important;
+  margin-top: 0 !important;
+}
+
+.btn-join-wa {
+  text-decoration: none !important;
+  text-align: center !important;
+  border-color: #25D366 !important;
+  color: #25D366 !important;
+  font-size: 0.98rem !important;
+  font-weight: 800 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}

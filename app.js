@@ -380,38 +380,41 @@ const uiText = {
     confirmPayBtn: "I Have Paid / Proceed to Registration ⚡",
     regScreenTitle: "Candidate Registration 📝",
     regScreenDesc: "Please enter your details to generate your official DYS Pass Ticket.",
-    nameLabel: "👤 Full Name *",
-    ageLabel: "🎂 Age *",
-    phoneLabel: "💬 WhatsApp Number *",
-    occupationLabel: "💼 Occupation *",
+    secPersonalTitle: "Personal & Contact Info",
+    secOccupationTitle: "Occupation & Institution Profile",
+    secStatusTitle: "Demographics & Remarks",
+    nameLabel: "Full Name *",
+    ageLabel: "Age *",
+    phoneLabel: "WhatsApp Number *",
+    occupationLabel: "Select Occupation *",
     occStudent: "Student",
     occJob: "Job / Self-Employed",
-    collegeLabel: "🏛️ College / School Name *",
-    degreeLabel: "🎓 Degree *",
-    branchLabel: "📚 Branch / Year *",
-    companyLabel: "🏢 Company / Business Name *",
-    positionLabel: "💼 Position / Role *",
-    remarksLabel: "📝 Remarks (Optional)",
+    collegeLabel: "College / School Name *",
+    degreeLabel: "Degree *",
+    branchLabel: "Branch / Year *",
+    companyLabel: "Company / Business Name *",
+    positionLabel: "Position / Role *",
+    remarksLabel: "Remarks (Optional)",
     gotoMaritalBtn: "Proceed to Marital Status ➔",
-    maritalStatusLabel: "💍 Marital Status *",
+    maritalStatusLabel: "Marital Status *",
     maritalSingle: "Single",
     maritalMarried: "Married",
-    genderLabel: "👤 Gender *",
+    genderLabel: "Gender *",
     genderMale: "Male",
     genderFemale: "Female",
     completeRegistrationBtn: "Complete Registration & Get Pass Ticket 🎫",
     verifiedBadge: "✅ PAYMENT VERIFIED & REGISTERED",
     passOrgName: "DISCOVER YOUR SELF",
-    passCourseName: "Official Course Pass",
-    passIdLabel: "Pass ID:",
-    studentNameLabel: "Student Name:",
-    agePassTitle: "Age:",
-    phoneNumLabel: "WhatsApp Number:",
-    occPassTitle: "Occupation / Info:",
-    scorePassTitle: "Quiz Score:",
-    paidAmtLabel: "Paid Amount:",
-    dateTimeLabel: "Date & Time:",
-    passNote: "Please keep a screenshot or printout of this pass for entry at the venue.",
+    passCourseName: "Official Course Enrollment Pass",
+    passIdLabel: "Pass ID",
+    studentNameLabel: "Participant Name",
+    agePassTitle: "Age & Status",
+    phoneNumLabel: "WhatsApp Number",
+    occPassTitle: "Occupation / Institution",
+    scorePassTitle: "Quiz Performance",
+    paidAmtLabel: "Paid Amount",
+    dateTimeLabel: "Registration Date & Time",
+    passNote: "Please show this digital pass or present a screenshot/printout at the registration desk for venue entry.",
     printPassBtn: "Download Registration Pass 📄",
     whatsappBtn: "Join WhatsApp Group 💬",
     btnBackResult: "⬅ Back to Quiz",
@@ -469,38 +472,41 @@ const uiText = {
     confirmPayBtn: "मैंने भुगतान कर दिया है / पंजीकरण करें ⚡",
     regScreenTitle: "उम्मीदवार पंजीकरण 📝",
     regScreenDesc: "कृपया अपना आधिकारिक DYS पास टिकट बनाने के लिए विवरण दर्ज करें।",
-    nameLabel: "👤 पूरा नाम *",
-    ageLabel: "🎂 उम्र *",
-    phoneLabel: "💬 व्हाट्सएप नंबर *",
-    occupationLabel: "💼 व्यवसाय *",
+    secPersonalTitle: "व्यक्तिगत और संपर्क विवरण",
+    secOccupationTitle: "व्यवसाय और संस्थान प्रोफ़ाइल",
+    secStatusTitle: "जनसांख्यिकी और विवरण",
+    nameLabel: "पूरा नाम *",
+    ageLabel: "उम्र *",
+    phoneLabel: "व्हाट्सएप नंबर *",
+    occupationLabel: "व्यवसाय चुनें *",
     occStudent: "छात्र",
     occJob: "नौकरी / स्वरोजगार",
-    collegeLabel: "🏛️ कॉलेज / स्कूल का नाम *",
-    degreeLabel: "🎓 डिग्री *",
-    branchLabel: "📚 शाखा / वर्ष *",
-    companyLabel: "🏢 कंपनी / व्यवसाय का नाम *",
-    positionLabel: "💼 पद / भूमिका *",
-    remarksLabel: "📝 टिप्पणी (वैकल्पिक)",
+    collegeLabel: "कॉलेज / स्कूल का नाम *",
+    degreeLabel: "डिग्री *",
+    branchLabel: "शाखा / वर्ष *",
+    companyLabel: "कंपनी / व्यवसाय का नाम *",
+    positionLabel: "पद / भूमिका *",
+    remarksLabel: "टिप्पणी (वैकल्पिक)",
     gotoMaritalBtn: "वैवाहिक स्थिति के लिए आगे बढ़ें ➔",
-    maritalStatusLabel: "💍 वैवाहिक स्थिति *",
+    maritalStatusLabel: "वैवाहिक स्थिति *",
     maritalSingle: "अविवाहित",
     maritalMarried: "विवाहित",
-    genderLabel: "👤 लिंग *",
+    genderLabel: "लिंग *",
     genderMale: "पुरुष",
     genderFemale: "महिला",
     completeRegistrationBtn: "पंजीकरण पूरा करें और पास टिकट प्राप्त करें 🎫",
     verifiedBadge: "✅ भुगतान सत्यापित एवं पंजीकृत",
     passOrgName: "डिस्कवर योर सेल्फ",
     passCourseName: "आधिकारिक कोर्स पास",
-    passIdLabel: "पास आईडी:",
-    studentNameLabel: "छात्र का नाम:",
-    agePassTitle: "उम्र:",
-    phoneNumLabel: "व्हाट्सएप नंबर:",
-    occPassTitle: "व्यवसाय / विवरण:",
-    scorePassTitle: "क्विज़ स्कोर:",
-    paidAmtLabel: "भुगतान की गई राशि:",
-    dateTimeLabel: "दिनांक एवं समय:",
-    passNote: "कृपया वेन्यू पर प्रवेश के लिए इस पास का स्क्रीनशॉट या प्रिंटआउट अपने पास रखें।",
+    passIdLabel: "पास आईडी",
+    studentNameLabel: "भागीदार का नाम",
+    agePassTitle: "उम्र एवं स्थिति",
+    phoneNumLabel: "व्हाट्सएप नंबर",
+    occPassTitle: "व्यवसाय / विवरण",
+    scorePassTitle: "क्विज़ स्कोर",
+    paidAmtLabel: "भुगतान की गई राशि",
+    dateTimeLabel: "दिनांक एवं समय",
+    passNote: "कृपया वेन्यू पर प्रवेश के लिए इस डिजिटल पास का स्क्रीनशॉट या प्रिंटआउट अपने पास रखें।",
     printPassBtn: "रजिस्ट्रेशन पास डाउनलोड करें 📄",
     whatsappBtn: "व्हाट्सएप ग्रुप से जुड़ें 💬",
     btnBackResult: "⬅ क्विज़ पर वापस आएं",
@@ -715,6 +721,9 @@ function renderLanguageUI() {
 
   setTxt('lbl-reg-screen-title', t.regScreenTitle);
   setTxt('lbl-reg-screen-desc', t.regScreenDesc);
+  setTxt('lbl-sec-personal', t.secPersonalTitle);
+  setTxt('lbl-sec-occupation', t.secOccupationTitle);
+  setTxt('lbl-sec-status', t.secStatusTitle);
   setTxt('lbl-name', t.nameLabel);
   setTxt('lbl-age', t.ageLabel);
   setTxt('lbl-phone', t.phoneLabel);
@@ -1080,7 +1089,13 @@ function completeRegistrationAndGeneratePass() {
 
   document.getElementById('pass-reg-id').innerText = regPassId;
   document.getElementById('pass-student-name').innerText = studentData.name || 'Participant';
-  document.getElementById('pass-age').innerText = studentData.age || '-';
+
+  // Formatted Age & Demographics Status
+  const statusStr = studentData.maritalStatus === 'single'
+    ? (studentData.gender === 'female' ? 'Single • Female' : 'Single • Male')
+    : 'Married';
+  document.getElementById('pass-age').innerText = `${studentData.age || '-'} yrs (${statusStr})`;
+
   document.getElementById('pass-phone').innerText = studentData.phone || '-';
 
   const occText = studentData.occupation === 'student'
@@ -1094,6 +1109,28 @@ function completeRegistrationAndGeneratePass() {
   const paidAmt = lastCalculatedResult ? `₹${lastCalculatedResult.payableAmount}` : '₹150';
   document.getElementById('pass-amount').innerText = paidAmt;
   document.getElementById('pass-time').innerText = nowStr;
+
+  // Render Venue Entry QR Code & Barcode Code
+  const qrBox = document.getElementById('pass-qrcode-container');
+  if (qrBox) {
+    qrBox.innerHTML = '';
+    if (window.QRCode) {
+      try {
+        new QRCode(qrBox, {
+          text: `DYS-PASS:${regPassId}:${studentData.name}:${studentData.phone}`,
+          width: 72,
+          height: 72,
+          colorDark: "#000000",
+          colorLight: "#FFFFFF"
+        });
+      } catch (qrErr) {}
+    }
+  }
+
+  const barcodeTxt = document.getElementById('pass-barcode-text');
+  if (barcodeTxt) {
+    barcodeTxt.innerText = regPassId;
+  }
 
   // Targeted WhatsApp Group Routing (Behind the scenes target URL, generic button text)
   updatePassWhatsAppButton();

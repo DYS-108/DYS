@@ -1,0 +1,23 @@
+{
+  "name": "dys-course-portal",
+  "version": "2.0.0",
+  "description": "Discover Your Self (DYS) Course Registration & Dynamic UPI Intent Portal",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": [
+    "dys",
+    "upi-intent",
+    "bhagavad-gita",
+    "course-registration"
+  ],
+  "author": "Discover Your Self Team",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
+}

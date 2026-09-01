@@ -148,7 +148,7 @@
       </div>
     </main>
 
-    <!-- SCREEN 4: Payment Section -->
+    <!-- SCREEN 4: Payment Section (Dynamic Direct UPI Intent - No Payment Gateway) -->
     <main id="screen-payment" class="view-screen hidden">
       <!-- Back Navigation Row -->
       <div class="screen-nav-bar" style="display:flex; align-items:center; justify-content:flex-start; margin-bottom:8px;">
@@ -158,55 +158,86 @@
       </div>
 
       <div id="payment-step-box" class="payment-section" style="margin-top:0;">
-        <h3 id="lbl-pay-title" class="payment-title">Scan & Complete Your Enrollment</h3>
-        <p id="lbl-pay-sub" class="payment-sub">Scan using GPay, PhonePe, Paytm, or BHIM UPI app</p>
+        <h3 id="lbl-pay-title" class="payment-title">Course Registration Payment</h3>
+        <p id="lbl-pay-sub" class="payment-sub">Direct UPI Payment (No Gateway Fee)</p>
 
-        <div class="score-display-box" style="margin: 10px 0 16px;">
-          <span id="lbl-fee-display-tag" style="font-size:0.9rem; color:var(--text-muted);">Amount to Pay:</span>
-          <span id="res-payable-amt" class="score-num" style="font-size:2.2rem; color:#34D399;">₹150</span>
-        </div>
-
-        <!-- Razorpay Primary Instant Payment Button -->
-        <button id="btn-pay-razorpay" onclick="launchRazorpayCheckout()" type="button" class="btn-primary" style="background: linear-gradient(135deg, #FF7700, #F59E0B); padding:16px; font-size:1.05rem; width:100%; margin-bottom:16px; box-shadow: 0 8px 25px rgba(255,119,0,0.4); font-weight:800;">
-          Pay <span id="btn-rzp-amt">₹150</span> via Razorpay / GPay / PhonePe / Cards 💳
-        </button>
-
-        <div style="text-align:center; font-size:0.85rem; color:var(--text-muted); margin-bottom:14px;">
-          — OR Pay Directly via QR / UPI Handle below —
-        </div>
-
-        <div class="qr-box-wrapper">
-          <div id="qrcode-container"></div>
-        </div>
-
-        <div class="upi-id-box">
-          <span id="display-upi-id">1979.ravi.agarwal-3@okhdfcbank</span>
-          <button id="btn-copy-upi" onclick="copyUpiId()" type="button" class="copy-btn">Copy UPI</button>
-        </div>
-
-        <div id="gpay-tip-container" style="background: rgba(245, 158, 11, 0.12); border: 1px dashed #F59E0B; border-radius: 12px; padding: 10px 14px; margin: 12px 0; text-align: center; font-size: 0.83rem; color: #FCD34D; line-height: 1.4;">
-          💡 <strong>GPay / PhonePe Tip:</strong> If auto-pay shows a limit alert, tap <strong>Copy UPI</strong> above ➔ Open GPay/PhonePe ➔ Tap <strong>Pay UPI ID</strong> ➔ Paste & Pay ₹150!
-        </div>
-
-        <a id="btn-pay-direct" class="btn-primary" href="#" style="background: linear-gradient(135deg, #10B981, #059669); margin-top:0; text-decoration:none;">
-          Open UPI App Directly 📲
-        </a>
-
-        <div class="payment-apps-row" style="margin-top: 14px;">
-          <a id="link-gpay" class="app-chip" href="#" style="text-decoration:none; cursor:pointer;">GPay 📱</a>
-          <a id="link-phonepe" class="app-chip" href="#" style="text-decoration:none; cursor:pointer;">PhonePe 📱</a>
-          <a id="link-paytm" class="app-chip" href="#" style="text-decoration:none; cursor:pointer;">Paytm 📱</a>
-          <a id="link-bhim" class="app-chip" href="#" style="text-decoration:none; cursor:pointer;">BHIM 📱</a>
-        </div>
-
-        <!-- Confirm Payment Box -->
-        <div style="margin-top:20px; border-top:1px dashed rgba(255,255,255,0.15); padding-top:16px;">
-          <div class="form-group" style="margin-bottom:10px;">
-            <label id="lbl-utr" class="form-label" style="text-align:center;" for="input-utr">Enter UTR / Ref No. (Optional):</label>
-            <input type="text" id="input-utr" class="form-input" placeholder="e.g. 4239XXXXXXXX" style="text-align:center;">
+        <!-- Course & Quiz Summary Card -->
+        <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; padding: 14px; margin-bottom: 16px; text-align: left;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <span style="font-size:0.83rem; color:var(--text-muted);">Quiz Score:</span>
+            <span id="pay-summary-score" style="font-weight:800; color:var(--text-gold);">20 / 20</span>
           </div>
-          <button id="btn-verify-payment" onclick="gotoRegistrationScreen()" type="button" class="btn-primary" style="background: linear-gradient(135deg, #F59E0B, #D97706); color:#000; font-weight:800;">
-            I Have Paid / Proceed to Registration ⚡
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <span style="font-size:0.83rem; color:var(--text-muted);">Course:</span>
+            <span id="pay-summary-course" style="font-weight:700; color:#FFF;">Discover Your Self Course</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.83rem; color:var(--text-muted);">Payment Reference:</span>
+            <span id="pay-reference-code" style="font-family:monospace; font-weight:800; color:var(--text-gold); font-size:0.85rem;">REG1024-PAY-001</span>
+          </div>
+        </div>
+
+        <!-- Dynamic Amount Payable Box -->
+        <div class="score-display-box" style="margin: 10px 0 16px;">
+          <span id="lbl-fee-display-tag" style="font-size:0.9rem; color:var(--text-muted);">Amount Payable:</span>
+          <span id="res-payable-amt" class="score-num" style="font-size:2.4rem; color:#34D399;">₹150</span>
+        </div>
+
+        <!-- Payment Status UX Banner -->
+        <div id="payment-status-banner" style="display:none; padding:12px; border-radius:10px; font-size:0.88rem; font-weight:700; text-align:center; margin-bottom:16px;">
+          <!-- Dynamically updated: PAYMENT_PENDING, UTR_SUBMITTED, VERIFIED, REJECTED -->
+        </div>
+
+        <!-- Primary UPI Intent Launch Button (Mobile / Android) -->
+        <div id="upi-intent-container">
+          <button id="btn-pay-upi-intent" onclick="initiateUpiPayment()" type="button" class="btn-primary" style="background: linear-gradient(135deg, #10B981, #059669); padding:16px; font-size:1.1rem; width:100%; margin-bottom:16px; box-shadow: 0 8px 25px rgba(16,185,129,0.35); font-weight:800;">
+            PAY <span id="btn-upi-amt-tag">₹150</span> USING UPI ⚡
+          </button>
+        </div>
+
+        <!-- Dynamic QR Code & Fallback Details Container (Desktop / iPhone) -->
+        <div id="upi-fallbacks-section">
+          <div style="text-align:center; font-size:0.82rem; color:var(--text-muted); margin-bottom:12px; font-weight:600;">
+            — OR SCAN QR / COPY UPI HANDLE BELOW —
+          </div>
+
+          <!-- Dynamic QR Code (Encodes complete upi://pay URI with amount & ref) -->
+          <div class="qr-box-wrapper" style="margin-bottom:14px;">
+            <div id="qrcode-container"></div>
+            <div style="font-size:0.75rem; color:var(--text-gold); margin-top:8px; font-weight:700;">
+              Scan using any UPI App (GPay, PhonePe, Paytm, BHIM)
+            </div>
+          </div>
+
+          <!-- UPI ID & Copy Handle -->
+          <div class="upi-id-box">
+            <span id="display-upi-id">yourupi@upi</span>
+            <button id="btn-copy-upi" onclick="copyUpiId()" type="button" class="copy-btn">Copy UPI</button>
+          </div>
+
+          <!-- App Direct Shortcuts -->
+          <div class="payment-apps-row" style="margin-top: 12px; margin-bottom: 16px;">
+            <a id="link-gpay" class="app-chip" href="#" onclick="launchUpiApp('gpay')" style="text-decoration:none; cursor:pointer;">GPay 📱</a>
+            <a id="link-phonepe" class="app-chip" href="#" onclick="launchUpiApp('phonepe')" style="text-decoration:none; cursor:pointer;">PhonePe 📱</a>
+            <a id="link-paytm" class="app-chip" href="#" onclick="launchUpiApp('paytm')" style="text-decoration:none; cursor:pointer;">Paytm 📱</a>
+            <a id="link-bhim" class="app-chip" href="#" onclick="launchUpiApp('bhim')" style="text-decoration:none; cursor:pointer;">BHIM 📱</a>
+          </div>
+        </div>
+
+        <!-- Post-Initiation UTR Submission Box -->
+        <div id="utr-submit-box" style="margin-top:16px; border-top:1px dashed rgba(255,255,255,0.15); padding-top:16px;">
+          <div id="utr-instructions" style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; font-size: 0.82rem; color: #FCD34D; text-align: left; line-height: 1.4;">
+            <strong>After completing payment in your UPI app:</strong><br>
+            Please copy & submit your 12-digit UPI UTR / Transaction Ref ID below to confirm your registration.
+          </div>
+
+          <div class="form-group" style="margin-bottom:12px;">
+            <label id="lbl-utr" class="form-label" style="text-align:left;" for="input-utr">UPI UTR / Transaction Reference ID *</label>
+            <input type="text" id="input-utr" class="form-input" placeholder="e.g. 423912345678" style="font-family:monospace; letter-spacing:1px;" maxlength="24">
+          </div>
+
+          <button id="btn-submit-utr" onclick="submitUtrPayment()" type="button" class="btn-primary" style="background: linear-gradient(135deg, #F59E0B, #D97706); color:#000; font-weight:800; margin-bottom: 10px;">
+            SUBMIT UTR & PROCEED ➔
           </button>
         </div>
       </div>
@@ -458,54 +489,67 @@
     </div>
   </div>
 
-  <!-- Organizer Settings Modal (Secret Admin Only) -->
-  <div id="settings-modal" class="modal-overlay hidden">
-    <div class="modal-card">
-      <div class="modal-title">
-        <span>Organizer Settings (Admin)</span>
-        <button id="close-settings" class="close-modal-btn">&times;</button>
+  <!-- Admin Payment Verification Dashboard Modal -->
+  <div id="admin-modal" class="modal-overlay hidden">
+    <div class="modal-card" style="max-width: 920px; width: 95%; text-align: left;">
+      <div class="modal-title" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.15); padding-bottom:10px; margin-bottom:14px;">
+        <span style="font-size:1.15rem; font-weight:800; color:var(--text-gold);">⚙️ Admin Payment Verification Portal</span>
+        <button onclick="closeAdminModal()" class="close-modal-btn" type="button" style="background:none; border:none; color:#FFF; font-size:1.4rem; cursor:pointer;">&times;</button>
       </div>
 
-      <div class="form-group">
-        <label class="form-label" for="input-base-fee">Base Fee (₹)</label>
-        <input type="number" id="input-base-fee" class="form-input" value="300">
+      <!-- Secret Token Input -->
+      <div id="admin-login-box" style="margin-bottom:16px;">
+        <div style="display:flex; gap:8px;">
+          <input type="password" id="input-admin-token" class="form-input" placeholder="Enter Admin Secret Token (default: admin123)" style="flex:1;">
+          <button onclick="fetchAdminPayments()" class="btn-primary" type="button" style="width:auto; padding:0 20px; margin-top:0; background:linear-gradient(135deg, #F59E0B, #D97706); color:#000; font-weight:800;">
+            Login & Load
+          </button>
+        </div>
       </div>
 
-      <div class="form-group">
-        <label class="form-label" for="input-upi-id">Organizer UPI ID (VPA)</label>
-        <input type="text" id="input-upi-id" class="form-input" value="1979.ravi.agarwal-3@okhdfcbank">
-      </div>
+      <!-- Filters & Refresh -->
+      <div id="admin-dashboard-content" class="hidden">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <button onclick="filterAdminTable('ALL')" class="admin-tab-btn active" id="tab-all" type="button">All</button>
+            <button onclick="filterAdminTable('UTR_SUBMITTED')" class="admin-tab-btn" id="tab-submitted" type="button">UTR Submitted</button>
+            <button onclick="filterAdminTable('PAYMENT_PENDING')" class="admin-tab-btn" id="tab-pending" type="button">Pending</button>
+            <button onclick="filterAdminTable('VERIFIED')" class="admin-tab-btn" id="tab-verified" type="button">Verified</button>
+            <button onclick="filterAdminTable('REJECTED')" class="admin-tab-btn" id="tab-rejected" type="button">Rejected</button>
+          </div>
+          <button onclick="fetchAdminPayments()" class="btn-secondary" type="button" style="width:auto; padding:4px 12px; font-size:0.8rem;">
+            🔄 Refresh List
+          </button>
+        </div>
 
-      <div class="form-group">
-        <label class="form-label" for="input-payee-name">Payee Name</label>
-        <input type="text" id="input-payee-name" class="form-input" value="Discover Your Self">
+        <!-- Table View -->
+        <div style="overflow-x:auto; max-height:420px; overflow-y:auto; border:1px solid rgba(255,255,255,0.12); border-radius:10px;">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Reg ID</th>
+                <th>Student Name</th>
+                <th>Mobile</th>
+                <th>Score</th>
+                <th>Expected Amt</th>
+                <th>Payment Ref</th>
+                <th>UTR</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="admin-table-body">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
       </div>
-
-      <div class="form-group" style="margin-top:12px;">
-        <label class="form-label" for="input-supabase-url">Supabase Project URL (Optional)</label>
-        <input type="text" id="input-supabase-url" class="form-input" placeholder="https://xyz.supabase.co">
-      </div>
-
-      <div class="form-group" style="margin-top:12px;">
-        <label class="form-label" for="input-supabase-key">Supabase Anon Key (Optional)</label>
-        <input type="password" id="input-supabase-key" class="form-input" placeholder="eyJhbGciOi...">
-      </div>
-
-      <div class="form-group" style="margin-top:12px;">
-        <label class="form-label" for="input-razorpay-key">Razorpay Key ID (Test or Live)</label>
-        <input type="text" id="input-razorpay-key" class="form-input" placeholder="rzp_test_XXXXXXXXXXXXXX">
-      </div>
-
-      <button id="btn-save-settings" class="btn-primary" style="margin-top:16px;">
-        Save Settings
-      </button>
     </div>
   </div>
 
   <!-- JavaScript Modules -->
-  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="qrcode.min.js"></script>
-  <script src="app.js?v=31.0"></script>
+  <script src="app.js?v=32.0"></script>
 </body>
 </html>

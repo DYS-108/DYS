@@ -3,6 +3,10 @@ node_modules/
 .DS_Store
 Thumbs.db
 
+# Environment & Local Data
+.env
+data/
+
 # Gemini & Local Temp
 .gemini/
 .system_generated/

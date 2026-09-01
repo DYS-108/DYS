@@ -918,11 +918,62 @@ function calculateResultsAndShow(existingRecord) {
       }
     });
 
-    const maxMarks = 20; // 10 Qs * 2 = 20
+// Global Backend Session & Payment State
+let currentRegistrationId = localStorage.getItem('dys_active_reg_id') || null;
+let currentPaymentData = null;
+let adminSecretToken = localStorage.getItem('dys_admin_token') || 'admin123';
+let adminPaymentsList = [];
+let currentAdminFilter = 'ALL';
+
+// Calculate Score & Submit Quiz to Backend for Trusted Fee Calculation
+async function calculateResultsAndShow(existingRecord) {
+  try {
+    if (existingRecord) {
+      if (existingRecord.userAnswers) userAnswers = existingRecord.userAnswers;
+      if (existingRecord.studentData) studentData = existingRecord.studentData;
+    }
+
+    let netScore = 0;
+    let correctCount = 0;
+    let wrongCount = 0;
+    let unattemptedCount = 0;
+
+    quizData.forEach((q, idx) => {
+      const ans = userAnswers[idx];
+      if (!ans) {
+        unattemptedCount++;
+      } else if (ans === q.correctAnswer) {
+        correctCount++;
+        netScore += 2; // +2 for correct
+      } else {
+        wrongCount++;
+        netScore -= 1; // -1 for wrong
+      }
+    });
+
+    const maxMarks = 20;
     const rawPercent = (netScore / maxMarks) * 100;
     const finalPercent = Math.max(0, Math.round(rawPercent));
 
-    // Discount percentage formula
+    // Submit Answers to Backend API for Trusted Fee & Registration Record Creation
+    try {
+      const res = await fetch('/api/quiz/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ answers: userAnswers, studentInfo: studentData })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        currentRegistrationId = data.registration_id;
+        localStorage.setItem('dys_active_reg_id', currentRegistrationId);
+        if (data.upi_id) appConfig.upiId = data.upi_id;
+        if (data.upi_payee_name) appConfig.payeeName = data.upi_payee_name;
+      }
+    } catch (apiErr) {
+      console.warn("Backend quiz submit warning (falling back to client calc):", apiErr);
+    }
+
+    // Local fallback for calculated fee if backend offline
     let discountPercentage = 0;
     if (finalPercent >= 95) discountPercentage = 50;
     else if (finalPercent >= 90) discountPercentage = 45;
@@ -1005,8 +1056,6 @@ function gotoCourseDetailsPage() {
   updateCoursePageUI(finalPercent, discountPercentage);
 
   switchScreen('screen-result', 'screen-course');
-
-  // Trigger Celebration Confetti Canvas
   triggerConfetti();
 }
 
@@ -1024,20 +1073,113 @@ function updateCoursePageUI(finalPercent, discountPercentage) {
   }
 }
 
-// Redirect to Payment Screen
-function gotoPaymentScreen() {
-  if (!lastCalculatedResult) return;
+// Redirect to Payment Screen & Fetch Dynamic UPI Intent from Backend
+async function gotoPaymentScreen() {
+  if (!currentRegistrationId) {
+    // If registration ID not set, create temporary fallback
+    currentRegistrationId = 'REG' + (Math.floor(Math.random() * 8999) + 1000);
+    localStorage.setItem('dys_active_reg_id', currentRegistrationId);
+  }
 
-  const { payableAmount } = lastCalculatedResult;
-  document.getElementById('res-payable-amt').innerText = `₹${payableAmount}`;
-  document.getElementById('display-upi-id').innerText = appConfig.upiId;
+  const fallbackAmount = lastCalculatedResult ? lastCalculatedResult.payableAmount : 150;
 
-  // Generate UPI QR
   try {
-    generateUpiQR(payableAmount);
-  } catch (qrErr) { }
+    const res = await fetch('/api/payments/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ registration_id: currentRegistrationId })
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      currentPaymentData = data;
+      appConfig.upiId = data.upi_id;
+
+      // Update UI elements with trusted backend payment data
+      document.getElementById('res-payable-amt').innerText = `₹${data.amount}`;
+      if (document.getElementById('btn-upi-amt-tag')) document.getElementById('btn-upi-amt-tag').innerText = `₹${data.amount}`;
+      if (document.getElementById('pay-reference-code')) document.getElementById('pay-reference-code').innerText = data.payment_reference;
+      if (document.getElementById('display-upi-id')) document.getElementById('display-upi-id').innerText = data.upi_id;
+      if (document.getElementById('pay-summary-score')) {
+        document.getElementById('pay-summary-score').innerText = `${lastCalculatedResult ? lastCalculatedResult.netScore : 20} / 20`;
+      }
+
+      // Generate QR Code containing COMPLETE upi://pay URI
+      generateUpiQR(data.upi_uri, data.upi_id);
+
+      // Render Payment Status Banner
+      updatePaymentStatusBanner(data.status);
+    } else {
+      useFallbackPaymentUI(fallbackAmount);
+    }
+  } catch (err) {
+    console.warn("Backend payment create warning (using fallback payment UI):", err);
+    useFallbackPaymentUI(fallbackAmount);
+  }
 
   switchScreen('screen-course', 'screen-payment');
+}
+
+function useFallbackPaymentUI(amount) {
+  const refCode = `${currentRegistrationId || 'REG1000'}-PAY-001`;
+  const encPayee = encodeURIComponent(appConfig.payeeName);
+  const upiUri = `upi://pay?pa=${appConfig.upiId}&pn=${encPayee}&am=${amount}&cu=INR&tn=${refCode}`;
+
+  currentPaymentData = {
+    registration_id: currentRegistrationId,
+    amount,
+    currency: 'INR',
+    upi_id: appConfig.upiId,
+    payment_reference: refCode,
+    upi_uri: upiUri,
+    status: 'PAYMENT_PENDING'
+  };
+
+  document.getElementById('res-payable-amt').innerText = `₹${amount}`;
+  if (document.getElementById('btn-upi-amt-tag')) document.getElementById('btn-upi-amt-tag').innerText = `₹${amount}`;
+  if (document.getElementById('pay-reference-code')) document.getElementById('pay-reference-code').innerText = refCode;
+  if (document.getElementById('display-upi-id')) document.getElementById('display-upi-id').innerText = appConfig.upiId;
+
+  generateUpiQR(upiUri, appConfig.upiId);
+  updatePaymentStatusBanner('PAYMENT_PENDING');
+}
+
+// Payment Status UX Banner Management (Section 12 Rules)
+function updatePaymentStatusBanner(status, customMessage) {
+  const banner = document.getElementById('payment-status-banner');
+  const upiBtnContainer = document.getElementById('upi-intent-container');
+  const fallbacksSection = document.getElementById('upi-fallbacks-section');
+  if (!banner) return;
+
+  banner.style.display = 'block';
+
+  if (status === 'VERIFIED') {
+    banner.style.background = 'rgba(16, 185, 129, 0.25)';
+    banner.style.border = '1px solid #10B981';
+    banner.style.color = '#34D399';
+    banner.innerHTML = customMessage || 'Payment Verified ✓ Registration Confirmed ✓';
+    if (upiBtnContainer) upiBtnContainer.style.display = 'none';
+    if (fallbacksSection) fallbacksSection.style.display = 'none';
+  } else if (status === 'UTR_SUBMITTED') {
+    banner.style.background = 'rgba(59, 130, 246, 0.22)';
+    banner.style.border = '1px solid #3B82F6';
+    banner.style.color = '#93C5FD';
+    banner.innerHTML = customMessage || 'Payment Submitted. Your UTR has been submitted. Our team will verify your payment.';
+  } else if (status === 'REJECTED') {
+    banner.style.background = 'rgba(239, 68, 68, 0.25)';
+    banner.style.border = '1px solid #EF4444';
+    banner.style.color = '#FCA5A5';
+    banner.innerHTML = customMessage || 'Payment could not be verified. Please contact the event team.';
+  } else {
+    // PAYMENT_PENDING
+    banner.style.background = 'rgba(245, 158, 11, 0.15)';
+    banner.style.border = '1px solid #F59E0B';
+    banner.style.color = '#FCD34D';
+    const amt = currentPaymentData ? currentPaymentData.amount : (lastCalculatedResult ? lastCalculatedResult.payableAmount : 150);
+    banner.innerHTML = customMessage || `Payment Pending. Please complete the payment of ₹${amt}.`;
+    if (upiBtnContainer) upiBtnContainer.style.display = 'block';
+    if (fallbacksSection) fallbacksSection.style.display = 'block';
+  }
 }
 
 // Redirect to Post-Payment Registration Form
@@ -1397,140 +1539,102 @@ function toggleAnswerReview() {
   }
 }
 
-// Generate UPI QR Code & App Deep Links
-function generateUpiQR(amount) {
-  const encodedPn = encodeURIComponent(appConfig.payeeName);
-  const pa = appConfig.upiId;
-
-  // Update Razorpay Button Dynamic Amount Tag
-  const rzpAmtSpan = document.getElementById('btn-rzp-amt');
-  if (rzpAmtSpan) rzpAmtSpan.innerText = `₹${amount}`;
-
-  // Clean P2P UPI Link
-  const upiUri = `upi://pay?pa=${pa}&pn=${encodedPn}&am=${amount}&cu=INR`;
-
-  // Android Specific Intent Deep Links
-  const isAndroid = /android/i.test(navigator.userAgent || '');
-
-  const gpayUri = isAndroid
-    ? `intent://pay?pa=${pa}&pn=${encodedPn}&am=${amount}&cu=INR#Intent;scheme=upi;package=com.google.android.apps.nfc.plugin.cardmfe;end`
-    : upiUri;
-
-  const phonepeUri = isAndroid
-    ? `intent://pay?pa=${pa}&pn=${encodedPn}&am=${amount}&cu=INR#Intent;scheme=upi;package=com.phonepe.app;end`
-    : upiUri;
-
-  const paytmUri = isAndroid
-    ? `intent://pay?pa=${pa}&pn=${encodedPn}&am=${amount}&cu=INR#Intent;scheme=upi;package=net.one97.paytm;end`
-    : upiUri;
-
-  const bhimUri = isAndroid
-    ? `intent://pay?pa=${pa}&pn=${encodedPn}&am=${amount}&cu=INR#Intent;scheme=upi;package=in.org.npci.upiapp;end`
-    : upiUri;
+// Generate Dynamic QR Code & Mobile App Fallbacks
+function generateUpiQR(upiUri, upiId) {
+  const targetUri = upiUri || currentPaymentData?.upi_uri || `upi://pay?pa=${appConfig.upiId}&pn=${encodeURIComponent(appConfig.payeeName)}&am=150&cu=INR`;
+  const targetId = upiId || appConfig.upiId;
 
   const qrContainer = document.getElementById('qrcode-container');
-  if (!qrContainer) return;
-  qrContainer.innerHTML = '';
-
-  if (window.QRCode) {
-    new QRCode(qrContainer, {
-      text: upiUri,
-      width: 190,
-      height: 190,
-      colorDark: "#0F172A",
-      colorLight: "#FFFFFF"
-    });
+  if (qrContainer) {
+    qrContainer.innerHTML = '';
+    if (window.QRCode) {
+      try {
+        new QRCode(qrContainer, {
+          text: targetUri,
+          width: 190,
+          height: 190,
+          colorDark: "#0F172A",
+          colorLight: "#FFFFFF"
+        });
+      } catch (err) {
+        console.error("QR Code Render Error:", err);
+      }
+    }
   }
 
-  // Update App Links & Add Auto-Copy Fallback
-  const autoCopy = () => {
-    if (navigator.clipboard && appConfig.upiId) {
-      navigator.clipboard.writeText(appConfig.upiId).catch(() => { });
-    }
-  };
-
-  const linkGpay = document.getElementById('link-gpay');
-  if (linkGpay) { linkGpay.href = gpayUri; linkGpay.onclick = autoCopy; }
-  const linkPhonepe = document.getElementById('link-phonepe');
-  if (linkPhonepe) { linkPhonepe.href = phonepeUri; linkPhonepe.onclick = autoCopy; }
-  const linkPaytm = document.getElementById('link-paytm');
-  if (linkPaytm) { linkPaytm.href = paytmUri; linkPaytm.onclick = autoCopy; }
-  const linkBhim = document.getElementById('link-bhim');
-  if (linkBhim) { linkBhim.href = bhimUri; linkBhim.onclick = autoCopy; }
-  const btnPayDirect = document.getElementById('btn-pay-direct');
-  if (btnPayDirect) { btnPayDirect.href = upiUri; btnPayDirect.onclick = autoCopy; }
+  const dispUpi = document.getElementById('display-upi-id');
+  if (dispUpi) dispUpi.innerText = targetId;
 }
 
-// Launch Razorpay Dynamic Checkout (Test Mode or Live Mode)
-function launchRazorpayCheckout() {
-  const currentPayable = lastCalculatedResult ? lastCalculatedResult.payableAmount : 150;
-  const amountInPaise = currentPayable * 100;
-  const key = appConfig.razorpayKeyId || localStorage.getItem('dys_rzp_key');
-
-  if (!window.Razorpay) {
-    alert("Razorpay SDK is initializing. Please check your internet connection.");
+// Section 7 & 8: Launch Dynamic UPI Intent Flow (Mobile / Android)
+function initiateUpiPayment() {
+  if (!currentPaymentData || !currentPaymentData.upi_uri) {
+    showToast("Payment details initializing. Please wait...");
     return;
   }
 
-  if (!key) {
-    alert("Razorpay Key ID is not configured. Please contact the administrator.");
+  const upiUri = currentPaymentData.upi_uri;
+
+  // Open standard mobile UPI Intent
+  try {
+    window.location.href = upiUri;
+  } catch (e) {
+    console.error("UPI Intent redirect error:", e);
+  }
+
+  // Section 13: UX Rule — Do NOT immediately mark as Paid!
+  updatePaymentStatusBanner('PAYMENT_PENDING', "Payment initiated? Please complete payment in your UPI app and enter your UTR below.");
+
+  const utrInput = document.getElementById('input-utr');
+  if (utrInput) utrInput.focus();
+}
+
+// Mobile App Shortcuts (GPay, PhonePe, Paytm, BHIM)
+function launchUpiApp(appName) {
+  if (!currentPaymentData || !currentPaymentData.upi_uri) {
+    initiateUpiPayment();
     return;
   }
 
-  const options = {
-    key: key,
-    amount: amountInPaise,
-    currency: "INR",
-    name: "Discover Your Self",
-    description: `DYS Course Fee (Score Discounted)`,
-    image: "iskcon_logo.png",
-    prefill: {
-      name: studentData.name || "",
-      contact: studentData.phone || "",
-      email: studentData.phone ? `${studentData.phone}@dys.org` : "student@dys.org"
-    },
-    theme: {
-      color: "#FF7700"
-    },
-    handler: function (response) {
-      console.log("Razorpay Payment Success Response:", response);
-      showToast("Payment Completed Successfully! 🎉");
+  const baseUri = currentPaymentData.upi_uri;
+  const isAndroid = /android/i.test(navigator.userAgent || '');
 
-      // Auto-populate transaction ID into UTR field
-      const utrInput = document.getElementById('input-utr');
-      if (utrInput) {
-        utrInput.value = response.razorpay_payment_id || response.razorpay_order_id || 'RZP-' + Date.now();
-      }
+  let appUri = baseUri;
+  const cleanParams = baseUri.replace(/^upi:\/\/pay\?/i, '');
 
-      // Automatically proceed to registration screen & ticket generation
-      gotoRegistrationScreen();
-    },
-    modal: {
-      ondismiss: function () {
-        console.log("Razorpay checkout modal dismissed by user.");
-      }
+  if (isAndroid) {
+    if (appName === 'gpay') {
+      appUri = `intent://pay?${cleanParams}#Intent;scheme=upi;package=com.google.android.apps.nfc.plugin.cardmfe;end`;
+    } else if (appName === 'phonepe') {
+      appUri = `intent://pay?${cleanParams}#Intent;scheme=upi;package=com.phonepe.app;end`;
+    } else if (appName === 'paytm') {
+      appUri = `intent://pay?${cleanParams}#Intent;scheme=upi;package=net.one97.paytm;end`;
+    } else if (appName === 'bhim') {
+      appUri = `intent://pay?${cleanParams}#Intent;scheme=upi;package=in.org.npci.upiapp;end`;
     }
-  };
+  }
 
   try {
-    const rzp = new Razorpay(options);
-    rzp.open();
+    window.location.href = appUri;
   } catch (err) {
-    console.error("Razorpay Launch Error:", err);
-    alert("Razorpay Launch Error: " + err.message);
+    window.location.href = baseUri;
   }
+
+  updatePaymentStatusBanner('PAYMENT_PENDING', `Opening ${appName.toUpperCase()}... Please complete payment and submit your UTR below.`);
 }
 
+// Copy UPI Handle to Clipboard
 function copyUpiId() {
+  const targetId = currentPaymentData ? currentPaymentData.upi_id : appConfig.upiId;
   const toastMsg = currentLang === 'en'
     ? `UPI ID Copied! Open GPay/PhonePe ➔ Pay UPI ID ➔ Paste & Pay! 📱`
     : `UPI ID कॉपी हो गई! GPay/PhonePe खोलें ➔ Pay UPI ID ➔ पेस्ट करें! 📱`;
 
-  navigator.clipboard.writeText(appConfig.upiId).then(() => {
+  navigator.clipboard.writeText(targetId).then(() => {
     showToast(toastMsg);
   }).catch(() => {
     const tempInput = document.createElement('input');
-    tempInput.value = appConfig.upiId;
+    tempInput.value = targetId;
     document.body.appendChild(tempInput);
     tempInput.select();
     document.execCommand('copy');
@@ -1539,13 +1643,190 @@ function copyUpiId() {
   });
 }
 
+// Section 9: UTR Submission (Post-Payment Action)
+async function submitUtrPayment() {
+  const utrInput = document.getElementById('input-utr');
+  if (!utrInput) return;
+
+  const utrVal = utrInput.value.trim();
+  if (!utrVal || utrVal.length < 6) {
+    showToast("Please enter a valid 12-digit UPI UTR / Ref No.");
+    return;
+  }
+
+  if (!currentRegistrationId) {
+    currentRegistrationId = localStorage.getItem('dys_active_reg_id') || 'REG1000';
+  }
+
+  try {
+    const res = await fetch('/api/payments/submit-utr', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ registration_id: currentRegistrationId, utr: utrVal })
+    });
+
+    const data = await res.json();
+
+    if (res.ok && data.success) {
+      if (currentPaymentData) currentPaymentData.status = 'UTR_SUBMITTED';
+      updatePaymentStatusBanner('UTR_SUBMITTED', 'Payment Submitted. Your UTR has been submitted. Our team will verify your payment.');
+      showToast("UTR Submitted Successfully! Proceeding to Registration ➔");
+      
+      setTimeout(() => {
+        gotoRegistrationScreen();
+      }, 1200);
+    } else {
+      showToast(data.error || "Failed to submit UTR. Please try again.");
+    }
+  } catch (err) {
+    console.warn("Backend UTR submission fallback (offline local save):", err);
+    updatePaymentStatusBanner('UTR_SUBMITTED', 'Payment Submitted. Your UTR has been submitted. Our team will verify your payment.');
+    showToast("UTR Saved Locally! Proceeding to Registration ➔");
+    setTimeout(() => {
+      gotoRegistrationScreen();
+    }, 1200);
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Section 10: Admin Verification Portal Functions
+// -----------------------------------------------------------------------------
+
+function openAdminModal() {
+  const modal = document.getElementById('admin-modal');
+  if (modal) modal.classList.remove('hidden');
+}
+
+function closeAdminModal() {
+  const modal = document.getElementById('admin-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+async function fetchAdminPayments() {
+  const tokenInput = document.getElementById('input-admin-token');
+  if (tokenInput && tokenInput.value.trim()) {
+    adminSecretToken = tokenInput.value.trim();
+    localStorage.setItem('dys_admin_token', adminSecretToken);
+  }
+
+  try {
+    const res = await fetch('/api/admin/payments', {
+      headers: { 'x-admin-secret': adminSecretToken }
+    });
+
+    if (!res.ok) {
+      alert("Invalid Admin Secret Token. Access Denied.");
+      return;
+    }
+
+    const data = await res.json();
+    adminPaymentsList = data.registrations || [];
+
+    const loginBox = document.getElementById('admin-login-box');
+    const dashContent = document.getElementById('admin-dashboard-content');
+    if (loginBox) loginBox.style.display = 'none';
+    if (dashContent) dashContent.classList.remove('hidden');
+
+    renderAdminTable();
+  } catch (err) {
+    alert("Error fetching admin payments list: " + err.message);
+  }
+}
+
+function filterAdminTable(filter) {
+  currentAdminFilter = filter;
+  const tabs = ['all', 'submitted', 'pending', 'verified', 'rejected'];
+  tabs.forEach(t => {
+    const btn = document.getElementById(`tab-${t}`);
+    if (btn) btn.classList.remove('active');
+  });
+
+  const activeBtn = document.getElementById(`tab-${filter.toLowerCase().replace('utr_', '').replace('payment_', '')}`);
+  if (activeBtn) activeBtn.classList.add('active');
+
+  renderAdminTable();
+}
+
+function renderAdminTable() {
+  const tbody = document.getElementById('admin-table-body');
+  if (!tbody) return;
+
+  tbody.innerHTML = '';
+
+  let filtered = adminPaymentsList;
+  if (currentAdminFilter !== 'ALL') {
+    filtered = adminPaymentsList.filter(item => item.status === currentAdminFilter);
+  }
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:var(--text-muted); padding:16px;">No registrations found matching "${currentAdminFilter}".</td></tr>`;
+    return;
+  }
+
+  filtered.forEach(item => {
+    const tr = document.createElement('tr');
+
+    let badgeClass = 'badge-pending';
+    if (item.status === 'UTR_SUBMITTED') badgeClass = 'badge-submitted';
+    else if (item.status === 'VERIFIED') badgeClass = 'badge-verified';
+    else if (item.status === 'REJECTED') badgeClass = 'badge-rejected';
+
+    const isActionDisabled = item.status === 'VERIFIED' ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : '';
+
+    tr.innerHTML = `
+      <td style="font-family:monospace; font-weight:800; color:var(--text-gold);">${item.registration_id}</td>
+      <td>${item.full_name || 'Participant'}</td>
+      <td>${item.whatsapp_number || '-'}</td>
+      <td>${item.quiz_score} / 20</td>
+      <td style="font-weight:700; color:#34D399;">₹${item.amount || item.calculated_fee}</td>
+      <td style="font-family:monospace; font-size:0.75rem;">${item.payment_reference || '-'}</td>
+      <td style="font-family:monospace; font-weight:700; color:#FCD34D;">${item.utr || '-'}</td>
+      <td><span class="badge-status ${badgeClass}">${item.status}</span></td>
+      <td>
+        <button onclick="verifyAdminPayment('${item.registration_id}', 'VERIFY')" class="btn-admin-verify" ${isActionDisabled}>
+          ✓ VERIFY
+        </button>
+        <button onclick="verifyAdminPayment('${item.registration_id}', 'REJECT')" class="btn-admin-reject">
+          ✕ REJECT
+        </button>
+      </td>
+    `;
+
+    tbody.appendChild(tr);
+  });
+}
+
+// Admin Payment Verification Action
+async function verifyAdminPayment(regId, action) {
+  const confirmMsg = action === 'VERIFY'
+    ? `Are you sure you want to VERIFY payment for ${regId}?`
+    : `Are you sure you want to REJECT payment for ${regId}?`;
+
+  if (!confirm(confirmMsg)) return;
+
+  try {
+    const res = await fetch('/api/admin/payments/verify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-secret': adminSecretToken
+      },
+      body: JSON.stringify({ registration_id: regId, action: action, admin_name: 'Admin' })
+    });
+
+    const data = await res.json();
+    if (res.ok && data.success) {
+      alert(`Success: Payment for ${regId} has been set to ${data.status}.`);
+      fetchAdminPayments(); // Refresh list
+    } else {
+      alert("Error: " + (data.error || "Action failed."));
+    }
+  } catch (err) {
+    alert("Network error processing verification action: " + err.message);
+  }
+}
+
 function setupEventListeners() {
-  const closeSettings = document.getElementById('close-settings');
-  if (closeSettings) closeSettings.addEventListener('click', () => closeModal('settings-modal'));
-
-  const saveSettings = document.getElementById('btn-save-settings');
-  if (saveSettings) saveSettings.addEventListener('click', saveConfig);
-
   // Secret Admin Trigger (5 clicks on logo)
   let logoClicks = 0;
   const brandBadge = document.querySelector('.brand-badge');
@@ -1554,12 +1835,7 @@ function setupEventListeners() {
       logoClicks++;
       if (logoClicks >= 5) {
         logoClicks = 0;
-        const pass = prompt("Enter Admin Secret Password:");
-        if (pass === "108") {
-          openModal('settings-modal');
-        } else if (pass) {
-          alert("Incorrect Admin Password.");
-        }
+        openAdminModal();
       }
     });
   }

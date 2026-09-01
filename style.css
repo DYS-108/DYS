@@ -1421,6 +1421,88 @@ body {
 }
 
 
+/* Admin Verification Table & UI */
+.admin-tab-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--text-muted);
+  padding: 4px 12px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.admin-tab-btn.active, .admin-tab-btn:hover {
+  background: var(--gold-accent);
+  color: #000;
+  border-color: var(--gold-accent);
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  text-align: left;
+}
+
+.admin-table th {
+  background: rgba(245, 158, 11, 0.2);
+  color: var(--text-gold);
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  white-space: nowrap;
+  font-weight: 800;
+}
+
+.admin-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  white-space: nowrap;
+  color: #FFF;
+}
+
+.admin-table tr:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.badge-status {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  display: inline-block;
+}
+
+.badge-pending { background: rgba(245, 158, 11, 0.2); border: 1px solid #F59E0B; color: #FCD34D; }
+.badge-submitted { background: rgba(59, 130, 246, 0.25); border: 1px solid #3B82F6; color: #93C5FD; }
+.badge-verified { background: rgba(16, 185, 129, 0.25); border: 1px solid #10B981; color: #34D399; }
+.badge-rejected { background: rgba(239, 68, 68, 0.25); border: 1px solid #EF4444; color: #FCA5A5; }
+
+.btn-admin-verify {
+  background: #10B981;
+  color: #000;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  cursor: pointer;
+  margin-right: 4px;
+}
+
+.btn-admin-reject {
+  background: #EF4444;
+  color: #FFF;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
 /* Form Header & Step Indicator */
 .reg-step-badge {
   background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(255, 119, 0, 0.15));

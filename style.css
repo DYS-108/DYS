@@ -1366,76 +1366,21 @@ body {
    ENHANCED PROFESSIONAL CANDIDATE REGISTRATION & PASS STYLING
    ========================================================================== */
 
-/* Quiz Question Navigation Popup (triggered by tapping Q badge) */
-.quiz-palette-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 90;
-  background: transparent;
-}
-
-.quiz-palette-popup {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 0;
-  z-index: 100;
-  background: var(--bg-card);
-  border: 1px solid var(--bg-card-border);
-  border-radius: 14px;
-  padding: 14px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
-  min-width: 260px;
-  width: max-content;
-  max-width: calc(100vw - 24px);
-  animation: paletteIn 0.18s ease;
-}
-
-@keyframes paletteIn {
-  from { opacity: 0; transform: translateY(-6px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.quiz-palette-popup-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 0.82rem;
-  font-weight: 800;
-  color: var(--text-gold);
-  margin-bottom: 10px;
-  letter-spacing: 0.3px;
-}
-
-.palette-close-btn {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  font-size: 0.9rem;
-  cursor: pointer;
-  padding: 2px 6px;
-  border-radius: 6px;
-  transition: var(--transition);
-}
-
-.palette-close-btn:hover {
-  background: rgba(255,255,255,0.1);
-  color: #FFF;
-}
-
-/* Grid of 10 question number buttons inside popup */
+/* Quiz Question Navigation Palette (Always Visible 10-Column Grid) */
 .quiz-palette-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 6px;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 4px;
+  margin: 6px 0;
 }
 
 .palette-num-btn {
-  height: 38px;
-  border-radius: 10px;
+  height: 32px;
+  border-radius: 8px;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.15);
   color: var(--text-muted);
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   font-weight: 800;
   cursor: pointer;
   transition: var(--transition);
@@ -1457,6 +1402,12 @@ body {
   color: #34D399;
 }
 
+.palette-num-btn.wrong-pill {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: #EF4444;
+  color: #FCA5A5;
+}
+
 .palette-num-btn.active {
   border-color: var(--gold-accent);
   color: var(--text-gold);
@@ -1468,27 +1419,6 @@ body {
   border-color: var(--gold-accent);
   background: linear-gradient(135deg, rgba(245, 158, 11, 0.3), rgba(16, 185, 129, 0.3));
 }
-
-/* Answered / Unanswered Legend */
-.quiz-palette-legend {
-  display: flex;
-  align-items: center;
-  margin-top: 10px;
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  font-weight: 600;
-}
-
-.legend-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  display: inline-block;
-  margin-right: 5px;
-}
-
-.answered-dot { background: #10B981; border: 1px solid #10B981; }
-.unanswered-dot { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); }
 
 
 /* Form Header & Step Indicator */

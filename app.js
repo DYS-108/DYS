@@ -800,29 +800,6 @@ function updatePrevNextButtons() {
 }
 
 
-// Toggle the 10-question navigation popup
-function toggleQuizPalette() {
-  const popup = document.getElementById('quiz-palette-popup');
-  const backdrop = document.getElementById('quiz-palette-backdrop');
-  if (!popup) return;
-
-  const isHidden = popup.classList.contains('hidden');
-  if (isHidden) {
-    renderQuestionPalette(); // Refresh state before showing
-    popup.classList.remove('hidden');
-    if (backdrop) backdrop.classList.remove('hidden');
-  } else {
-    closeQuizPalette();
-  }
-}
-
-function closeQuizPalette() {
-  const popup = document.getElementById('quiz-palette-popup');
-  const backdrop = document.getElementById('quiz-palette-backdrop');
-  if (popup) popup.classList.add('hidden');
-  if (backdrop) backdrop.classList.add('hidden');
-}
-
 // Render 10 Question Quick Navigation Stepper Palette
 function renderQuestionPalette() {
   const container = document.getElementById('quiz-palette-container');
@@ -838,10 +815,7 @@ function renderQuestionPalette() {
     btn.className = `palette-num-btn ${isCurrent ? 'active' : ''} ${isAnswered ? 'answered' : ''}`;
     btn.innerText = i + 1;
     btn.title = `Jump to Question ${i + 1}${isAnswered ? ' (Answered)' : ''}`;
-    btn.onclick = () => {
-      closeQuizPalette();
-      renderQuestion(i);
-    };
+    btn.onclick = () => renderQuestion(i);
 
     container.appendChild(btn);
   }
@@ -859,11 +833,14 @@ function renderQuestion(index) {
     motiBox.innerText = motivationMessages[currentLang][index];
   }
 
-  // Update Meta Header Progress (Q badge with dropdown arrow)
+  // Update Meta Header Progress
   const progressEl = document.getElementById('quiz-progress-text');
-  if (progressEl) progressEl.innerText = `${t.questionPrefix} ${index + 1}/10 ▾`;
+  if (progressEl) progressEl.innerText = `${t.questionPrefix} ${index + 1}/10`;
   const progressPercent = ((index + 1) / 10) * 100;
   document.getElementById('quiz-progress-fill').style.width = `${progressPercent}%`;
+
+  // Render 1-10 Question Palette Grid
+  renderQuestionPalette();
 
   // Render Title
   document.getElementById('question-title').innerText = q.question[currentLang];
@@ -1308,59 +1285,97 @@ function updatePassWhatsAppButton() {
   btnWa.innerText = t.whatsappBtn; // Always simple "Join WhatsApp Group 💬"
 }
 
-// Render Answer Review Cards
-function renderAnswerReviewList() {
+// Single-Card Explanation Stepper State
+let currentReviewIndex = 0;
+
+function renderSingleAnswerReview(idx) {
   const container = document.getElementById('review-answers-container');
   if (!container) return;
 
-  container.innerHTML = '';
+  currentReviewIndex = Math.max(0, Math.min(9, idx));
+  const idxToRender = currentReviewIndex;
+  const q = quizData[idxToRender];
   const t = uiText[currentLang];
 
-  quizData.forEach((q, idx) => {
-    const userAnsKey = userAnswers[idx];
-    const isCorrect = userAnsKey === q.correctAnswer;
-    const opts = q.options[currentLang];
+  container.innerHTML = '';
 
-    const userAnsObj = opts.find(o => o.key === userAnsKey);
-    const userAnsText = userAnsObj ? `${userAnsKey}) ${userAnsObj.text}` : t.unansweredText;
+  const userAnsKey = userAnswers[idxToRender];
+  const isCorrect = userAnsKey === q.correctAnswer;
+  const opts = q.options[currentLang];
 
-    const correctAnsObj = opts.find(o => o.key === q.correctAnswer);
-    const correctAnsText = correctAnsObj ? `${q.correctAnswer}) ${correctAnsObj.text}` : '';
+  const userAnsObj = opts.find(o => o.key === userAnsKey);
+  const userAnsText = userAnsObj ? `${userAnsKey}) ${userAnsObj.text}` : t.unansweredText;
 
-    const qCard = document.createElement('div');
-    qCard.className = `review-card ${isCorrect ? 'review-correct' : (userAnsKey ? 'review-wrong' : '')}`;
+  const correctAnsObj = opts.find(o => o.key === q.correctAnswer);
+  const correctAnsText = correctAnsObj ? `${q.correctAnswer}) ${correctAnsObj.text}` : '';
 
-    qCard.innerHTML = `
-      <div class="review-header">
-        <span class="review-q-badge">${t.questionPrefix} ${idx + 1}</span>
-        <span class="status-chip ${isCorrect ? 'chip-correct' : (userAnsKey ? 'chip-wrong' : '')}">
-          ${isCorrect ? '✓ Correct (+2)' : (userAnsKey ? '✗ Wrong (-1)' : t.unansweredText + ' (0)')}
-        </span>
-      </div>
-
-      <div class="review-q-title">${q.question[currentLang]}</div>
-
-      <div class="review-ans-box">
-        <div class="ans-line ${isCorrect ? 'text-green' : (userAnsKey ? 'text-red' : '')}">
-          <strong>${t.yourAnsText}</strong> ${userAnsText}
-        </div>
-        ${!isCorrect ? `
-          <div class="ans-line text-green" style="margin-top:4px;">
-            <strong>${t.correctAnsText}</strong> ${correctAnsText}
-          </div>
-        ` : ''}
-      </div>
-
-      <div class="explanation-box">
-        <div class="explanation-title">
-          <span>${t.scripturalTitle}</span>
-        </div>
-        <div class="explanation-text">${q.explanation[currentLang]}</div>
-      </div>
+  // Render 1-10 Navigation Pills for Explanation Stepper
+  let navPillsHTML = '<div class="quiz-palette-grid" style="margin-bottom: 12px;">';
+  for (let i = 0; i < 10; i++) {
+    const isCurr = i === idxToRender;
+    const isQAns = userAnswers.hasOwnProperty(i) && userAnswers[i] !== undefined && userAnswers[i] !== '';
+    const isQCorrect = userAnswers[i] === quizData[i].correctAnswer;
+    const chipClass = isCurr ? 'active' : (isQCorrect ? 'answered' : (isQAns ? 'wrong-pill' : ''));
+    navPillsHTML += `
+      <button type="button" class="palette-num-btn ${chipClass}" onclick="renderSingleAnswerReview(${i})" title="Explanation ${i + 1}">
+        ${i + 1}
+      </button>
     `;
+  }
+  navPillsHTML += '</div>';
 
-    container.appendChild(qCard);
-  });
+  const prevBtnText = currentLang === 'en' ? '⬅ Previous' : '⬅ पिछला';
+  const nextBtnText = idxToRender === 9
+    ? (currentLang === 'en' ? 'Hide Explanations ⬆' : 'व्याख्याएं छिपाएं ⬆')
+    : (currentLang === 'en' ? 'Next Explanation ➔' : 'अगली व्याख्या ➔');
+
+  const qCard = document.createElement('div');
+  qCard.className = `review-card ${isCorrect ? 'review-correct' : (userAnsKey ? 'review-wrong' : '')}`;
+
+  qCard.innerHTML = `
+    ${navPillsHTML}
+    <div class="review-header">
+      <span class="review-q-badge">${t.questionPrefix} ${idxToRender + 1} / 10</span>
+      <span class="status-chip ${isCorrect ? 'chip-correct' : (userAnsKey ? 'chip-wrong' : '')}">
+        ${isCorrect ? '✓ Correct (+2)' : (userAnsKey ? '✗ Wrong (-1)' : t.unansweredText + ' (0)')}
+      </span>
+    </div>
+
+    <div class="review-q-title">${q.question[currentLang]}</div>
+
+    <div class="review-ans-box">
+      <div class="ans-line ${isCorrect ? 'text-green' : (userAnsKey ? 'text-red' : '')}">
+        <strong>${t.yourAnsText}</strong> ${userAnsText}
+      </div>
+      ${!isCorrect ? `
+        <div class="ans-line text-green" style="margin-top:4px;">
+          <strong>${t.correctAnsText}</strong> ${correctAnsText}
+        </div>
+      ` : ''}
+    </div>
+
+    <div class="explanation-box">
+      <div class="explanation-title">
+        <span>${t.scripturalTitle}</span>
+      </div>
+      <div class="explanation-text">${q.explanation[currentLang]}</div>
+    </div>
+
+    <div class="review-nav-controls" style="display:flex; justify-content:space-between; gap:10px; margin-top:16px;">
+      <button type="button" class="btn-secondary" onclick="renderSingleAnswerReview(${idxToRender - 1})" style="visibility:${idxToRender === 0 ? 'hidden' : 'visible'}; flex:1;">
+        ${prevBtnText}
+      </button>
+      <button type="button" class="btn-primary" onclick="${idxToRender === 9 ? 'toggleAnswerReview()' : `renderSingleAnswerReview(${idxToRender + 1})`}" style="flex:1; margin-top:0;">
+        ${nextBtnText}
+      </button>
+    </div>
+  `;
+
+  container.appendChild(qCard);
+}
+
+function renderAnswerReviewList() {
+  renderSingleAnswerReview(currentReviewIndex);
 }
 
 function toggleAnswerReview() {
@@ -1370,9 +1385,9 @@ function toggleAnswerReview() {
 
   if (!container) return;
 
-  renderAnswerReviewList();
-
   if (container.classList.contains('hidden')) {
+    currentReviewIndex = 0;
+    renderSingleAnswerReview(0);
     container.classList.remove('hidden');
     if (btn) btn.innerText = t.hideExplanationsBtn;
     container.scrollIntoView({ behavior: 'smooth', block: 'start' });

@@ -36,9 +36,9 @@ let appConfig = {
 
 // WhatsApp Group Target Links
 const whatsappGroups = {
-  male: ' https://chat.whatsapp.com/I4PRrccEFHvDJocyMLjoc7?s=sw&p=a&ilr=0',
-  female: 'https://chat.whatsapp.com/sample-female-group',
-  married: 'https://chat.whatsapp.com/sample-married-group'
+  male: 'https://chat.whatsapp.com/K0ucj7HUoivBaUof2G2xDF?s=sw&p=a&mlu=4',
+  female: 'https://chat.whatsapp.com/F3OaHWKPzewJGdbBHqti2l?s=sw&p=a&mlu=4',
+  married: 'https://chat.whatsapp.com/FcQnF0RYwBd1G48OdKNsWN?s=sw&p=a&mlu=4'
 };
 
 // Motivation Messages per Question Stepper (Strict 1-line quotes)

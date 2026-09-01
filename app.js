@@ -1379,8 +1379,6 @@ async function saveRegistrationToSupabase(record) {
       percentage: lastCalculatedResult ? lastCalculatedResult.finalPercent : 100,
       paid_amount: lastCalculatedResult ? lastCalculatedResult.payableAmount : 150,
       utr_number: utrVal || null,
-      payment_reference: (currentPaymentData && currentPaymentData.payment_reference) || null,
-      payment_status: (currentPaymentData && currentPaymentData.status) || 'UTR_SUBMITTED',
       language: currentLang,
       remarks: combinedRemarks || null
     };

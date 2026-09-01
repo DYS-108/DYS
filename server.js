@@ -12,6 +12,8 @@ const UPI_ID = process.env.UPI_ID || '9892961661@okbizaxis';
 const UPI_PAYEE_NAME = process.env.UPI_PAYEE_NAME || 'Discover Your Self';
 const BASE_FEE = parseInt(process.env.BASE_FEE || '300', 10);
 const ADMIN_SECRET = process.env.ADMIN_SECRET || 'admin123';
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://phiuzlbeizzxqzxgpbiq.supabase.co';
+const SUPABASE_KEY = process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBoaXV6bGJlaXp6eHF6eGdwYmlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc3MjExNDEsImV4cCI6MjEwMzI5NzE0MX0.cggUAxqSe4FsfvPvEsPQUKVJy5e_t9kus1KInViXaKU';
 
 app.use(cors());
 app.use(express.json());
@@ -349,11 +351,61 @@ app.post('/api/registration/complete', (req, res) => {
 
     writeDB(db);
 
+    // Sync to Supabase Cloud Database asynchronously
+    const payment = db.payments.find(p => p.registration_id === registration_id);
+    syncToSupabase(reg, payment);
+
     return res.json({ success: true, registration: reg });
   } catch (err) {
     return res.status(500).json({ error: 'Error updating registration details.' });
   }
 });
+
+// Helper: Server-side Supabase Cloud DB Sync
+async function syncToSupabase(reg, payment) {
+  if (!SUPABASE_URL || !SUPABASE_KEY || SUPABASE_URL === 'YOUR_SUPABASE_PROJECT_URL') return;
+  try {
+    const cleanUrl = SUPABASE_URL.trim().replace(/\/rest\/v1\/?$/i, '').replace(/\/+$/, '') + '/rest/v1/registrations';
+    const payload = {
+      pass_id: reg.registration_id,
+      full_name: reg.full_name || 'Participant',
+      age: parseInt(reg.age) || 0,
+      whatsapp_number: reg.whatsapp_number || '',
+      occupation: reg.occupation || 'student',
+      institution_or_company: reg.institution_or_company || '',
+      degree_or_position: reg.degree_or_position || '',
+      branch: reg.branch || null,
+      marital_status: reg.marital_status || 'single',
+      gender: reg.gender || null,
+      quiz_score: reg.quiz_score || 20,
+      percentage: reg.percentage || 100,
+      paid_amount: (payment && payment.amount) || reg.calculated_fee || 150,
+      utr_number: (payment && payment.utr) || null,
+      language: reg.language || 'en',
+      remarks: reg.remarks || null
+    };
+
+    const response = await fetch(cleanUrl, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (response.ok) {
+      console.log(`[Supabase Sync Success] Registration ${reg.registration_id} saved to Supabase.`);
+    } else {
+      const errText = await response.text();
+      console.warn(`[Supabase Sync Warning] Status ${response.status}:`, errText);
+    }
+  } catch (e) {
+    console.error("[Supabase Sync Exception]:", e.message);
+  }
+}
 
 // -----------------------------------------------------------------------------
 // Admin Verification Endpoints

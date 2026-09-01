@@ -612,6 +612,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const modal = document.getElementById('lang-select-modal');
     if (modal) modal.classList.remove('hidden');
     renderLanguageUI();
+    renderQuestion(0);
   }
 });
 
@@ -708,7 +709,8 @@ function renderLanguageUI() {
 
   const btnToggleReview = document.getElementById('btn-toggle-review');
   if (btnToggleReview) {
-    const isHidden = document.getElementById('review-answers-container').classList.contains('hidden');
+    const reviewBox = document.getElementById('review-answers-container');
+    const isHidden = reviewBox ? reviewBox.classList.contains('hidden') : true;
     btnToggleReview.innerText = isHidden ? t.viewExplanationsBtn : t.hideExplanationsBtn;
   }
 

@@ -188,31 +188,40 @@
           <!-- Dynamically updated: PAYMENT_PENDING, UTR_SUBMITTED, VERIFIED, REJECTED -->
         </div>
 
+        <!-- Bank Limit Helper Tip Box -->
+        <div id="gpay-limit-tip-box" style="background: rgba(245, 158, 11, 0.12); border: 1px dashed #F59E0B; border-radius: 12px; padding: 12px 14px; margin-bottom: 16px; text-align: left; font-size: 0.84rem; color: #FCD34D; line-height: 1.45;">
+          <strong>💡 GPay / PhonePe "Bank Limit Exceeded" Alert?</strong><br>
+          If your UPI app blocks auto-intent with a bank limit alert:<br>
+          1️⃣ Tap <strong>Copy UPI Handle</strong> below.<br>
+          2️⃣ Open GPay / PhonePe ➔ Tap <strong>Pay UPI ID / VPA</strong>.<br>
+          3️⃣ Paste <strong><span id="tip-upi-id" style="color:#FFF;">1979.ravi.agarwal-3@okhdfcbank</span></strong> & Pay <strong id="tip-payable-amt" style="color:#34D399;">₹150</strong>!
+        </div>
+
         <!-- Primary UPI Intent Launch Button (Mobile / Android) -->
         <div id="upi-intent-container">
           <button id="btn-pay-upi-intent" onclick="initiateUpiPayment()" type="button" class="btn-primary" style="background: linear-gradient(135deg, #10B981, #059669); padding:16px; font-size:1.1rem; width:100%; margin-bottom:16px; box-shadow: 0 8px 25px rgba(16,185,129,0.35); font-weight:800;">
-            PAY <span id="btn-upi-amt-tag">₹150</span> USING UPI ⚡
+            PAY <span id="btn-upi-amt-tag">₹150</span> VIA UPI APP ⚡
           </button>
         </div>
 
         <!-- Dynamic QR Code & Fallback Details Container (Desktop / iPhone) -->
         <div id="upi-fallbacks-section">
           <div style="text-align:center; font-size:0.82rem; color:var(--text-muted); margin-bottom:12px; font-weight:600;">
-            — OR SCAN QR / COPY UPI HANDLE BELOW —
+            — OR SCAN QR CODE / COPY UPI HANDLE BELOW —
           </div>
 
           <!-- Dynamic QR Code (Encodes complete upi://pay URI with amount & ref) -->
           <div class="qr-box-wrapper" style="margin-bottom:14px;">
             <div id="qrcode-container"></div>
             <div style="font-size:0.75rem; color:var(--text-gold); margin-top:8px; font-weight:700;">
-              Scan using any UPI App (GPay, PhonePe, Paytm, BHIM)
+              Scan using any UPI App Camera (GPay, PhonePe, Paytm, BHIM)
             </div>
           </div>
 
           <!-- UPI ID & Copy Handle -->
           <div class="upi-id-box">
             <span id="display-upi-id">yourupi@upi</span>
-            <button id="btn-copy-upi" onclick="copyUpiId()" type="button" class="copy-btn">Copy UPI</button>
+            <button id="btn-copy-upi" onclick="copyUpiId()" type="button" class="copy-btn">Copy UPI Handle</button>
           </div>
 
           <!-- App Direct Shortcuts -->

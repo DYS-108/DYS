@@ -1083,6 +1083,8 @@ async function gotoPaymentScreen() {
       if (document.getElementById('btn-upi-amt-tag')) document.getElementById('btn-upi-amt-tag').innerText = `₹${data.amount}`;
       if (document.getElementById('pay-reference-code')) document.getElementById('pay-reference-code').innerText = data.payment_reference;
       if (document.getElementById('display-upi-id')) document.getElementById('display-upi-id').innerText = data.upi_id;
+      if (document.getElementById('tip-upi-id')) document.getElementById('tip-upi-id').innerText = data.upi_id;
+      if (document.getElementById('tip-payable-amt')) document.getElementById('tip-payable-amt').innerText = data.amount;
       if (document.getElementById('pay-summary-score')) {
         document.getElementById('pay-summary-score').innerText = `${lastCalculatedResult ? lastCalculatedResult.netScore : 20} / 20`;
       }

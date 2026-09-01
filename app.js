@@ -1377,6 +1377,8 @@ async function saveRegistrationToSupabase(record) {
       combinedRemarks = combinedRemarks ? `Address: ${studentData.address} | ${combinedRemarks}` : `Address: ${studentData.address}`;
     }
 
+    const utrVal = (currentPaymentData && currentPaymentData.utr) || (document.getElementById('input-utr') ? document.getElementById('input-utr').value.trim() : null);
+
     const payload = {
       pass_id: record.regPassId,
       full_name: studentData.name,
@@ -1391,7 +1393,9 @@ async function saveRegistrationToSupabase(record) {
       quiz_score: lastCalculatedResult ? lastCalculatedResult.netScore : 20,
       percentage: lastCalculatedResult ? lastCalculatedResult.finalPercent : 100,
       paid_amount: lastCalculatedResult ? lastCalculatedResult.payableAmount : 150,
-      utr_number: document.getElementById('input-utr') ? document.getElementById('input-utr').value.trim() : null,
+      utr_number: utrVal || null,
+      payment_reference: (currentPaymentData && currentPaymentData.payment_reference) || null,
+      payment_status: (currentPaymentData && currentPaymentData.status) || 'UTR_SUBMITTED',
       language: currentLang,
       remarks: combinedRemarks || null
     };

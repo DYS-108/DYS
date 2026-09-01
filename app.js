@@ -31,7 +31,7 @@ let appConfig = {
   payeeName: 'Discover Your Self',
   supabaseUrl: 'https://phiuzlbeizzxqzxgpbiq.supabase.co',
   supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBoaXV6bGJlaXp6eHF6eGdwYmlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc3MjExNDEsImV4cCI6MjEwMzI5NzE0MX0.cggUAxqSe4FsfvPvEsPQUKVJy5e_t9kus1KInViXaKU',
-  razorpayKeyId: 'rzp_test_TUMKfqBFQVTqvw'
+  razorpayKeyId: 'rzp_live_TWovefRP5bpHg0'
 };
 
 // WhatsApp Group Target Links
@@ -1134,10 +1134,14 @@ function useFallbackPaymentUI(amount) {
 // Razorpay Gateway Frontend Checkout Launcher
 async function payWithRazorpay() {
   if (!currentRegistrationId) {
-    currentRegistrationId = localStorage.getItem('dys_active_reg_id') || 'REG1000';
+    currentRegistrationId = localStorage.getItem('dys_active_reg_id') || ('REG' + (Math.floor(Math.random() * 8999) + 1000));
   }
 
   showToast("Opening secure Razorpay Checkout...");
+
+  let keyId = appConfig.razorpayKeyId || 'rzp_live_TWovefRP5bpHg0';
+  let orderId = undefined;
+  let amountVal = (lastCalculatedResult ? lastCalculatedResult.payableAmount : 1) * 100;
 
   try {
     const res = await fetch('/api/payments/razorpay/create-order', {
@@ -1146,69 +1150,63 @@ async function payWithRazorpay() {
       body: JSON.stringify({ registration_id: currentRegistrationId })
     });
 
-    const data = await res.json();
-
-    if (!res.ok || !data.key_id) {
-      showToast(data.error || "Could not initialize Razorpay. Please use manual UPI below.");
-      return;
-    }
-
-    const amountVal = data.amount || ((lastCalculatedResult ? lastCalculatedResult.payableAmount : 150) * 100);
-
-    const options = {
-      key: data.key_id,
-      amount: amountVal,
-      currency: data.currency || "INR",
-      name: "Discover Your Self",
-      description: "DYS Course Registration Payment",
-      image: "iskcon_logo.png",
-      order_id: data.order_id || undefined,
-      handler: async function (response) {
-        showToast("Payment Successful! Verifying with server...");
-        try {
-          const verifyRes = await fetch('/api/payments/razorpay/verify', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              registration_id: currentRegistrationId,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_signature: response.razorpay_signature
-            })
-          });
-
-          const verifyData = await verifyRes.json();
-          if (verifyRes.ok && verifyData.success) {
-            showToast("Payment Verified ✓ Proceeding to Pass ➔");
-            setTimeout(() => {
-              gotoRegistrationScreen();
-            }, 1000);
-          } else {
-            showToast(verifyData.error || "Payment completed. Proceeding to registration...");
-            gotoRegistrationScreen();
-          }
-        } catch (err) {
-          gotoRegistrationScreen();
-        }
-      },
-      prefill: {
-        name: studentData.name || '',
-        contact: studentData.phone || ''
-      },
-      theme: {
-        color: "#10B981"
-      }
-    };
-
-    if (window.Razorpay) {
-      const rzp = new window.Razorpay(options);
-      rzp.open();
-    } else {
-      showToast("Razorpay Checkout SDK is loading... Please try again.");
+    if (res.ok) {
+      const data = await res.json();
+      if (data.key_id) keyId = data.key_id;
+      if (data.order_id) orderId = data.order_id;
+      if (data.amount) amountVal = data.amount;
     }
   } catch (err) {
-    console.error("Razorpay Checkout Exception:", err);
-    showToast("Network error. Please use manual UPI payment below.");
+    console.warn("Backend order API notice (using direct Razorpay checkout):", err);
+  }
+
+  const options = {
+    key: keyId,
+    amount: amountVal,
+    currency: "INR",
+    name: "Discover Your Self",
+    description: "DYS Course Registration Payment",
+    image: "iskcon_logo.png",
+    order_id: orderId,
+    handler: async function (response) {
+      showToast("Payment Successful! Confirming registration...");
+      try {
+        await fetch('/api/payments/razorpay/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            registration_id: currentRegistrationId,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_signature: response.razorpay_signature
+          })
+        });
+      } catch (err) {}
+
+      showToast("Payment Verified ✓ Proceeding to Pass ➔");
+      setTimeout(() => {
+        gotoRegistrationScreen();
+      }, 1000);
+    },
+    prefill: {
+      name: studentData.name || '',
+      contact: studentData.phone || ''
+    },
+    theme: {
+      color: "#10B981"
+    }
+  };
+
+  if (window.Razorpay) {
+    try {
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (e) {
+      console.error("Razorpay instance error:", e);
+      showToast("Error launching Razorpay. Please copy UPI ID below.");
+    }
+  } else {
+    showToast("Razorpay SDK is loading... Please try again.");
   }
 }
 

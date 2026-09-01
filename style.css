@@ -1386,41 +1386,22 @@ body {
   padding-bottom: 12px;
 }
 
-/* Form Section Cards */
-.form-section-card {
-  background: rgba(15, 23, 42, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-left: 3px solid var(--gold-accent);
-  border-radius: var(--radius-md);
-  padding: 16px;
+/* Form Section Group & Title */
+.form-section-group {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  transition: var(--transition);
+  margin-top: 4px;
 }
 
-.form-section-card:hover {
-  background: rgba(22, 30, 52, 0.8);
-  border-color: rgba(245, 158, 11, 0.3);
-}
-
-.form-section-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  padding-bottom: 8px;
-}
-
-.section-icon {
-  font-size: 1.1rem;
-}
-
-.section-title {
-  font-size: 0.92rem;
+.form-section-title {
+  font-size: 0.95rem;
   font-weight: 800;
   color: var(--text-gold);
-  letter-spacing: 0.3px;
+  letter-spacing: 0.5px;
+  border-bottom: 1px dashed rgba(245, 158, 11, 0.3);
+  padding-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .form-row-2col {
@@ -1433,27 +1414,6 @@ body {
   .form-row-2col {
     grid-template-columns: 1fr;
   }
-}
-
-/* Input Fields with Prefix Icons */
-.input-with-icon {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.input-field-icon {
-  position: absolute;
-  left: 12px;
-  font-size: 0.95rem;
-  pointer-events: none;
-  z-index: 2;
-  opacity: 0.8;
-}
-
-.input-with-icon .form-input {
-  padding-left: 38px;
-  width: 100%;
 }
 
 .btn-submit-reg {

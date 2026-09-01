@@ -479,10 +479,10 @@
       <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:20px;">Select Preferred Language / भाषा चुनें</p>
       
       <div style="display:flex; flex-direction:column; gap:12px;">
-        <button onclick="selectInitialLanguage('en')" class="btn-primary" style="background: linear-gradient(135deg, #FF7700, #F59E0B);">
+        <button id="btn-lang-en" onclick="selectInitialLanguage('en')" class="btn-primary" type="button" style="background: linear-gradient(135deg, #FF7700, #F59E0B); cursor:pointer;">
           Continue in English →
         </button>
-        <button onclick="selectInitialLanguage('hi')" class="btn-primary" style="background: linear-gradient(135deg, #F59E0B, #E65100);">
+        <button id="btn-lang-hi" onclick="selectInitialLanguage('hi')" class="btn-primary" type="button" style="background: linear-gradient(135deg, #F59E0B, #E65100); cursor:pointer;">
           हिंदी में आगे बढ़ें →
         </button>
       </div>

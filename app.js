@@ -635,11 +635,15 @@ function goBackFrom(screenId) {
 // Helper for Screen Navigation
 function switchScreen(fromId, toId) {
   const screens = document.querySelectorAll('.view-screen');
-  screens.forEach(s => s.classList.add('hidden'));
+  screens.forEach(s => {
+    s.classList.add('hidden');
+    s.style.display = 'none';
+  });
 
   const target = document.getElementById(toId);
   if (target) {
     target.classList.remove('hidden');
+    target.style.display = 'block';
     window.scrollTo({ top: 0, behavior: 'smooth' });
     saveAppState(toId);
   }
@@ -647,11 +651,14 @@ function switchScreen(fromId, toId) {
 
 // Initial Language Selection Callback
 function selectInitialLanguage(lang) {
-  currentLang = lang;
+  currentLang = lang || 'en';
   localStorage.setItem('dys_app_lang', currentLang);
 
   const modal = document.getElementById('lang-select-modal');
-  if (modal) modal.classList.add('hidden');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.style.display = 'none';
+  }
 
   renderLanguageUI();
   switchScreen(null, 'screen-quiz');
@@ -1833,6 +1840,12 @@ async function verifyAdminPayment(regId, action) {
 }
 
 function setupEventListeners() {
+  const btnEn = document.getElementById('btn-lang-en');
+  if (btnEn) btnEn.addEventListener('click', () => selectInitialLanguage('en'));
+
+  const btnHi = document.getElementById('btn-lang-hi');
+  if (btnHi) btnHi.addEventListener('click', () => selectInitialLanguage('hi'));
+
   // Secret Admin Trigger (5 clicks on logo)
   let logoClicks = 0;
   const brandBadge = document.querySelector('.brand-badge');

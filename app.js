@@ -1079,7 +1079,7 @@ async function gotoPaymentScreen() {
       appConfig.upiId = data.upi_id;
 
       // Update UI elements with trusted backend payment data
-      document.getElementById('res-payable-amt').innerText = `₹${data.amount}`;
+      if (document.getElementById('res-payable-amt')) document.getElementById('res-payable-amt').innerText = `₹${data.amount}`;
       if (document.getElementById('rzp-fee-tag')) document.getElementById('rzp-fee-tag').innerText = `₹${data.amount}`;
       if (document.getElementById('btn-upi-amt-tag')) document.getElementById('btn-upi-amt-tag').innerText = `₹${data.amount}`;
       if (document.getElementById('pay-reference-code')) document.getElementById('pay-reference-code').innerText = data.payment_reference;
@@ -1121,7 +1121,7 @@ function useFallbackPaymentUI(amount) {
     status: 'PAYMENT_PENDING'
   };
 
-  document.getElementById('res-payable-amt').innerText = `₹${amount}`;
+  if (document.getElementById('res-payable-amt')) document.getElementById('res-payable-amt').innerText = `₹${amount}`;
   if (document.getElementById('rzp-fee-tag')) document.getElementById('rzp-fee-tag').innerText = `₹${amount}`;
   if (document.getElementById('btn-upi-amt-tag')) document.getElementById('btn-upi-amt-tag').innerText = `₹${amount}`;
   if (document.getElementById('pay-reference-code')) document.getElementById('pay-reference-code').innerText = refCode;

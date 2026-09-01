@@ -148,7 +148,7 @@
       </div>
     </main>
 
-    <!-- SCREEN 4: Payment Section (Manual UPI Payment View) -->
+    <!-- SCREEN 4: Payment Section (Razorpay Hosted Payment Button) -->
     <main id="screen-payment" class="view-screen hidden">
       <!-- Back Navigation Row -->
       <div class="screen-nav-bar" style="display:flex; align-items:center; justify-content:flex-start; margin-bottom:8px;">
@@ -157,79 +157,22 @@
         </button>
       </div>
 
-      <div id="payment-step-box" class="payment-section" style="margin-top:0;">
+      <div id="payment-step-box" class="payment-section" style="margin-top:0; text-align:center;">
         <h3 id="lbl-pay-title" class="payment-title">Course Registration Payment</h3>
-        <p id="lbl-pay-sub" class="payment-sub">Pay manually via GPay / PhonePe / Paytm</p>
+        <p id="lbl-pay-sub" class="payment-sub" style="margin-bottom:20px;">Complete your registration payment via Razorpay</p>
 
-        <!-- Course & Quiz Summary Card -->
-        <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; padding: 14px; margin-bottom: 16px; text-align: left;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-            <span style="font-size:0.83rem; color:var(--text-muted);">Quiz Score:</span>
-            <span id="pay-summary-score" style="font-weight:800; color:var(--text-gold);">20 / 20</span>
-          </div>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-            <span style="font-size:0.83rem; color:var(--text-muted);">Course:</span>
-            <span id="pay-summary-course" style="font-weight:700; color:#FFF;">Discover Your Self Course</span>
-          </div>
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span style="font-size:0.83rem; color:var(--text-muted);">Payment Reference:</span>
-            <span id="pay-reference-code" style="font-family:monospace; font-weight:800; color:var(--text-gold); font-size:0.85rem;">REG1024-PAY-001</span>
-          </div>
+        <!-- Razorpay Official Hosted Payment Button -->
+        <div id="razorpay-hosted-button-wrapper" style="display:flex; justify-content:center; align-items:center; margin: 20px 0 24px; min-height:60px;">
+          <form>
+            <script src="https://checkout.razorpay.com/v1/payment-button.js" data-payment_button_id="pl_TWpY9yfmv4wtpC" async> </script>
+          </form>
         </div>
 
-        <!-- Dynamic Amount to be Paid Box -->
-        <div class="score-display-box" style="margin: 10px 0 16px;">
-          <span id="lbl-fee-display-tag" style="font-size:0.9rem; color:var(--text-muted);">Amount to be Paid:</span>
-          <span id="res-payable-amt" class="score-num" style="font-size:2.6rem; color:#34D399;">₹150</span>
-        </div>
-
-        <!-- Payment Status UX Banner -->
-        <div id="payment-status-banner" style="display:none; padding:12px; border-radius:10px; font-size:0.88rem; font-weight:700; text-align:center; margin-bottom:16px;">
-          <!-- Dynamically updated: PAYMENT_PENDING, UTR_SUBMITTED, VERIFIED, REJECTED -->
-        </div>
-
-        <!-- Primary Razorpay Gateway Instant Payment Button -->
-        <div id="razorpay-container" style="margin-bottom: 16px;">
-          <button id="btn-pay-razorpay" onclick="payWithRazorpay()" type="button" class="btn-primary" style="background: linear-gradient(135deg, #10B981, #059669); padding:16px; font-size:1.1rem; width:100%; font-weight:800; box-shadow:0 8px 25px rgba(16,185,129,0.35);">
-            💳 PAY <span id="rzp-fee-tag">₹150</span> VIA RAZORPAY (GPay / Cards / UPI) ⚡
-          </button>
-        </div>
-
-        <div style="text-align:center; font-size:0.8rem; color:var(--text-muted); margin-bottom:14px; font-weight:600;">
-          — OR PAY MANUALLY VIA UPI ID BELOW —
-        </div>
-
-        <!-- UPI ID & Copy Handle Box -->
-        <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid var(--gold-accent); border-radius: 14px; padding: 16px; margin-bottom: 20px; text-align: center;">
-          <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:6px; font-weight:600;">
-            Payee UPI ID (VPA):
-          </div>
-          <div class="upi-id-box" style="margin: 6px 0 12px; justify-content:center;">
-            <span id="display-upi-id" style="font-size:1.15rem; font-weight:800; color:#FFF;">9892961661@okbizaxis</span>
-            <button id="btn-copy-upi" onclick="copyUpiId()" type="button" class="copy-btn" style="padding:8px 16px; font-size:0.88rem;">Copy UPI ID</button>
-          </div>
-
-          <div style="font-size:0.83rem; color:#FCD34D; line-height:1.45; margin-top:8px;">
-            1️⃣ Tap <strong>Copy UPI ID</strong> above.<br>
-            2️⃣ Open <strong>GPay / PhonePe / Paytm</strong> ➔ Tap <strong>Pay UPI ID</strong>.<br>
-            3️⃣ Paste <strong>9892961661@okbizaxis</strong> & Pay exact amount.
-          </div>
-        </div>
-
-        <!-- Post-Payment UTR Submission Box -->
-        <div id="utr-submit-box" style="margin-top:16px; border-top:1px dashed rgba(255,255,255,0.15); padding-top:16px;">
-          <div id="utr-instructions" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; font-size: 0.84rem; color: #34D399; text-align: left; line-height: 1.4;">
-            <strong>Step 4: Confirm Payment</strong><br>
-            After paying in GPay, enter your 12-digit UPI UTR / Transaction ID below:
-          </div>
-
-          <div class="form-group" style="margin-bottom:12px;">
-            <label id="lbl-utr" class="form-label" style="text-align:left;" for="input-utr">UPI UTR / Transaction Reference ID *</label>
-            <input type="text" id="input-utr" class="form-input" placeholder="e.g. 423912345678" style="font-family:monospace; letter-spacing:1px;" maxlength="24">
-          </div>
-
-          <button id="btn-submit-utr" onclick="submitUtrPayment()" type="button" class="btn-primary" style="background: linear-gradient(135deg, #F59E0B, #D97706); color:#000; font-weight:800; margin-bottom: 10px;">
-            SUBMIT UTR & PROCEED ➔
+        <!-- Next / Proceed to Registration Details Button -->
+        <div style="margin-top: 24px; border-top: 1px dashed rgba(255,255,255,0.15); padding-top: 16px;">
+          <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:12px;">Completed your payment on the Razorpay button above?</p>
+          <button onclick="gotoRegistrationScreen()" type="button" class="btn-primary" style="background: linear-gradient(135deg, #F59E0B, #D97706); color:#000; font-weight:800;">
+            PROCEED TO REGISTRATION DETAILS ➔
           </button>
         </div>
       </div>

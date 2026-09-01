@@ -525,6 +525,10 @@ const uiText = {
 
 // State Persistence Helpers (Survives app switching to GPay & page reloads)
 function saveAppState(activeScreenId) {
+  // Only save state when on payment screen or beyond (to survive UPI app switch)
+  const screensToSave = ['screen-payment', 'screen-registration', 'screen-pass', 'screen-course'];
+  if (!screensToSave.includes(activeScreenId)) return;
+
   try {
     const state = {
       activeScreenId: activeScreenId || 'screen-quiz',
@@ -535,11 +539,24 @@ function saveAppState(activeScreenId) {
       lastCalculatedResult
     };
     sessionStorage.setItem('dys_app_session_state', JSON.stringify(state));
+    // Mark that we're in an active session (payment in progress)
+    sessionStorage.setItem('dys_payment_redirect', '1');
+  } catch (e) {}
+}
+
+function clearAppState() {
+  try {
+    sessionStorage.removeItem('dys_app_session_state');
+    sessionStorage.removeItem('dys_payment_redirect');
   } catch (e) {}
 }
 
 function restoreAppState() {
   try {
+    // Only restore if we set a payment redirect flag (user went to UPI app & came back)
+    const isPaymentRedirect = sessionStorage.getItem('dys_payment_redirect');
+    if (!isPaymentRedirect) return false;
+
     const raw = sessionStorage.getItem('dys_app_session_state');
     if (!raw) return false;
 
@@ -590,6 +607,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const restored = restoreAppState();
   if (!restored) {
+    // Fresh load — clear any stale state and show language selector
+    clearAppState();
     const modal = document.getElementById('lang-select-modal');
     if (modal) modal.classList.remove('hidden');
     renderLanguageUI();

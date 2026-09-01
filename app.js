@@ -901,32 +901,6 @@ function prevQuestion() {
   }
 }
 
-// Calculate Score & Show Results Page (Simplified)
-function calculateResultsAndShow(existingRecord) {
-  try {
-    if (existingRecord) {
-      if (existingRecord.userAnswers) userAnswers = existingRecord.userAnswers;
-      if (existingRecord.studentData) studentData = existingRecord.studentData;
-    }
-
-    let netScore = 0;
-    let correctCount = 0;
-    let wrongCount = 0;
-    let unattemptedCount = 0;
-
-    quizData.forEach((q, idx) => {
-      const ans = userAnswers[idx];
-      if (!ans) {
-        unattemptedCount++;
-      } else if (ans === q.correctAnswer) {
-        correctCount++;
-        netScore += 2; // +2 for correct
-      } else {
-        wrongCount++;
-        netScore -= 1; // -1 for wrong
-      }
-    });
-
 // Global Backend Session & Payment State
 let currentRegistrationId = localStorage.getItem('dys_active_reg_id') || null;
 let currentPaymentData = null;

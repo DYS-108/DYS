@@ -148,7 +148,7 @@
       </div>
     </main>
 
-    <!-- SCREEN 4: Payment Section (Dynamic Direct UPI Intent - No Payment Gateway) -->
+    <!-- SCREEN 4: Payment Section (Manual UPI Payment View) -->
     <main id="screen-payment" class="view-screen hidden">
       <!-- Back Navigation Row -->
       <div class="screen-nav-bar" style="display:flex; align-items:center; justify-content:flex-start; margin-bottom:8px;">
@@ -159,7 +159,7 @@
 
       <div id="payment-step-box" class="payment-section" style="margin-top:0;">
         <h3 id="lbl-pay-title" class="payment-title">Course Registration Payment</h3>
-        <p id="lbl-pay-sub" class="payment-sub">Direct UPI Payment (No Gateway Fee)</p>
+        <p id="lbl-pay-sub" class="payment-sub">Pay manually via GPay / PhonePe / Paytm</p>
 
         <!-- Course & Quiz Summary Card -->
         <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; padding: 14px; margin-bottom: 16px; text-align: left;">
@@ -177,10 +177,10 @@
           </div>
         </div>
 
-        <!-- Dynamic Amount Payable Box -->
+        <!-- Dynamic Amount to be Paid Box -->
         <div class="score-display-box" style="margin: 10px 0 16px;">
-          <span id="lbl-fee-display-tag" style="font-size:0.9rem; color:var(--text-muted);">Amount Payable:</span>
-          <span id="res-payable-amt" class="score-num" style="font-size:2.4rem; color:#34D399;">₹150</span>
+          <span id="lbl-fee-display-tag" style="font-size:0.9rem; color:var(--text-muted);">Amount to be Paid:</span>
+          <span id="res-payable-amt" class="score-num" style="font-size:2.6rem; color:#34D399;">₹150</span>
         </div>
 
         <!-- Payment Status UX Banner -->
@@ -188,56 +188,28 @@
           <!-- Dynamically updated: PAYMENT_PENDING, UTR_SUBMITTED, VERIFIED, REJECTED -->
         </div>
 
-        <!-- Bank Limit Helper Tip Box -->
-        <div id="gpay-limit-tip-box" style="background: rgba(245, 158, 11, 0.12); border: 1px dashed #F59E0B; border-radius: 12px; padding: 12px 14px; margin-bottom: 16px; text-align: left; font-size: 0.84rem; color: #FCD34D; line-height: 1.45;">
-          <strong>💡 GPay / PhonePe "Bank Limit Exceeded" Alert?</strong><br>
-          If your UPI app blocks auto-intent with a bank limit alert:<br>
-          1️⃣ Tap <strong>Copy UPI Handle</strong> below.<br>
-          2️⃣ Open GPay / PhonePe ➔ Tap <strong>Pay UPI ID / VPA</strong>.<br>
-          3️⃣ Paste <strong><span id="tip-upi-id" style="color:#FFF;">9892961661@okbizaxis</span></strong> & Pay <strong id="tip-payable-amt" style="color:#34D399;">₹150</strong>!
-        </div>
-
-        <!-- Primary UPI Intent Launch Button (Mobile / Android) -->
-        <div id="upi-intent-container">
-          <button id="btn-pay-upi-intent" onclick="initiateUpiPayment()" type="button" class="btn-primary" style="background: linear-gradient(135deg, #10B981, #059669); padding:16px; font-size:1.1rem; width:100%; margin-bottom:16px; box-shadow: 0 8px 25px rgba(16,185,129,0.35); font-weight:800;">
-            PAY <span id="btn-upi-amt-tag">₹150</span> VIA UPI APP ⚡
-          </button>
-        </div>
-
-        <!-- Dynamic QR Code & Fallback Details Container (Desktop / iPhone) -->
-        <div id="upi-fallbacks-section">
-          <div style="text-align:center; font-size:0.82rem; color:var(--text-muted); margin-bottom:12px; font-weight:600;">
-            — OR SCAN QR CODE / COPY UPI HANDLE BELOW —
+        <!-- UPI ID & Copy Handle Box -->
+        <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid var(--gold-accent); border-radius: 14px; padding: 16px; margin-bottom: 20px; text-align: center;">
+          <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:6px; font-weight:600;">
+            Payee UPI ID (VPA):
+          </div>
+          <div class="upi-id-box" style="margin: 6px 0 12px; justify-content:center;">
+            <span id="display-upi-id" style="font-size:1.15rem; font-weight:800; color:#FFF;">9892961661@okbizaxis</span>
+            <button id="btn-copy-upi" onclick="copyUpiId()" type="button" class="copy-btn" style="padding:8px 16px; font-size:0.88rem;">Copy UPI ID</button>
           </div>
 
-          <!-- Dynamic QR Code (Encodes complete upi://pay URI with amount & ref) -->
-          <div class="qr-box-wrapper" style="margin-bottom:14px;">
-            <div id="qrcode-container"></div>
-            <div style="font-size:0.75rem; color:var(--text-gold); margin-top:8px; font-weight:700;">
-              Scan using any UPI App Camera (GPay, PhonePe, Paytm, BHIM)
-            </div>
-          </div>
-
-          <!-- UPI ID & Copy Handle -->
-          <div class="upi-id-box">
-            <span id="display-upi-id">yourupi@upi</span>
-            <button id="btn-copy-upi" onclick="copyUpiId()" type="button" class="copy-btn">Copy UPI Handle</button>
-          </div>
-
-          <!-- App Direct Shortcuts -->
-          <div class="payment-apps-row" style="margin-top: 12px; margin-bottom: 16px;">
-            <a id="link-gpay" class="app-chip" href="#" onclick="launchUpiApp('gpay')" style="text-decoration:none; cursor:pointer;">GPay 📱</a>
-            <a id="link-phonepe" class="app-chip" href="#" onclick="launchUpiApp('phonepe')" style="text-decoration:none; cursor:pointer;">PhonePe 📱</a>
-            <a id="link-paytm" class="app-chip" href="#" onclick="launchUpiApp('paytm')" style="text-decoration:none; cursor:pointer;">Paytm 📱</a>
-            <a id="link-bhim" class="app-chip" href="#" onclick="launchUpiApp('bhim')" style="text-decoration:none; cursor:pointer;">BHIM 📱</a>
+          <div style="font-size:0.83rem; color:#FCD34D; line-height:1.45; margin-top:8px;">
+            1️⃣ Tap <strong>Copy UPI ID</strong> above.<br>
+            2️⃣ Open <strong>GPay / PhonePe / Paytm</strong> ➔ Tap <strong>Pay UPI ID</strong>.<br>
+            3️⃣ Paste <strong>9892961661@okbizaxis</strong> & Pay exact amount.
           </div>
         </div>
 
-        <!-- Post-Initiation UTR Submission Box -->
+        <!-- Post-Payment UTR Submission Box -->
         <div id="utr-submit-box" style="margin-top:16px; border-top:1px dashed rgba(255,255,255,0.15); padding-top:16px;">
-          <div id="utr-instructions" style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; font-size: 0.82rem; color: #FCD34D; text-align: left; line-height: 1.4;">
-            <strong>After completing payment in your UPI app:</strong><br>
-            Please copy & submit your 12-digit UPI UTR / Transaction Ref ID below to confirm your registration.
+          <div id="utr-instructions" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; font-size: 0.84rem; color: #34D399; text-align: left; line-height: 1.4;">
+            <strong>Step 4: Confirm Payment</strong><br>
+            After paying in GPay, enter your 12-digit UPI UTR / Transaction ID below:
           </div>
 
           <div class="form-group" style="margin-bottom:12px;">

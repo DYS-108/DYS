@@ -78,7 +78,8 @@ function calculateTrustedFee(answers) {
   else if (finalPercent >= 60) discountPercentage = 15;
 
   const discountAmount = Math.round((BASE_FEE * discountPercentage) / 100);
-  const payableAmount = BASE_FEE - discountAmount;
+  // For live testing, set payableAmount to ₹1 (or Math.max(1, BASE_FEE - discountAmount))
+  const payableAmount = 1;
 
   return {
     netScore,

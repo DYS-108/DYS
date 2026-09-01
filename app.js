@@ -26,7 +26,7 @@ let lastCalculatedResult = null;
 
 // Config Default Values
 let appConfig = {
-  baseFee: 300,
+  baseFee: 1,
   upiId: '9892961661@okbizaxis',
   payeeName: 'Discover Your Self',
   supabaseUrl: 'https://phiuzlbeizzxqzxgpbiq.supabase.co',

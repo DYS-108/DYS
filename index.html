@@ -40,8 +40,13 @@
       </div>
 
       <div class="quiz-meta-row" style="margin-top: 6px;">
-        <span id="quiz-progress-text" class="question-badge">Question 1 / 10</span>
+        <span id="quiz-progress-text" class="question-badge" style="cursor:pointer;" title="Tap any question number below to jump">Question 1 / 10</span>
         <span id="txt-marking-notice" class="marking-info-tag">+2 / -1 Marking</span>
+      </div>
+
+      <!-- 10 Question Quick Navigation Stepper -->
+      <div id="quiz-palette-container" class="quiz-palette-grid">
+        <!-- Dynamically rendered 1 to 10 question buttons -->
       </div>
 
       <div class="quiz-progress-bar">
@@ -354,7 +359,6 @@
             <div class="pass-org-name">DISCOVER YOUR SELF</div>
             <div class="pass-course-name">Official Course Enrollment Pass</div>
           </div>
-          <div class="pass-vip-tag">OFFICIAL PASS</div>
         </div>
 
         <!-- Verification Badge -->
@@ -408,18 +412,6 @@
             <div class="pass-cell">
               <span id="lbl-datetime-title" class="pass-cell-label">Registration Date & Time</span>
               <span id="pass-time" class="pass-cell-value pass-time-value">-</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Venue Entry Scanning Container (QR Code & Simulated Barcode) -->
-        <div class="pass-barcode-section">
-          <div class="barcode-header-tag">OFFICIAL VENUE SCANNER PASS</div>
-          <div class="qr-barcode-flex">
-            <div id="pass-qrcode-container" class="pass-qr-box"></div>
-            <div class="simulated-barcode-wrapper">
-              <div id="pass-barcode-lines" class="barcode-lines"></div>
-              <div id="pass-barcode-text" class="barcode-code-text">ISKCON-REG-2001</div>
             </div>
           </div>
         </div>

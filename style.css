@@ -1361,6 +1361,54 @@ body {
    ENHANCED PROFESSIONAL CANDIDATE REGISTRATION & PASS STYLING
    ========================================================================== */
 
+/* Quiz Question Stepper Palette (1 to 10 Numbers) */
+.quiz-palette-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 4px;
+  margin: 6px 0;
+}
+
+.palette-num-btn {
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.palette-num-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #FFF;
+  border-color: var(--gold-accent);
+}
+
+.palette-num-btn.answered {
+  background: rgba(16, 185, 129, 0.25);
+  border-color: #10B981;
+  color: #34D399;
+}
+
+.palette-num-btn.active {
+  border-color: var(--gold-accent);
+  color: var(--text-gold);
+  background: rgba(245, 158, 11, 0.3);
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+}
+
+.palette-num-btn.active.answered {
+  border-color: var(--gold-accent);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.3), rgba(16, 185, 129, 0.3));
+}
+
 /* Form Header & Step Indicator */
 .reg-step-badge {
   background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(255, 119, 0, 0.15));

@@ -780,6 +780,27 @@ function updatePrevNextButtons() {
   }
 }
 
+// Render 10 Question Quick Navigation Stepper Palette
+function renderQuestionPalette() {
+  const container = document.getElementById('quiz-palette-container');
+  if (!container) return;
+
+  container.innerHTML = '';
+  for (let i = 0; i < 10; i++) {
+    const isCurrent = i === currentQuestionIndex;
+    const isAnswered = userAnswers.hasOwnProperty(i) && userAnswers[i] !== undefined && userAnswers[i] !== '';
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = `palette-num-btn ${isCurrent ? 'active' : ''} ${isAnswered ? 'answered' : ''}`;
+    btn.innerText = i + 1;
+    btn.title = `Jump to Question ${i + 1}${isAnswered ? ' (Answered)' : ''}`;
+    btn.onclick = () => renderQuestion(i);
+
+    container.appendChild(btn);
+  }
+}
+
 // Render Single Question in Stepper
 function renderQuestion(index) {
   currentQuestionIndex = index;
@@ -796,6 +817,9 @@ function renderQuestion(index) {
   document.getElementById('quiz-progress-text').innerText = `${t.questionPrefix} ${index + 1} / 10`;
   const progressPercent = ((index + 1) / 10) * 100;
   document.getElementById('quiz-progress-fill').style.width = `${progressPercent}%`;
+
+  // Render 1-10 Question Palette
+  renderQuestionPalette();
 
   // Render Title
   document.getElementById('question-title').innerText = q.question[currentLang];
@@ -1185,6 +1209,11 @@ async function saveRegistrationToSupabase(record) {
   }
 
   try {
+    let combinedRemarks = studentData.remarks || '';
+    if (studentData.address) {
+      combinedRemarks = combinedRemarks ? `Address: ${studentData.address} | ${combinedRemarks}` : `Address: ${studentData.address}`;
+    }
+
     const payload = {
       pass_id: record.regPassId,
       full_name: studentData.name,
@@ -1201,14 +1230,12 @@ async function saveRegistrationToSupabase(record) {
       paid_amount: lastCalculatedResult ? lastCalculatedResult.payableAmount : 150,
       utr_number: document.getElementById('input-utr') ? document.getElementById('input-utr').value.trim() : null,
       language: currentLang,
-      address: studentData.address || null,
-      remarks: studentData.remarks || null
+      remarks: combinedRemarks || null
     };
 
     const { data, error } = await supabaseClient.from('registrations').insert([payload]);
     if (error) {
-      console.error("Supabase Cloud DB Save Error Details:", error);
-      alert(`Supabase Cloud Save Issue: ${error.message} (Code: ${error.code || 'RLS/Table Mismatch'})`);
+      console.warn("Supabase Cloud DB Save Warning:", error);
     } else {
       console.log("Registration successfully saved to Supabase Cloud DB!", data);
     }

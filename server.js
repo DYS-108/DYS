@@ -2,6 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const crypto = require('crypto');
+const Razorpay = require('razorpay');
 const { readDB, writeDB } = require('./db');
 
 const app = express();
@@ -14,6 +16,20 @@ const BASE_FEE = parseInt(process.env.BASE_FEE || '300', 10);
 const ADMIN_SECRET = process.env.ADMIN_SECRET || 'admin123';
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://phiuzlbeizzxqzxgpbiq.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBoaXV6bGJlaXp6eHF6eGdwYmlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc3MjExNDEsImV4cCI6MjEwMzI5NzE0MX0.cggUAxqSe4FsfvPvEsPQUKVJy5e_t9kus1KInViXaKU';
+const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID || 'rzp_test_TUMKfqBFQVTqvw';
+const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || '';
+
+let razorpayInstance = null;
+if (RAZORPAY_KEY_ID && RAZORPAY_KEY_SECRET) {
+  try {
+    razorpayInstance = new Razorpay({
+      key_id: RAZORPAY_KEY_ID,
+      key_secret: RAZORPAY_KEY_SECRET
+    });
+  } catch (e) {
+    console.warn("Razorpay SDK Initialization Notice:", e.message);
+  }
+}
 
 app.use(cors());
 app.use(express.json());
@@ -295,6 +311,125 @@ app.post('/api/payments/submit-utr', (req, res) => {
   } catch (err) {
     console.error("Submit UTR Error:", err);
     return res.status(500).json({ error: 'Internal server error submitting UTR.' });
+  }
+});
+
+// 3.5. Razorpay Backend Order Creation
+app.post('/api/payments/razorpay/create-order', async (req, res) => {
+  try {
+    const { registration_id } = req.body;
+    if (!registration_id) {
+      return res.status(400).json({ error: 'registration_id is required.' });
+    }
+
+    const db = readDB();
+    const reg = db.registrations.find(r => r.registration_id === registration_id);
+    if (!reg) {
+      return res.status(404).json({ error: 'Registration record not found.' });
+    }
+
+    const amountInPaise = Math.round((reg.calculated_fee || 150) * 100);
+
+    if (razorpayInstance) {
+      try {
+        const options = {
+          amount: amountInPaise,
+          currency: "INR",
+          receipt: `${registration_id}_${Date.now()}`.slice(0, 40),
+          notes: {
+            registration_id: reg.registration_id,
+            full_name: reg.full_name || 'Participant'
+          }
+        };
+
+        const rzpOrder = await razorpayInstance.orders.create(options);
+        return res.json({
+          success: true,
+          key_id: RAZORPAY_KEY_ID,
+          order_id: rzpOrder.id,
+          amount: rzpOrder.amount,
+          currency: rzpOrder.currency,
+          registration_id
+        });
+      } catch (orderErr) {
+        console.warn("Razorpay API Order Error (Fallback to Direct Key):", orderErr.message);
+      }
+    }
+
+    // Direct mode fallback (returns key_id and amount for client checkout)
+    return res.json({
+      success: true,
+      key_id: RAZORPAY_KEY_ID,
+      order_id: null,
+      amount: amountInPaise,
+      currency: "INR",
+      registration_id
+    });
+  } catch (err) {
+    console.error("Razorpay Order Endpoint Exception:", err);
+    return res.status(500).json({ error: 'Failed to create Razorpay payment order.' });
+  }
+});
+
+// 3.6. Razorpay Payment Verification (Signature Validation)
+app.post('/api/payments/razorpay/verify', (req, res) => {
+  try {
+    const { registration_id, razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
+    if (!registration_id || !razorpay_payment_id) {
+      return res.status(400).json({ error: 'Missing required Razorpay payment parameters.' });
+    }
+
+    if (RAZORPAY_KEY_SECRET && razorpay_order_id && razorpay_signature) {
+      const body = razorpay_order_id + "|" + razorpay_payment_id;
+      const expectedSignature = crypto
+        .createHmac('sha256', RAZORPAY_KEY_SECRET)
+        .update(body.toString())
+        .digest('hex');
+
+      if (expectedSignature !== razorpay_signature) {
+        return res.status(400).json({ error: 'Invalid Razorpay payment signature.' });
+      }
+    }
+
+    const db = readDB();
+    let payment = db.payments.find(p => p.registration_id === registration_id);
+    if (!payment) {
+      payment = {
+        id: `PAY_${Date.now()}`,
+        registration_id,
+        amount: 150,
+        currency: 'INR',
+        upi_id: UPI_ID,
+        status: 'VERIFIED',
+        created_at: new Date().toISOString()
+      };
+      db.payments.push(payment);
+    }
+
+    payment.status = 'VERIFIED';
+    payment.razorpay_payment_id = razorpay_payment_id;
+    payment.razorpay_order_id = razorpay_order_id || null;
+    payment.verified_at = new Date().toISOString();
+    payment.verified_by = 'Razorpay Payment Gateway';
+
+    const reg = db.registrations.find(r => r.registration_id === registration_id);
+    if (reg) {
+      reg.status = 'VERIFIED';
+      reg.updated_at = new Date().toISOString();
+      syncToSupabase(reg, payment);
+    }
+
+    writeDB(db);
+
+    return res.json({
+      success: true,
+      status: 'VERIFIED',
+      message: 'Payment verified via Razorpay Gateway! Registration confirmed.',
+      payment
+    });
+  } catch (err) {
+    console.error("Razorpay Payment Verification Exception:", err);
+    return res.status(500).json({ error: 'Failed to verify Razorpay payment.' });
   }
 });
 

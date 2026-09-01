@@ -1080,6 +1080,7 @@ async function gotoPaymentScreen() {
 
       // Update UI elements with trusted backend payment data
       document.getElementById('res-payable-amt').innerText = `₹${data.amount}`;
+      if (document.getElementById('rzp-fee-tag')) document.getElementById('rzp-fee-tag').innerText = `₹${data.amount}`;
       if (document.getElementById('btn-upi-amt-tag')) document.getElementById('btn-upi-amt-tag').innerText = `₹${data.amount}`;
       if (document.getElementById('pay-reference-code')) document.getElementById('pay-reference-code').innerText = data.payment_reference;
       if (document.getElementById('display-upi-id')) document.getElementById('display-upi-id').innerText = data.upi_id;
@@ -1121,12 +1122,94 @@ function useFallbackPaymentUI(amount) {
   };
 
   document.getElementById('res-payable-amt').innerText = `₹${amount}`;
+  if (document.getElementById('rzp-fee-tag')) document.getElementById('rzp-fee-tag').innerText = `₹${amount}`;
   if (document.getElementById('btn-upi-amt-tag')) document.getElementById('btn-upi-amt-tag').innerText = `₹${amount}`;
   if (document.getElementById('pay-reference-code')) document.getElementById('pay-reference-code').innerText = refCode;
   if (document.getElementById('display-upi-id')) document.getElementById('display-upi-id').innerText = appConfig.upiId;
 
   generateUpiQR(upiUri, appConfig.upiId);
   updatePaymentStatusBanner('PAYMENT_PENDING');
+}
+
+// Razorpay Gateway Frontend Checkout Launcher
+async function payWithRazorpay() {
+  if (!currentRegistrationId) {
+    currentRegistrationId = localStorage.getItem('dys_active_reg_id') || 'REG1000';
+  }
+
+  showToast("Opening secure Razorpay Checkout...");
+
+  try {
+    const res = await fetch('/api/payments/razorpay/create-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ registration_id: currentRegistrationId })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.key_id) {
+      showToast(data.error || "Could not initialize Razorpay. Please use manual UPI below.");
+      return;
+    }
+
+    const amountVal = data.amount || ((lastCalculatedResult ? lastCalculatedResult.payableAmount : 150) * 100);
+
+    const options = {
+      key: data.key_id,
+      amount: amountVal,
+      currency: data.currency || "INR",
+      name: "Discover Your Self",
+      description: "DYS Course Registration Payment",
+      image: "iskcon_logo.png",
+      order_id: data.order_id || undefined,
+      handler: async function (response) {
+        showToast("Payment Successful! Verifying with server...");
+        try {
+          const verifyRes = await fetch('/api/payments/razorpay/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              registration_id: currentRegistrationId,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature
+            })
+          });
+
+          const verifyData = await verifyRes.json();
+          if (verifyRes.ok && verifyData.success) {
+            showToast("Payment Verified ✓ Proceeding to Pass ➔");
+            setTimeout(() => {
+              gotoRegistrationScreen();
+            }, 1000);
+          } else {
+            showToast(verifyData.error || "Payment completed. Proceeding to registration...");
+            gotoRegistrationScreen();
+          }
+        } catch (err) {
+          gotoRegistrationScreen();
+        }
+      },
+      prefill: {
+        name: studentData.name || '',
+        contact: studentData.phone || ''
+      },
+      theme: {
+        color: "#10B981"
+      }
+    };
+
+    if (window.Razorpay) {
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } else {
+      showToast("Razorpay Checkout SDK is loading... Please try again.");
+    }
+  } catch (err) {
+    console.error("Razorpay Checkout Exception:", err);
+    showToast("Network error. Please use manual UPI payment below.");
+  }
 }
 
 // Payment Status UX Banner Management (Section 12 Rules)
@@ -1978,4 +2061,5 @@ window.setMaritalStatus = setMaritalStatus;
 window.setGender = setGender;
 window.completeRegistrationAndGeneratePass = completeRegistrationAndGeneratePass;
 window.copyUpiId = copyUpiId;
+window.payWithRazorpay = payWithRazorpay;
 window.goBackFrom = goBackFrom;

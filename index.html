@@ -188,6 +188,17 @@
           <!-- Dynamically updated: PAYMENT_PENDING, UTR_SUBMITTED, VERIFIED, REJECTED -->
         </div>
 
+        <!-- Primary Razorpay Gateway Instant Payment Button -->
+        <div id="razorpay-container" style="margin-bottom: 16px;">
+          <button id="btn-pay-razorpay" onclick="payWithRazorpay()" type="button" class="btn-primary" style="background: linear-gradient(135deg, #10B981, #059669); padding:16px; font-size:1.1rem; width:100%; font-weight:800; box-shadow:0 8px 25px rgba(16,185,129,0.35);">
+            💳 PAY <span id="rzp-fee-tag">₹150</span> VIA RAZORPAY (GPay / Cards / UPI) ⚡
+          </button>
+        </div>
+
+        <div style="text-align:center; font-size:0.8rem; color:var(--text-muted); margin-bottom:14px; font-weight:600;">
+          — OR PAY MANUALLY VIA UPI ID BELOW —
+        </div>
+
         <!-- UPI ID & Copy Handle Box -->
         <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid var(--gold-accent); border-radius: 14px; padding: 16px; margin-bottom: 20px; text-align: center;">
           <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:6px; font-weight:600;">
@@ -530,7 +541,8 @@
 
   <!-- JavaScript Modules -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script src="qrcode.min.js"></script>
-  <script src="app.js?v=32.0"></script>
+  <script src="app.js?v=33.0"></script>
 </body>
 </html>

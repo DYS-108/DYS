@@ -8,7 +8,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Environment Config (Never exposed directly to frontend)
-const UPI_ID = process.env.UPI_ID || '1979.ravi.agarwal-3@okhdfcbank';
+const UPI_ID = process.env.UPI_ID || '9892961661@okbizaxis';
 const UPI_PAYEE_NAME = process.env.UPI_PAYEE_NAME || 'Discover Your Self';
 const BASE_FEE = parseInt(process.env.BASE_FEE || '300', 10);
 const ADMIN_SECRET = process.env.ADMIN_SECRET || 'admin123';

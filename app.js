@@ -27,7 +27,7 @@ let lastCalculatedResult = null;
 // Config Default Values
 let appConfig = {
   baseFee: 300,
-  upiId: '1979.ravi.agarwal-3@okhdfcbank',
+  upiId: '9892961661@okbizaxis',
   payeeName: 'Discover Your Self',
   supabaseUrl: 'https://phiuzlbeizzxqzxgpbiq.supabase.co',
   supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBoaXV6bGJlaXp6eHF6eGdwYmlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc3MjExNDEsImV4cCI6MjEwMzI5NzE0MX0.cggUAxqSe4FsfvPvEsPQUKVJy5e_t9kus1KInViXaKU',

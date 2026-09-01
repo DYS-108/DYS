@@ -462,16 +462,21 @@ body {
   font-size: 0.78rem;
   font-weight: 800;
   border: 1px solid var(--gold-accent);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .marking-info-tag {
-  font-size: 0.74rem;
+  font-size: 0.68rem;
   color: var(--text-gold);
   background: rgba(255, 255, 255, 0.06);
-  padding: 3px 8px;
+  padding: 3px 7px;
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Question Card */

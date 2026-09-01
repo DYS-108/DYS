@@ -341,7 +341,7 @@ const uiText = {
     nextBtn: "Next Question ➔",
     prevBtn: "⬅ Previous",
     submitBtn: "Submit Test & Review Score 🎯",
-    markingNotice: "Marking Scheme: +2 Correct | -1 Wrong | 0 Unattempted",
+    markingNotice: "Marking: +2 Correct | -1 Wrong | 0 Unattempted",
     congratsTitle: "Test Completed Successfully!",
     scoreTotal: "/ 20 Marks",
     correctCountLabel: "Correct Answers (+2):",
@@ -799,6 +799,30 @@ function updatePrevNextButtons() {
   }
 }
 
+
+// Toggle the 10-question navigation popup
+function toggleQuizPalette() {
+  const popup = document.getElementById('quiz-palette-popup');
+  const backdrop = document.getElementById('quiz-palette-backdrop');
+  if (!popup) return;
+
+  const isHidden = popup.classList.contains('hidden');
+  if (isHidden) {
+    renderQuestionPalette(); // Refresh state before showing
+    popup.classList.remove('hidden');
+    if (backdrop) backdrop.classList.remove('hidden');
+  } else {
+    closeQuizPalette();
+  }
+}
+
+function closeQuizPalette() {
+  const popup = document.getElementById('quiz-palette-popup');
+  const backdrop = document.getElementById('quiz-palette-backdrop');
+  if (popup) popup.classList.add('hidden');
+  if (backdrop) backdrop.classList.add('hidden');
+}
+
 // Render 10 Question Quick Navigation Stepper Palette
 function renderQuestionPalette() {
   const container = document.getElementById('quiz-palette-container');
@@ -814,7 +838,10 @@ function renderQuestionPalette() {
     btn.className = `palette-num-btn ${isCurrent ? 'active' : ''} ${isAnswered ? 'answered' : ''}`;
     btn.innerText = i + 1;
     btn.title = `Jump to Question ${i + 1}${isAnswered ? ' (Answered)' : ''}`;
-    btn.onclick = () => renderQuestion(i);
+    btn.onclick = () => {
+      closeQuizPalette();
+      renderQuestion(i);
+    };
 
     container.appendChild(btn);
   }
@@ -832,13 +859,11 @@ function renderQuestion(index) {
     motiBox.innerText = motivationMessages[currentLang][index];
   }
 
-  // Update Meta Header Progress
-  document.getElementById('quiz-progress-text').innerText = `${t.questionPrefix} ${index + 1}/10`;
+  // Update Meta Header Progress (Q badge with dropdown arrow)
+  const progressEl = document.getElementById('quiz-progress-text');
+  if (progressEl) progressEl.innerText = `${t.questionPrefix} ${index + 1}/10 ▾`;
   const progressPercent = ((index + 1) / 10) * 100;
   document.getElementById('quiz-progress-fill').style.width = `${progressPercent}%`;
-
-  // Render 1-10 Question Palette
-  renderQuestionPalette();
 
   // Render Title
   document.getElementById('question-title').innerText = q.question[currentLang];

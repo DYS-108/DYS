@@ -39,15 +39,29 @@
         Taking your first step towards self-discovery! ✨
       </div>
 
-      <div class="quiz-meta-row" style="margin-top: 6px;">
-        <span id="quiz-progress-text" class="question-badge" style="cursor:pointer;" title="Tap any question number below to jump">Q 1/10</span>
-        <span id="txt-marking-notice" class="marking-info-tag">Marking Scheme: +2 Correct | -1 Wrong | 0 Unattempted</span>
+      <div class="quiz-meta-row" style="margin-top: 6px; position: relative;">
+        <!-- Tap Q badge to open the 10-question jump palette popup -->
+        <span id="quiz-progress-text" class="question-badge" onclick="toggleQuizPalette()" title="Tap to navigate questions">Q 1/10 ▾</span>
+        <span id="txt-marking-notice" class="marking-info-tag">Marking: +2 Correct | -1 Wrong | 0 Unattempted</span>
+
+        <!-- 10 Question Quick Navigation Popup (hidden by default) -->
+        <div id="quiz-palette-popup" class="quiz-palette-popup hidden">
+          <div class="quiz-palette-popup-header">
+            <span>Jump to Question</span>
+            <button onclick="closeQuizPalette()" class="palette-close-btn" type="button">✕</button>
+          </div>
+          <div id="quiz-palette-container" class="quiz-palette-grid">
+            <!-- Dynamically rendered 1 to 10 question buttons -->
+          </div>
+          <div class="quiz-palette-legend">
+            <span class="legend-dot answered-dot"></span> Answered
+            <span class="legend-dot unanswered-dot" style="margin-left:10px;"></span> Unanswered
+          </div>
+        </div>
       </div>
 
-      <!-- 10 Question Quick Navigation Stepper -->
-      <div id="quiz-palette-container" class="quiz-palette-grid">
-        <!-- Dynamically rendered 1 to 10 question buttons -->
-      </div>
+      <!-- Backdrop to close palette on outside tap -->
+      <div id="quiz-palette-backdrop" class="quiz-palette-backdrop hidden" onclick="closeQuizPalette()"></div>
 
       <div class="quiz-progress-bar">
         <div id="quiz-progress-fill" class="quiz-progress-fill"></div>

@@ -1108,7 +1108,7 @@ async function gotoPaymentScreen() {
 function useFallbackPaymentUI(amount) {
   const refCode = `${currentRegistrationId || 'REG1000'}-PAY-001`;
   const encPayee = encodeURIComponent(appConfig.payeeName);
-  const upiUri = `upi://pay?pa=${appConfig.upiId}&pn=${encPayee}&am=${amount}&cu=INR&tn=${refCode}`;
+  const upiUri = `upi://pay?pa=${appConfig.upiId}&pn=${encPayee}&am=${amount}&cu=INR`;
 
   currentPaymentData = {
     registration_id: currentRegistrationId,

@@ -197,7 +197,7 @@ app.post('/api/payments/create', (req, res) => {
     const amount = reg.calculated_fee;
 
     const encodedPayeeName = encodeURIComponent(UPI_PAYEE_NAME);
-    const upi_uri = `upi://pay?pa=${UPI_ID}&pn=${encodedPayeeName}&am=${amount}&cu=INR&tn=${payment_reference}`;
+    const upi_uri = `upi://pay?pa=${UPI_ID}&pn=${encodedPayeeName}&am=${amount}&cu=INR`;
 
     const newPayment = {
       id: `PAY_${Date.now()}_${Math.floor(Math.random() * 1000)}`,

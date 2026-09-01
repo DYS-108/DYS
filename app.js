@@ -341,7 +341,7 @@ const uiText = {
     nextBtn: "Next Question ➔",
     prevBtn: "⬅ Previous",
     submitBtn: "Submit Test & Review Score 🎯",
-    markingNotice: "Marking Scheme: +2 for Correct | -1 for Wrong | 0 for Unattempted",
+    markingNotice: "+2 / -1 Marking",
     congratsTitle: "Test Completed Successfully!",
     scoreTotal: "/ 20 Marks",
     correctCountLabel: "Correct Answers (+2):",
@@ -353,7 +353,7 @@ const uiText = {
     yourAnsText: "Your Answer:",
     correctAnsText: "Correct Answer:",
     unansweredText: "⚪ Unanswered",
-    questionPrefix: "Question",
+    questionPrefix: "Q",
     courseHighlightsTitle: "🌟 Why Join Discover Your Self Course?",
     counselingTag: "🤝 Personal 1-on-1 Counseling",
     friendsTag: "👥 Make Genuine Spiritual Friends",
@@ -434,7 +434,7 @@ const uiText = {
     nextBtn: "अगला प्रश्न ➔",
     prevBtn: "⬅ पिछला",
     submitBtn: "टेस्ट जमा करें और स्कोर देखें 🎯",
-    markingNotice: "अंकन नियम: सही पर +2 | गलत पर -1 | अनउत्तरित पर 0",
+    markingNotice: "+2 / -1 अंकन",
     congratsTitle: "परीक्षण सफलतापूर्वक पूर्ण!",
     scoreTotal: "/ 20 अंक",
     correctCountLabel: "सही उत्तर (+2):",
@@ -446,7 +446,7 @@ const uiText = {
     yourAnsText: "आपका उत्तर:",
     correctAnsText: "सही उत्तर:",
     unansweredText: "⚪ कोई उत्तर नहीं दिया",
-    questionPrefix: "प्रश्न",
+    questionPrefix: "प्र",
     courseHighlightsTitle: "🌟 डिस्कवर योर सेल्फ कोर्स में क्यों शामिल हों?",
     counselingTag: "🤝 व्यक्तिगत 1-ऑन-1 परामर्श",
     friendsTag: "👥 सच्चे आध्यात्मिक मित्र बनाएं",
@@ -814,7 +814,7 @@ function renderQuestion(index) {
   }
 
   // Update Meta Header Progress
-  document.getElementById('quiz-progress-text').innerText = `${t.questionPrefix} ${index + 1} / 10`;
+  document.getElementById('quiz-progress-text').innerText = `${t.questionPrefix} ${index + 1}/10`;
   const progressPercent = ((index + 1) / 10) * 100;
   document.getElementById('quiz-progress-fill').style.width = `${progressPercent}%`;
 

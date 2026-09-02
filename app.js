@@ -1235,9 +1235,6 @@ async function gotoPaymentScreen() {
   if (document.getElementById('pay-summary-score')) {
     document.getElementById('pay-summary-score').innerText = `${netScore} / 20 Marks`;
   }
-  if (document.getElementById('pay-summary-scholarship')) {
-    document.getElementById('pay-summary-scholarship').innerText = discountPct > 0 ? `${discountPct}% Scholarship Unlocked` : 'Standard Course Fee (No Scholarship)';
-  }
   if (document.getElementById('pay-reference-code')) {
     document.getElementById('pay-reference-code').innerText = `${currentRegistrationId}-PAY-001`;
   }

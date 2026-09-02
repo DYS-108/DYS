@@ -1686,10 +1686,10 @@ function renderSingleAnswerReview(idx) {
   }
   navPillsHTML += '</div>';
 
-  const prevBtnText = currentLang === 'en' ? '⬅ Previous' : '⬅ पिछला';
+  const prevBtnText = currentLang === 'en' ? '⬅ Prev' : '⬅ पिछला';
   const nextBtnText = idxToRender === 9
-    ? (currentLang === 'en' ? 'Hide Explanations ⬆' : 'व्याख्याएं छिपाएं ⬆')
-    : (currentLang === 'en' ? 'Next Explanation ➔' : 'अगली व्याख्या ➔');
+    ? (currentLang === 'en' ? 'Hide ⬆' : 'छिपाएं ⬆')
+    : (currentLang === 'en' ? 'Next ➔' : 'आगे ➔');
 
   const qCard = document.createElement('div');
   qCard.className = `review-card ${isCorrect ? 'review-correct' : (userAnsKey ? 'review-wrong' : '')}`;
@@ -1723,11 +1723,11 @@ function renderSingleAnswerReview(idx) {
       <div class="explanation-text">${q.explanation[currentLang]}</div>
     </div>
 
-    <div class="review-nav-controls" style="display:flex; justify-content:space-between; gap:10px; margin-top:16px;">
-      <button type="button" class="btn-secondary" onclick="renderSingleAnswerReview(${idxToRender - 1})" style="visibility:${idxToRender === 0 ? 'hidden' : 'visible'}; flex:1;">
+    <div class="review-nav-controls" style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top:12px;">
+      <button type="button" class="btn-secondary" onclick="renderSingleAnswerReview(${idxToRender - 1})" style="visibility:${idxToRender === 0 ? 'hidden' : 'visible'}; width:auto; padding:6px 14px; font-size:0.82rem; border-color:rgba(255,255,255,0.2);">
         ${prevBtnText}
       </button>
-      <button type="button" class="btn-primary" onclick="${idxToRender === 9 ? 'toggleAnswerReview()' : `renderSingleAnswerReview(${idxToRender + 1})`}" style="flex:1; margin-top:0;">
+      <button type="button" class="btn-primary" onclick="${idxToRender === 9 ? 'toggleAnswerReview()' : `renderSingleAnswerReview(${idxToRender + 1})`}" style="width:auto; padding:8px 18px; font-size:0.85rem; margin-top:0;">
         ${nextBtnText}
       </button>
     </div>

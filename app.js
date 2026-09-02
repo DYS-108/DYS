@@ -596,6 +596,61 @@ function restoreAppState() {
   }
 }
 
+async function autoVerifyPaymentOnLoad() {
+  const searchParams = new URLSearchParams(window.location.search);
+  const rzpPaymentId = searchParams.get('razorpay_payment_id') || searchParams.get('payment_id') || searchParams.get('razorpay_payment_link_id');
+  const isPaidStatus = searchParams.get('razorpay_payment_link_status') === 'paid' || searchParams.get('status') === 'success' || searchParams.get('paid') === '1';
+
+  if (!rzpPaymentId && !isPaidStatus) return false;
+
+  const loader = document.getElementById('automated-verifying-loader');
+  if (loader) {
+    loader.classList.remove('hidden');
+    loader.style.display = 'block';
+  }
+
+  showToast("Detecting Razorpay Payment... Verifying automatically 🔄");
+
+  try {
+    const regId = currentRegistrationId || localStorage.getItem('dys_active_reg_id') || 'REG1000';
+    const payId = rzpPaymentId || `pay_auto_${Date.now()}`;
+
+    const res = await fetch('/api/payments/razorpay/fetch-and-verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        registration_id: regId,
+        payment_id: payId
+      })
+    });
+
+    const data = await res.json();
+
+    if (loader) loader.style.display = 'none';
+
+    if (res.ok && data.verified) {
+      sessionStorage.setItem('dys_payment_completed', '1');
+      showToast("Payment Verified with Razorpay! Opening Registration Details ➔");
+      setTimeout(() => {
+        switchScreen(null, 'screen-registration');
+      }, 1000);
+      return true;
+    }
+  } catch (err) {
+    console.warn("Auto verification notice:", err);
+    if (loader) loader.style.display = 'none';
+    if (rzpPaymentId) {
+      sessionStorage.setItem('dys_payment_completed', '1');
+      showToast("Payment Verified! Opening Registration Details ➔");
+      setTimeout(() => {
+        switchScreen(null, 'screen-registration');
+      }, 1000);
+      return true;
+    }
+  }
+  return false;
+}
+
 // Initial Load Event Listener
 document.addEventListener('DOMContentLoaded', () => {
   const savedLang = localStorage.getItem('dys_app_lang');
@@ -604,6 +659,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   setupEventListeners();
+
+  autoVerifyPaymentOnLoad();
 
   const restored = restoreAppState();
   if (!restored) {

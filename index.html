@@ -188,10 +188,33 @@
           <!-- Dynamically injected Razorpay script for candidate score tier -->
         </div>
 
+        <div style="text-align:center; margin: 16px 0 12px; font-size:0.82rem; color:var(--text-muted); font-weight:600;">
+          — OR PAY AT VENUE REGISTRATION DESK —
+        </div>
+
+        <!-- Cash Payment Mode Collapsible Box -->
+        <div id="cash-payment-container" style="background: rgba(245, 158, 11, 0.08); border: 1px dashed rgba(245, 158, 11, 0.3); border-radius: 14px; padding: 14px 16px; margin-bottom: 16px; text-align: center;">
+          <button onclick="toggleCashPinInput()" type="button" class="btn-secondary" style="width:100%; border-color:var(--gold-accent); color:var(--text-gold); font-weight:700; padding:10px; font-size:0.88rem;">
+            💵 Pay via Cash (Admin Passcode Verification)
+          </button>
+
+          <div id="cash-pin-wrapper" class="hidden" style="margin-top: 12px; text-align: left;">
+            <label for="input-admin-cash-pin" style="font-size:0.82rem; color:var(--text-muted); font-weight:600; display:block; margin-bottom:6px;">
+              Admin Verification Passcode * (Desk Admin Only):
+            </label>
+            <div style="display:flex; gap:8px;">
+              <input type="password" id="input-admin-cash-pin" class="form-input" placeholder="Enter Admin Pin" style="font-family:monospace; letter-spacing:2px; flex:1;" maxlength="20">
+              <button onclick="verifyCashPaymentWithPin()" type="button" class="btn-primary" style="width:auto; padding:10px 18px; font-weight:800; font-size:0.88rem; background:linear-gradient(135deg, #F59E0B, #D97706); color:#000;">
+                VERIFY CASH 🔑
+              </button>
+            </div>
+          </div>
+        </div>
+
         <!-- Payment Verification & Proceed Gate (HIDDEN until payment is verified/successful) -->
         <div id="proceed-registration-container" class="hidden" style="margin-top: 24px; border-top: 1px dashed rgba(255,255,255,0.15); padding-top: 16px;">
           <div style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10B981; border-radius: 12px; padding: 12px 16px; margin-bottom: 16px; text-align: center;">
-            <p style="font-size:0.95rem; color:#34D399; font-weight:800; margin:0;">🎉 Payment Verified Successfully with Razorpay! ✓</p>
+            <p id="verified-success-msg" style="font-size:0.95rem; color:#34D399; font-weight:800; margin:0;">🎉 Payment Verified Successfully! ✓</p>
           </div>
           <button onclick="gotoRegistrationScreen()" type="button" class="btn-primary" style="background: linear-gradient(135deg, #10B981, #059669); color:#FFF; font-weight:800; padding:16px; font-size:1.05rem; box-shadow:0 8px 25px rgba(16,185,129,0.35);">
             PROCEED TO REGISTRATION DETAILS ➔

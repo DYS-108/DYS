@@ -68,24 +68,38 @@ function calculateTrustedFee(answers) {
   const finalPercent = Math.max(0, Math.round(rawPercent));
 
   let discountPercentage = 0;
-  if (finalPercent >= 95) discountPercentage = 50;
-  else if (finalPercent >= 90) discountPercentage = 45;
-  else if (finalPercent >= 85) discountPercentage = 40;
-  else if (finalPercent >= 80) discountPercentage = 35;
-  else if (finalPercent >= 75) discountPercentage = 30;
-  else if (finalPercent >= 70) discountPercentage = 25;
-  else if (finalPercent >= 65) discountPercentage = 20;
-  else if (finalPercent >= 60) discountPercentage = 15;
+  let buttonId = 'pl_TX5IQ5tIp0H5ZV';
 
-  const discountAmount = Math.round((BASE_FEE * discountPercentage) / 100);
-  // For live testing, set payableAmount to ₹1 (or Math.max(1, BASE_FEE - discountAmount))
-  const payableAmount = 1;
+  if (finalPercent >= 90) {
+    discountPercentage = 50;
+    buttonId = 'pl_TWpY9yfmv4wtpC';
+  } else if (finalPercent >= 80) {
+    discountPercentage = 40;
+    buttonId = 'pl_TWq0S9gDYDaxBa';
+  } else if (finalPercent >= 70) {
+    discountPercentage = 30;
+    buttonId = 'pl_TX5FhAUVPOtHZj';
+  } else if (finalPercent >= 60) {
+    discountPercentage = 20;
+    buttonId = 'pl_TX5GaOEkFfaQ36';
+  } else if (finalPercent >= 50) {
+    discountPercentage = 10;
+    buttonId = 'pl_TX5HLh5S0cjrrE';
+  } else {
+    discountPercentage = 0;
+    buttonId = 'pl_TX5IQ5tIp0H5ZV';
+  }
+
+  const baseFee = 300;
+  const discountAmount = Math.round((baseFee * discountPercentage) / 100);
+  const payableAmount = baseFee - discountAmount;
 
   return {
     netScore,
     finalPercent,
     discountPercentage,
-    payableAmount
+    payableAmount,
+    buttonId
   };
 }
 

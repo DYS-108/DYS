@@ -148,7 +148,7 @@
       </div>
     </main>
 
-    <!-- SCREEN 4: Payment Section (Razorpay Hosted Payment Button) -->
+    <!-- SCREEN 4: Payment Section (Razorpay Hosted Payment Button Tiers) -->
     <main id="screen-payment" class="view-screen hidden">
       <!-- Back Navigation Row -->
       <div class="screen-nav-bar" style="display:flex; align-items:center; justify-content:flex-start; margin-bottom:8px;">
@@ -159,20 +159,49 @@
 
       <div id="payment-step-box" class="payment-section" style="margin-top:0; text-align:center;">
         <h3 id="lbl-pay-title" class="payment-title">Course Registration Payment</h3>
-        <p id="lbl-pay-sub" class="payment-sub" style="margin-bottom:20px;">Complete your registration payment via Razorpay</p>
+        <p id="lbl-pay-sub" class="payment-sub" style="margin-bottom:16px;">Pay your registration fee via Razorpay to unlock candidate registration</p>
 
-        <!-- Razorpay Official Hosted Payment Button -->
-        <div id="razorpay-hosted-button-wrapper" style="display:flex; justify-content:center; align-items:center; margin: 20px 0 24px; min-height:60px;">
-          <form>
-            <script src="https://checkout.razorpay.com/v1/payment-button.js" data-payment_button_id="pl_TWq0S9gDYDaxBa" async> </script>
-          </form>
+        <!-- Course & Quiz Summary Card -->
+        <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; padding: 14px; margin-bottom: 16px; text-align: left;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <span style="font-size:0.83rem; color:var(--text-muted);">Quiz Score:</span>
+            <span id="pay-summary-score" style="font-weight:800; color:var(--text-gold);">20 / 20 Marks</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <span style="font-size:0.83rem; color:var(--text-muted);">Scholarship Category:</span>
+            <span id="pay-summary-scholarship" style="font-weight:700; color:#34D399;">50% Scholarship Unlocked</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.83rem; color:var(--text-muted);">Payment Reference:</span>
+            <span id="pay-reference-code" style="font-family:monospace; font-weight:800; color:var(--text-gold); font-size:0.85rem;">REG1024-PAY-001</span>
+          </div>
         </div>
 
-        <!-- Next / Proceed to Registration Details Button -->
-        <div style="margin-top: 24px; border-top: 1px dashed rgba(255,255,255,0.15); padding-top: 16px;">
-          <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:12px;">Completed your payment on the Razorpay button above?</p>
-          <button onclick="gotoRegistrationScreen()" type="button" class="btn-primary" style="background: linear-gradient(135deg, #F59E0B, #D97706); color:#000; font-weight:800;">
+        <!-- Bold Amount to be Paid Box -->
+        <div class="score-display-box" style="margin: 10px 0 20px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.1)); border: 1px solid #10B981; border-radius: 16px; padding: 18px;">
+          <div id="lbl-fee-display-tag" style="font-size:0.95rem; color:var(--text-muted); font-weight:600; margin-bottom:4px;">Amount to be Paid:</div>
+          <div id="res-payable-amt" class="score-num" style="font-size:3.2rem; color:#34D399; font-weight:900; line-height:1;">₹150</div>
+        </div>
+
+        <!-- Razorpay Official Hosted Payment Button Container (Rendered dynamically by tier) -->
+        <div id="razorpay-hosted-button-wrapper" style="display:flex; justify-content:center; align-items:center; margin: 20px 0 20px; min-height:60px;">
+          <!-- Dynamically injected Razorpay script for candidate score tier -->
+        </div>
+
+        <!-- Payment Verification & Proceed Gate (HIDDEN until payment is verified/successful) -->
+        <div id="proceed-registration-container" class="hidden" style="margin-top: 24px; border-top: 1px dashed rgba(255,255,255,0.15); padding-top: 16px;">
+          <div style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10B981; border-radius: 12px; padding: 12px 16px; margin-bottom: 16px; text-align: center;">
+            <p style="font-size:0.95rem; color:#34D399; font-weight:800; margin:0;">🎉 Payment Verified Successfully! ✓</p>
+          </div>
+          <button onclick="gotoRegistrationScreen()" type="button" class="btn-primary" style="background: linear-gradient(135deg, #10B981, #059669); color:#FFF; font-weight:800; padding:16px; font-size:1.05rem; box-shadow:0 8px 25px rgba(16,185,129,0.35);">
             PROCEED TO REGISTRATION DETAILS ➔
+          </button>
+        </div>
+
+        <!-- Secondary Payment Unlock Check (Visible if payment completed) -->
+        <div id="check-payment-status-wrapper" style="margin-top: 16px;">
+          <button onclick="unlockRegistrationIfPaid()" type="button" class="btn-secondary" style="font-size:0.82rem; border-color:rgba(255,255,255,0.18); padding:8px 16px;">
+            Already paid on Razorpay? Click here to unlock registration 🔓
           </button>
         </div>
       </div>

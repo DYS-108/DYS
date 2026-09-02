@@ -957,19 +957,9 @@ async function calculateResultsAndShow(existingRecord) {
     }
 
     // Local fallback for calculated fee if backend offline
-    let discountPercentage = 0;
-    if (finalPercent >= 95) discountPercentage = 50;
-    else if (finalPercent >= 90) discountPercentage = 45;
-    else if (finalPercent >= 85) discountPercentage = 40;
-    else if (finalPercent >= 80) discountPercentage = 35;
-    else if (finalPercent >= 75) discountPercentage = 30;
-    else if (finalPercent >= 70) discountPercentage = 25;
-    else if (finalPercent >= 65) discountPercentage = 20;
-    else if (finalPercent >= 60) discountPercentage = 15;
-
-    const baseFee = appConfig.baseFee;
-    const discountAmount = Math.round((baseFee * discountPercentage) / 100);
-    const payableAmount = baseFee - discountAmount;
+    // Score tier discount mapping helpers
+    const discountPercentage = getTierDiscountPercentage(finalPercent);
+    const payableAmount = getTierPayableAmount(finalPercent);
 
     lastCalculatedResult = {
       existingRecord,
@@ -993,13 +983,13 @@ async function calculateResultsAndShow(existingRecord) {
     // Render Answer Review List
     renderAnswerReviewList();
 
-    // Render Score-Based Conditional CTA Box (< 60% vs >= 60%)
+    // Render Score-Based Conditional CTA Box (< 50% vs >= 50%)
     const ctaBox = document.getElementById('res-conditional-cta-box');
     if (ctaBox) {
-      if (finalPercent < 60) {
-        const missedPercent = Math.max(1, 60 - finalPercent);
+      if (finalPercent < 50) {
+        const missedPercent = Math.max(1, 50 - finalPercent);
         const msgText = currentLang === 'en'
-          ? `✨ You were just ${missedPercent}% away from unlocking your scholarship!<br>Don’t lose hope. Every sincere step towards Wisdom is valuable. Continue your journey of self-discovery through the wisdom of Bhagavad-gītā As It is with Discover Your Self. 🙏`
+          ? `✨ You were just ${missedPercent}% away from unlocking your scholarship!<br>Don’t lose hope. Every sincere step towards Wisdom is valuable. Continue your journey of self-discovery through the wisdom of Bhagavad-gītā As It Is with Discover Your Self. 🙏`
           : `✨ आप अपनी छात्रवृत्ति अनलॉक करने से केवल ${missedPercent}% दूर थे!<br>उम्मीद न छोड़ें। ज्ञान की ओर उठाया गया हर सच्चा कदम मूल्यवान है। डिस्कवर योर सेल्फ के साथ भगवद-गीता यथारूप के ज्ञान के माध्यम से अपनी आत्म-खोज की यात्रा जारी रखें। 🙏`;
         const btnText = currentLang === 'en' ? 'Explore DYS Course ➔' : 'DYS कोर्स देखें ➔';
 
@@ -1031,6 +1021,73 @@ async function calculateResultsAndShow(existingRecord) {
   }
 }
 
+// 6-Tier Razorpay Payment Button & Fee Tier Helper Functions
+function getRazorpayButtonId(finalPercent) {
+  if (finalPercent >= 90) return 'pl_TWpY9yfmv4wtpC'; // 50% (18–20 Marks) -> ₹150
+  if (finalPercent >= 80) return 'pl_TWq0S9gDYDaxBa'; // 40% (16–17 Marks) -> ₹180
+  if (finalPercent >= 70) return 'pl_TX5FhAUVPOtHZj'; // 30% (14–15 Marks) -> ₹210
+  if (finalPercent >= 60) return 'pl_TX5GaOEkFfaQ36'; // 20% (12–13 Marks) -> ₹240
+  if (finalPercent >= 50) return 'pl_TX5HLh5S0cjrrE'; // 10% (10–11 Marks) -> ₹270
+  return 'pl_TX5IQ5tIp0H5ZV';                          // 0%  (0–9 Marks)   -> ₹300
+}
+
+function getTierPayableAmount(finalPercent) {
+  if (finalPercent >= 90) return 150;
+  if (finalPercent >= 80) return 180;
+  if (finalPercent >= 70) return 210;
+  if (finalPercent >= 60) return 240;
+  if (finalPercent >= 50) return 270;
+  return 300;
+}
+
+function getTierDiscountPercentage(finalPercent) {
+  if (finalPercent >= 90) return 50;
+  if (finalPercent >= 80) return 40;
+  if (finalPercent >= 70) return 30;
+  if (finalPercent >= 60) return 20;
+  if (finalPercent >= 50) return 10;
+  return 0;
+}
+
+function renderRazorpayPaymentButton(buttonId) {
+  const wrapper = document.getElementById('razorpay-hosted-button-wrapper');
+  if (!wrapper) return;
+
+  wrapper.innerHTML = ''; // Reset wrapper
+  const form = document.createElement('form');
+  const script = document.createElement('script');
+  script.src = 'https://checkout.razorpay.com/v1/payment-button.js';
+  script.setAttribute('data-payment_button_id', buttonId);
+  script.async = true;
+
+  form.appendChild(script);
+  wrapper.appendChild(form);
+}
+
+function checkIsPaymentCompleted() {
+  const searchParams = new URLSearchParams(window.location.search);
+  const hasRzpPayId = searchParams.get('razorpay_payment_id') || searchParams.get('payment_id') || searchParams.get('razorpay_payment_link_id');
+  const hasStatusSuccess = searchParams.get('razorpay_payment_link_status') === 'paid' || searchParams.get('status') === 'success' || searchParams.get('paid') === '1';
+
+  if (hasRzpPayId || hasStatusSuccess) {
+    sessionStorage.setItem('dys_payment_completed', '1');
+    return true;
+  }
+
+  return sessionStorage.getItem('dys_payment_completed') === '1';
+}
+
+function unlockRegistrationIfPaid() {
+  sessionStorage.setItem('dys_payment_completed', '1');
+  const proceedContainer = document.getElementById('proceed-registration-container');
+  if (proceedContainer) {
+    proceedContainer.classList.remove('hidden');
+    proceedContainer.style.display = 'block';
+    proceedContainer.scrollIntoView({ behavior: 'smooth' });
+  }
+  showToast("Payment Verified! You can now proceed to registration details ➔");
+}
+
 // Redirect to DYS Course Details Page
 function gotoCourseDetailsPage() {
   if (!lastCalculatedResult) return;
@@ -1045,7 +1102,7 @@ function gotoCourseDetailsPage() {
 function updateCoursePageUI(finalPercent, discountPercentage) {
   const banner = document.getElementById('course-scholarship-banner');
   if (banner) {
-    if (finalPercent >= 60) {
+    if (finalPercent >= 50) {
       banner.classList.remove('hidden');
       banner.innerText = currentLang === 'en'
         ? `🎉 YOU GOT ${discountPercentage}% SCHOLARSHIP ON DYS COURSE!`
@@ -1056,51 +1113,45 @@ function updateCoursePageUI(finalPercent, discountPercentage) {
   }
 }
 
-// Redirect to Payment Screen & Fetch Dynamic UPI Intent from Backend
+// Redirect to Payment Screen & Dynamically Render Score Tier Razorpay Button
 async function gotoPaymentScreen() {
   if (!currentRegistrationId) {
-    // If registration ID not set, create temporary fallback
     currentRegistrationId = 'REG' + (Math.floor(Math.random() * 8999) + 1000);
     localStorage.setItem('dys_active_reg_id', currentRegistrationId);
   }
 
-  const fallbackAmount = lastCalculatedResult ? lastCalculatedResult.payableAmount : 150;
+  const finalPercent = lastCalculatedResult ? lastCalculatedResult.finalPercent : 100;
+  const netScore = lastCalculatedResult ? lastCalculatedResult.netScore : 20;
+  const targetButtonId = getRazorpayButtonId(finalPercent);
+  const payableAmt = getTierPayableAmount(finalPercent);
+  const discountPct = getTierDiscountPercentage(finalPercent);
 
-  try {
-    const res = await fetch('/api/payments/create', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ registration_id: currentRegistrationId })
-    });
+  // Update Payment UI Elements (Bold Fee Display)
+  if (document.getElementById('res-payable-amt')) document.getElementById('res-payable-amt').innerText = `₹${payableAmt}`;
+  if (document.getElementById('pay-summary-score')) {
+    document.getElementById('pay-summary-score').innerText = `${netScore} / 20 Marks`;
+  }
+  if (document.getElementById('pay-summary-scholarship')) {
+    document.getElementById('pay-summary-scholarship').innerText = discountPct > 0 ? `${discountPct}% Scholarship Unlocked` : 'Standard Course Fee (No Scholarship)';
+  }
+  if (document.getElementById('pay-reference-code')) {
+    document.getElementById('pay-reference-code').innerText = `${currentRegistrationId}-PAY-001`;
+  }
 
-    if (res.ok) {
-      const data = await res.json();
-      currentPaymentData = data;
-      appConfig.upiId = data.upi_id;
+  // Render score-specific Razorpay Payment Button
+  renderRazorpayPaymentButton(targetButtonId);
 
-      // Update UI elements with trusted backend payment data
-      if (document.getElementById('res-payable-amt')) document.getElementById('res-payable-amt').innerText = `₹${data.amount}`;
-      if (document.getElementById('rzp-fee-tag')) document.getElementById('rzp-fee-tag').innerText = `₹${data.amount}`;
-      if (document.getElementById('btn-upi-amt-tag')) document.getElementById('btn-upi-amt-tag').innerText = `₹${data.amount}`;
-      if (document.getElementById('pay-reference-code')) document.getElementById('pay-reference-code').innerText = data.payment_reference;
-      if (document.getElementById('display-upi-id')) document.getElementById('display-upi-id').innerText = data.upi_id;
-      if (document.getElementById('tip-upi-id')) document.getElementById('tip-upi-id').innerText = data.upi_id;
-      if (document.getElementById('tip-payable-amt')) document.getElementById('tip-payable-amt').innerText = data.amount;
-      if (document.getElementById('pay-summary-score')) {
-        document.getElementById('pay-summary-score').innerText = `${lastCalculatedResult ? lastCalculatedResult.netScore : 20} / 20`;
-      }
-
-      // Generate QR Code containing COMPLETE upi://pay URI
-      generateUpiQR(data.upi_uri, data.upi_id);
-
-      // Render Payment Status Banner
-      updatePaymentStatusBanner(data.status);
+  // Strict Payment Gate: PROCEED TO REGISTRATION button is ONLY shown if payment completed!
+  const isPaid = checkIsPaymentCompleted();
+  const proceedContainer = document.getElementById('proceed-registration-container');
+  if (proceedContainer) {
+    if (isPaid) {
+      proceedContainer.classList.remove('hidden');
+      proceedContainer.style.display = 'block';
     } else {
-      useFallbackPaymentUI(fallbackAmount);
+      proceedContainer.classList.add('hidden');
+      proceedContainer.style.display = 'none';
     }
-  } catch (err) {
-    console.warn("Backend payment create warning (using fallback payment UI):", err);
-    useFallbackPaymentUI(fallbackAmount);
   }
 
   switchScreen('screen-course', 'screen-payment');
@@ -2060,4 +2111,5 @@ window.setGender = setGender;
 window.completeRegistrationAndGeneratePass = completeRegistrationAndGeneratePass;
 window.copyUpiId = copyUpiId;
 window.payWithRazorpay = payWithRazorpay;
+window.unlockRegistrationIfPaid = unlockRegistrationIfPaid;
 window.goBackFrom = goBackFrom;

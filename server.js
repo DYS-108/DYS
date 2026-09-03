@@ -648,6 +648,12 @@ async function syncToSupabase(reg, payment) {
   if (!SUPABASE_URL || !SUPABASE_KEY || SUPABASE_URL === 'YOUR_SUPABASE_PROJECT_URL') return;
   try {
     const cleanUrl = SUPABASE_URL.trim().replace(/\/rest\/v1\/?$/i, '').replace(/\/+$/, '') + '/rest/v1/registrations';
+    const modeStr = payment ? (payment.method || 'RAZORPAY').toUpperCase() : 'ONLINE';
+    let remarkText = reg.remarks || '';
+    if (!remarkText.includes('Mode:')) {
+      remarkText = `Mode: ${modeStr}${remarkText ? ' | ' + remarkText : ''}`;
+    }
+
     const payload = {
       pass_id: reg.registration_id,
       full_name: reg.full_name || 'Participant',
@@ -664,7 +670,7 @@ async function syncToSupabase(reg, payment) {
       paid_amount: (payment && payment.amount) || reg.calculated_fee || 150,
       utr_number: (payment && payment.utr) || null,
       language: reg.language || 'en',
-      remarks: reg.remarks || null
+      remarks: remarkText || null
     };
 
     // 1. Sync to Master registrations table

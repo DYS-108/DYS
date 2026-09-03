@@ -1668,8 +1668,12 @@ async function saveRegistrationToSupabase(record) {
 
   try {
     let combinedRemarks = studentData.remarks || '';
+    const payMethod = (currentPaymentData && currentPaymentData.method) ? currentPaymentData.method.toUpperCase() : 'ONLINE/RAZORPAY';
+
     if (studentData.address) {
-      combinedRemarks = combinedRemarks ? `Address: ${studentData.address} | ${combinedRemarks}` : `Address: ${studentData.address}`;
+      combinedRemarks = `Address: ${studentData.address} | Mode: ${payMethod}${combinedRemarks ? ' | ' + combinedRemarks : ''}`;
+    } else {
+      combinedRemarks = `Mode: ${payMethod}${combinedRemarks ? ' | ' + combinedRemarks : ''}`;
     }
 
     const utrVal = (currentPaymentData && currentPaymentData.utr) || (document.getElementById('input-utr') ? document.getElementById('input-utr').value.trim() : null);

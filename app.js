@@ -1544,7 +1544,8 @@ function getNextPassId() {
   let counter = parseInt(localStorage.getItem('dys_pass_counter') || '2000');
   counter++;
   localStorage.setItem('dys_pass_counter', counter.toString());
-  return 'ISKCON-REG-' + counter;
+  const randomSuffix = Math.floor(100 + Math.random() * 900);
+  return 'ISKCON-REG-' + counter + '-' + randomSuffix;
 }
 
 // Complete Registration & Generate Pass Ticket

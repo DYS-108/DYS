@@ -1693,10 +1693,7 @@ async function saveRegistrationToSupabase(record) {
       remarks: combinedRemarks || null
     };
 
-    // Master Table Save
-    await supabaseClient.from('registrations').insert([payload]);
-
-    // Automatic Routing to 4 Separate Category Databases based on Marital Status & Gender
+    // Automatic Routing ONLY to 4 Separate Category Databases based on Marital Status & Gender
     let categoryTable = 'registrations_student_male';
     const mStatus = (studentData.maritalStatus || 'single').toLowerCase();
     const gGender = (studentData.gender || 'male').toLowerCase();

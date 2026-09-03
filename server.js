@@ -667,19 +667,7 @@ async function syncToSupabase(reg, payment) {
       remarks: reg.remarks || null
     };
 
-    // 1. Sync to Master registrations table
-    await fetch(cleanUrl, {
-      method: 'POST',
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=representation'
-      },
-      body: JSON.stringify(payload)
-    });
-
-    // 2. Sync to 4 Category Databases automatically based on marital_status & gender
+    // Sync ONLY to 4 Category Databases automatically based on marital_status & gender
     let categoryTable = 'registrations_student_male';
     const mStatus = (reg.marital_status || 'single').toLowerCase();
     const gGender = (reg.gender || 'male').toLowerCase();

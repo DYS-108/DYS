@@ -1515,12 +1515,12 @@ function setMaritalStatus(status) {
   if (status === 'single') {
     if (btnSingle) btnSingle.classList.add('active');
     if (btnMarried) btnMarried.classList.remove('active');
-    if (boxSingleGender) boxSingleGender.classList.remove('hidden');
   } else {
     if (btnMarried) btnMarried.classList.add('active');
     if (btnSingle) btnSingle.classList.remove('active');
-    if (boxSingleGender) boxSingleGender.classList.add('hidden');
   }
+  // Gender is always available for all candidates (Single & Married)
+  if (boxSingleGender) boxSingleGender.classList.remove('hidden');
 }
 
 // Gender Selector Toggle ('male' vs 'female')

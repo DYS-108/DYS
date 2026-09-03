@@ -1707,6 +1707,7 @@ async function saveRegistrationToSupabase(record) {
     const { data: catData, error: catError } = await supabaseClient.from(categoryTable).insert([payload]);
     if (catError) {
       console.warn(`Supabase Category Table (${categoryTable}) Save Warning:`, catError);
+      alert(`Supabase Error (${categoryTable}): ${catError.message} (Code: ${catError.code || 'Table Missing/RLS'})`);
     } else {
       console.log(`Registration successfully saved to Supabase Category DB (${categoryTable})!`, catData);
     }

@@ -1693,11 +1693,25 @@ async function saveRegistrationToSupabase(record) {
       remarks: combinedRemarks || null
     };
 
-    const { data, error } = await supabaseClient.from('registrations').insert([payload]);
-    if (error) {
-      console.warn("Supabase Cloud DB Save Warning:", error);
+    // Master Table Save
+    await supabaseClient.from('registrations').insert([payload]);
+
+    // Automatic Routing to 4 Separate Category Databases based on Marital Status & Gender
+    let categoryTable = 'registrations_student_male';
+    const mStatus = (studentData.maritalStatus || 'single').toLowerCase();
+    const gGender = (studentData.gender || 'male').toLowerCase();
+
+    if (mStatus === 'married') {
+      categoryTable = (gGender === 'female') ? 'registrations_married_female' : 'registrations_married_male';
     } else {
-      console.log("Registration successfully saved to Supabase Cloud DB!", data);
+      categoryTable = (gGender === 'female') ? 'registrations_student_female' : 'registrations_student_male';
+    }
+
+    const { data: catData, error: catError } = await supabaseClient.from(categoryTable).insert([payload]);
+    if (catError) {
+      console.warn(`Supabase Category Table (${categoryTable}) Save Warning:`, catError);
+    } else {
+      console.log(`Registration successfully saved to Supabase Category DB (${categoryTable})!`, catData);
     }
   } catch (e) {
     console.error("Supabase Connection Exception:", e);

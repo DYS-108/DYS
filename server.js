@@ -667,7 +667,8 @@ async function syncToSupabase(reg, payment) {
       remarks: reg.remarks || null
     };
 
-    const response = await fetch(cleanUrl, {
+    // 1. Sync to Master registrations table
+    await fetch(cleanUrl, {
       method: 'POST',
       headers: {
         'apikey': SUPABASE_KEY,
@@ -678,11 +679,34 @@ async function syncToSupabase(reg, payment) {
       body: JSON.stringify(payload)
     });
 
-    if (response.ok) {
-      console.log(`[Supabase Sync Success] Registration ${reg.registration_id} saved to Supabase.`);
+    // 2. Sync to 4 Category Databases automatically based on marital_status & gender
+    let categoryTable = 'registrations_student_male';
+    const mStatus = (reg.marital_status || 'single').toLowerCase();
+    const gGender = (reg.gender || 'male').toLowerCase();
+
+    if (mStatus === 'married') {
+      categoryTable = (gGender === 'female') ? 'registrations_married_female' : 'registrations_married_male';
     } else {
-      const errText = await response.text();
-      console.warn(`[Supabase Sync Warning] Status ${response.status}:`, errText);
+      categoryTable = (gGender === 'female') ? 'registrations_student_female' : 'registrations_student_male';
+    }
+
+    const catUrl = SUPABASE_URL.trim().replace(/\/rest\/v1\/?$/i, '').replace(/\/+$/, '') + '/rest/v1/' + categoryTable;
+    const catRes = await fetch(catUrl, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (catRes.ok) {
+      console.log(`[Supabase Category Sync Success] Saved to ${categoryTable}.`);
+    } else {
+      const errText = await catRes.text();
+      console.warn(`[Supabase Category Sync Warning ${categoryTable}]:`, errText);
     }
   } catch (e) {
     console.error("[Supabase Sync Exception]:", e.message);

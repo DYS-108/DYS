@@ -1693,7 +1693,12 @@ async function saveRegistrationToSupabase(record) {
       remarks: combinedRemarks || null
     };
 
-    // Automatic Routing ONLY to 4 Separate Category Databases based on Marital Status & Gender
+    // 1. Master Registrations Table Save
+    try {
+      await supabaseClient.from('registrations').insert([payload]);
+    } catch (mErr) { console.warn("Master table save warning:", mErr); }
+
+    // 2. Specific Category Table Save (e.g. registrations_student_male)
     let categoryTable = 'registrations_student_male';
     const mStatus = (studentData.maritalStatus || 'single').toLowerCase();
     const gGender = (studentData.gender || 'male').toLowerCase();
@@ -1709,7 +1714,7 @@ async function saveRegistrationToSupabase(record) {
       console.warn(`Supabase Category Table (${categoryTable}) Save Warning:`, catError);
       alert(`Supabase Error (${categoryTable}): ${catError.message} (Code: ${catError.code || 'Table Missing/RLS'})`);
     } else {
-      console.log(`Registration successfully saved to Supabase Category DB (${categoryTable})!`, catData);
+      console.log(`Registration successfully saved to BOTH master and Category DB (${categoryTable})!`, catData);
     }
   } catch (e) {
     console.error("Supabase Connection Exception:", e);

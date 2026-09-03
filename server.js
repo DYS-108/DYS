@@ -667,7 +667,21 @@ async function syncToSupabase(reg, payment) {
       remarks: reg.remarks || null
     };
 
-    // Sync ONLY to 4 Category Databases automatically based on marital_status & gender
+    // 1. Sync to Master registrations table
+    try {
+      await fetch(cleanUrl, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify(payload)
+      });
+    } catch (mErr) { console.warn("[Supabase Master Sync Warning]:", mErr.message); }
+
+    // 2. Sync to Category Table (e.g. registrations_student_male)
     let categoryTable = 'registrations_student_male';
     const mStatus = (reg.marital_status || 'single').toLowerCase();
     const gGender = (reg.gender || 'male').toLowerCase();
@@ -691,7 +705,7 @@ async function syncToSupabase(reg, payment) {
     });
 
     if (catRes.ok) {
-      console.log(`[Supabase Category Sync Success] Saved to ${categoryTable}.`);
+      console.log(`[Supabase Category Sync Success] Saved to BOTH master and ${categoryTable}.`);
     } else {
       const errText = await catRes.text();
       console.warn(`[Supabase Category Sync Warning ${categoryTable}]:`, errText);

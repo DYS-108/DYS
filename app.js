@@ -1638,8 +1638,7 @@ async function getNextPassId(categoryTable) {
   let finalCount = Math.max(baseCount + 1, localCounter + 1);
   localStorage.setItem(storageKey, finalCount.toString());
 
-  const randomSuffix = Math.floor(100 + Math.random() * 900);
-  return 'ISKCON-REG-' + finalCount + '-' + randomSuffix;
+  return 'ISKCON-REG-' + finalCount;
 }
 
 let isSubmittingRegistration = false;

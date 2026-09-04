@@ -1577,7 +1577,7 @@ function setGender(g) {
 async function getNextPassId(categoryTable) {
   initSupabase();
   let baseCount = 2000;
-  const targetTable = categoryTable || 'registrations';
+  const targetTable = categoryTable || 'registrations_student_male';
   if (supabaseClient) {
     try {
       const { count, error } = await supabaseClient
@@ -1592,8 +1592,8 @@ async function getNextPassId(categoryTable) {
   }
 
   let storageKey = 'dys_pass_counter_' + targetTable;
-  let localCounter = parseInt(localStorage.getItem(storageKey) || localStorage.getItem('dys_pass_counter') || '2000');
-  let finalCount = Math.max(baseCount + 1, (localCounter > 2000 ? localCounter + 1 : 2001));
+  let localCounter = parseInt(localStorage.getItem(storageKey) || '2000');
+  let finalCount = Math.max(baseCount + 1, localCounter + 1);
   localStorage.setItem(storageKey, finalCount.toString());
 
   const randomSuffix = Math.floor(100 + Math.random() * 900);

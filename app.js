@@ -1642,8 +1642,12 @@ async function getNextPassId(categoryTable) {
   return 'ISKCON-REG-' + finalCount + '-' + randomSuffix;
 }
 
+let isSubmittingRegistration = false;
+
 // Complete Registration & Generate Pass Ticket
 async function completeRegistrationAndGeneratePass() {
+  if (isSubmittingRegistration) return;
+
   const name = document.getElementById('input-name').value.trim();
   const age = document.getElementById('input-age').value.trim();
   const phone = document.getElementById('input-phone').value.trim();
@@ -1651,6 +1655,14 @@ async function completeRegistrationAndGeneratePass() {
   if (!name || !age || !phone) {
     showToast(uiText[currentLang].fillErrorReg);
     return;
+  }
+
+  isSubmittingRegistration = true;
+  const submitBtn = document.getElementById('btn-complete-registration');
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.style.opacity = '0.6';
+    submitBtn.style.cursor = 'not-allowed';
   }
 
   studentData.name = name;
@@ -1744,6 +1756,12 @@ async function completeRegistrationAndGeneratePass() {
 
   // Clear temporary payment session state once pass is generated
   clearAppState();
+  isSubmittingRegistration = false;
+  if (submitBtn) {
+    submitBtn.disabled = false;
+    submitBtn.style.opacity = '1';
+    submitBtn.style.cursor = 'pointer';
+  }
 
   // Confetti Explosion
   triggerConfetti();
@@ -1810,9 +1828,9 @@ async function saveRegistrationToSupabase(record) {
       remarks: combinedRemarks || null
     };
 
-    // 1. Master Registrations Table Save
+    // 1. Master Registrations Table Save (Upsert by pass_id to prevent duplicates)
     try {
-      await supabaseClient.from('registrations').insert([payload]);
+      await supabaseClient.from('registrations').upsert([payload], { onConflict: 'pass_id' });
     } catch (mErr) { console.warn("Master table save warning:", mErr); }
 
     // 2. Specific Category Table Save (e.g. registrations_student_male)
@@ -1826,7 +1844,7 @@ async function saveRegistrationToSupabase(record) {
       categoryTable = (gGender === 'female') ? 'registrations_student_female' : 'registrations_student_male';
     }
 
-    const { data: catData, error: catError } = await supabaseClient.from(categoryTable).insert([payload]);
+    const { data: catData, error: catError } = await supabaseClient.from(categoryTable).upsert([payload], { onConflict: 'pass_id' });
     if (catError) {
       console.warn(`Supabase Category Table (${categoryTable}) Save Warning:`, catError);
       alert(`Supabase Error (${categoryTable}): ${catError.message} (Code: ${catError.code || 'Table Missing/RLS'})`);

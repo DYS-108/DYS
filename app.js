@@ -591,8 +591,8 @@ function restoreAppState() {
       target.classList.remove('hidden');
     }
 
-    if (state.activeScreenId === 'screen-payment' && lastCalculatedResult) {
-      generateUpiQR(lastCalculatedResult.payableAmount);
+    if (state.activeScreenId === 'screen-payment') {
+      gotoPaymentScreen();
       showToast("Welcome back! Restored your quiz session & payment state ➔");
     } else if (state.activeScreenId === 'screen-course' && lastCalculatedResult) {
       updateCoursePageUI(lastCalculatedResult.finalPercent, lastCalculatedResult.discountPercentage);

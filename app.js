@@ -1120,12 +1120,34 @@ function renderRazorpayPaymentButton(buttonId) {
   const wrapper = document.getElementById('razorpay-hosted-button-wrapper');
   if (!wrapper) return;
 
-  wrapper.innerHTML = ''; // Reset wrapper
+  // Render instantaneous loading indicator while Razorpay CDN script fetches
+  wrapper.innerHTML = `
+    <div id="rzp-btn-loader" style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:12px; color:var(--text-gold); font-size:0.9rem; font-weight:700;">
+      <div style="width:28px; height:28px; border:3px solid rgba(245, 158, 11, 0.3); border-top-color:var(--gold-accent); border-radius:50%; animation: spin 0.8s linear infinite;"></div>
+      Loading Pay Now Button...
+    </div>
+  `;
+
   const form = document.createElement('form');
   const script = document.createElement('script');
   script.src = 'https://checkout.razorpay.com/v1/payment-button.js';
   script.setAttribute('data-payment_button_id', buttonId);
   script.async = true;
+
+  script.onload = () => {
+    const loader = document.getElementById('rzp-btn-loader');
+    if (loader) loader.remove();
+  };
+
+  script.onerror = () => {
+    if (wrapper) {
+      wrapper.innerHTML = `
+        <div style="color:#F87171; font-weight:700; font-size:0.88rem; padding:10px; text-align:center;">
+          ⚠️ Payment button taking too long to load.<br>Please check your internet or use <b>Pay via Cash</b> below.
+        </div>
+      `;
+    }
+  };
 
   form.appendChild(script);
   wrapper.appendChild(form);

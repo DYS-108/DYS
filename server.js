@@ -648,7 +648,13 @@ async function syncToSupabase(reg, payment) {
   if (!SUPABASE_URL || !SUPABASE_KEY || SUPABASE_URL === 'YOUR_SUPABASE_PROJECT_URL') return;
   try {
     const cleanUrl = SUPABASE_URL.trim().replace(/\/rest\/v1\/?$/i, '').replace(/\/+$/, '') + '/rest/v1/registrations';
-    const modeStr = payment ? (payment.method || 'RAZORPAY').toUpperCase() : 'ONLINE';
+    let modeStr = 'ONLINE';
+    if (payment && payment.method) {
+      const pm = String(payment.method).toUpperCase();
+      modeStr = pm.includes('CASH') ? 'CASH' : (pm.includes('RAZORPAY') ? 'RAZORPAY' : pm);
+    } else if (payment) {
+      modeStr = 'RAZORPAY';
+    }
     let remarkText = reg.remarks || '';
     if (!remarkText.includes('Mode:')) {
       remarkText = `Mode: ${modeStr}${remarkText ? ' | ' + remarkText : ''}`;

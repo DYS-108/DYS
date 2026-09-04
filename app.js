@@ -1172,6 +1172,7 @@ async function verifyCashPaymentWithPin() {
 
     if (res.ok && data.verified) {
       sessionStorage.setItem('dys_payment_completed', '1');
+      currentPaymentData = { method: 'cash', status: 'CASH_VERIFIED' };
       const msgTag = document.getElementById('verified-success-msg');
       if (msgTag) msgTag.innerText = "🎉 Cash Payment Verified by Admin! ✓";
 
@@ -1192,6 +1193,7 @@ async function verifyCashPaymentWithPin() {
     console.warn("Backend verify cash notice:", err);
     if (passcode === '108108' || passcode === 'admin123') {
       sessionStorage.setItem('dys_payment_completed', '1');
+      currentPaymentData = { method: 'cash', status: 'CASH_VERIFIED' };
       const msgTag = document.getElementById('verified-success-msg');
       if (msgTag) msgTag.innerText = "🎉 Cash Payment Verified by Admin! ✓";
 
@@ -1669,7 +1671,13 @@ async function saveRegistrationToSupabase(record) {
 
   try {
     let combinedRemarks = studentData.remarks || '';
-    const payMethod = (currentPaymentData && currentPaymentData.method) ? currentPaymentData.method.toUpperCase() : 'ONLINE/RAZORPAY';
+    let payMethod = 'ONLINE';
+    if (currentPaymentData && currentPaymentData.method) {
+      const m = String(currentPaymentData.method).toUpperCase();
+      payMethod = m.includes('CASH') ? 'CASH' : (m.includes('RAZORPAY') ? 'RAZORPAY' : m);
+    } else {
+      payMethod = 'RAZORPAY';
+    }
 
     if (studentData.address) {
       combinedRemarks = `Address: ${studentData.address} | Mode: ${payMethod}${combinedRemarks ? ' | ' + combinedRemarks : ''}`;

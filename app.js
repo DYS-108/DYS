@@ -1542,16 +1542,32 @@ function setGender(g) {
 }
 
 // Sequential Pass ID Generator Counter (ISKCON-REG-2001, 2002...)
-function getNextPassId() {
-  let counter = parseInt(localStorage.getItem('dys_pass_counter') || '2000');
-  counter++;
-  localStorage.setItem('dys_pass_counter', counter.toString());
+async function getNextPassId() {
+  initSupabase();
+  let baseCount = 2000;
+  if (supabaseClient) {
+    try {
+      const { count, error } = await supabaseClient
+        .from('registrations')
+        .select('*', { count: 'exact', head: true });
+      if (!error && typeof count === 'number') {
+        baseCount = 2000 + count;
+      }
+    } catch (e) {
+      console.warn("Could not fetch count from Supabase, using local fallback:", e);
+    }
+  }
+
+  let localCounter = parseInt(localStorage.getItem('dys_pass_counter') || '2000');
+  let finalCount = Math.max(baseCount + 1, localCounter + 1);
+  localStorage.setItem('dys_pass_counter', finalCount.toString());
+
   const randomSuffix = Math.floor(100 + Math.random() * 900);
-  return 'ISKCON-REG-' + counter + '-' + randomSuffix;
+  return 'ISKCON-REG-' + finalCount + '-' + randomSuffix;
 }
 
 // Complete Registration & Generate Pass Ticket
-function completeRegistrationAndGeneratePass() {
+async function completeRegistrationAndGeneratePass() {
   const name = document.getElementById('input-name').value.trim();
   const age = document.getElementById('input-age').value.trim();
   const phone = document.getElementById('input-phone').value.trim();
@@ -1572,7 +1588,7 @@ function completeRegistrationAndGeneratePass() {
   studentData.position = document.getElementById('input-position') ? document.getElementById('input-position').value.trim() : '';
   studentData.remarks = document.getElementById('input-remarks') ? document.getElementById('input-remarks').value.trim() : '';
 
-  let regPassId = getNextPassId();
+  let regPassId = await getNextPassId();
   const nowStr = new Date().toLocaleString();
 
   document.getElementById('pass-reg-id').innerText = regPassId;

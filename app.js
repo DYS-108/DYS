@@ -1574,25 +1574,27 @@ function setGender(g) {
 }
 
 // Sequential Pass ID Generator Counter (ISKCON-REG-2001, 2002...)
-async function getNextPassId() {
+async function getNextPassId(categoryTable) {
   initSupabase();
   let baseCount = 2000;
+  const targetTable = categoryTable || 'registrations';
   if (supabaseClient) {
     try {
       const { count, error } = await supabaseClient
-        .from('registrations')
+        .from(targetTable)
         .select('*', { count: 'exact', head: true });
       if (!error && typeof count === 'number') {
         baseCount = 2000 + count;
       }
     } catch (e) {
-      console.warn("Could not fetch count from Supabase, using local fallback:", e);
+      console.warn("Could not fetch count from Supabase category table, using fallback:", e);
     }
   }
 
-  let localCounter = parseInt(localStorage.getItem('dys_pass_counter') || '2000');
+  let storageKey = 'dys_pass_counter_' + targetTable;
+  let localCounter = parseInt(localStorage.getItem(storageKey) || localStorage.getItem('dys_pass_counter') || '2000');
   let finalCount = Math.max(baseCount + 1, (localCounter > 2000 ? localCounter + 1 : 2001));
-  localStorage.setItem('dys_pass_counter', finalCount.toString());
+  localStorage.setItem(storageKey, finalCount.toString());
 
   const randomSuffix = Math.floor(100 + Math.random() * 900);
   return 'ISKCON-REG-' + finalCount + '-' + randomSuffix;
@@ -1620,7 +1622,16 @@ async function completeRegistrationAndGeneratePass() {
   studentData.position = document.getElementById('input-position') ? document.getElementById('input-position').value.trim() : '';
   studentData.remarks = document.getElementById('input-remarks') ? document.getElementById('input-remarks').value.trim() : '';
 
-  let regPassId = await getNextPassId();
+  let categoryTable = 'registrations_student_male';
+  const mStatus = (studentData.maritalStatus || 'single').toLowerCase();
+  const gGender = (studentData.gender || 'male').toLowerCase();
+  if (mStatus === 'married') {
+    categoryTable = (gGender === 'female') ? 'registrations_married_female' : 'registrations_married_male';
+  } else {
+    categoryTable = (gGender === 'female') ? 'registrations_student_female' : 'registrations_student_male';
+  }
+
+  let regPassId = await getNextPassId(categoryTable);
   const nowStr = new Date().toLocaleString();
 
   document.getElementById('pass-reg-id').innerText = regPassId;

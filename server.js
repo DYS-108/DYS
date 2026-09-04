@@ -432,7 +432,7 @@ app.post('/api/payments/razorpay/verify', (req, res) => {
     if (reg) {
       reg.status = 'VERIFIED';
       reg.updated_at = new Date().toISOString();
-      syncToSupabase(reg, payment);
+      // syncToSupabase(reg, payment);
     }
 
     writeDB(db);
@@ -505,7 +505,7 @@ app.post('/api/payments/razorpay/fetch-and-verify', async (req, res) => {
     if (reg) {
       reg.status = 'VERIFIED';
       reg.updated_at = new Date().toISOString();
-      syncToSupabase(reg, payment);
+      // syncToSupabase(reg, payment);
     }
 
     writeDB(db);
@@ -562,7 +562,7 @@ app.post('/api/payments/verify-cash', (req, res) => {
     if (reg) {
       reg.status = 'VERIFIED';
       reg.updated_at = new Date().toISOString();
-      syncToSupabase(reg, payment);
+      // syncToSupabase(reg, payment);
     }
 
     writeDB(db);
@@ -633,9 +633,9 @@ app.post('/api/registration/complete', (req, res) => {
 
     writeDB(db);
 
-    // Sync to Supabase Cloud Database asynchronously
-    const payment = db.payments.find(p => p.registration_id === registration_id);
-    syncToSupabase(reg, payment);
+    // Sync handled on client-side app.js to prevent duplicate inserts
+    // const payment = db.payments.find(p => p.registration_id === registration_id);
+    // syncToSupabase(reg, payment);
 
     return res.json({ success: true, registration: reg });
   } catch (err) {

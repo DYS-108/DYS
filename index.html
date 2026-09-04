@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Discover Your Self - Bhagavad Gita Quiz & Course Registration</title>
   <meta name="description" content="Discover Your Self Course Registration & Bhagavad Gita Quiz. Earn up to 50% scholarship discount!">
-  <link rel="stylesheet" href="style.css?v=19.0">
+  <link rel="stylesheet" href="style.css?v=20.0">
 </head>
 <body>
 
@@ -105,12 +105,28 @@
 
         <!-- Score-Based Conditional CTA Box (< 50% vs >= 50%) -->
         <div id="res-conditional-cta-box" style="margin-top:16px;">
-          <button id="btn-result-cta" onclick="gotoCourseDetailsPage()" type="button" class="btn-primary" style="background: linear-gradient(135deg, #FF7700, #F59E0B); padding: 18px 16px; font-size: 1.05rem; width: 100%; border-radius: 14px; box-shadow: 0 8px 25px rgba(255, 119, 0, 0.4);">
+          <button id="btn-result-cta" onclick="gotoCourseDetailsPage()" type="button" class="btn-primary btn-spiritual-cta" style="padding: 18px 16px; font-size: 1.08rem; width: 100%; border-radius: 14px;">
             🎉 Congratulations! Click here to redeem your reward 🎁
           </button>
         </div>
       </div>
     </main>
+
+    <!-- Spiritual Reward Celebration Popup Modal -->
+    <div id="reward-popup-modal" class="hidden" style="position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15,23,42,0.88); backdrop-filter:blur(8px); z-index:9999; display:flex; align-items:center; justify-content:center; padding:20px;">
+      <div style="background: linear-gradient(145deg, #1E1B4B, #0F172A); border: 2px solid var(--gold-accent); border-radius: 24px; padding: 28px 24px; text-align: center; max-width: 380px; width: 100%; box-shadow: 0 20px 50px rgba(245, 158, 11, 0.35); position: relative; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+        
+        <div style="font-size: 3.5rem; margin-bottom: 8px; filter: drop-shadow(0 0 10px rgba(245,158,11,0.6));">🎁</div>
+        <h3 style="font-size: 1.45rem; font-weight: 900; color: #FFF; margin-bottom: 6px;">🎉 Congratulations!</h3>
+        <p style="font-size: 0.95rem; color: var(--text-gold); font-weight: 700; line-height: 1.4; margin-bottom: 18px;">
+          You have unlocked your special Bhagavad Gita Scholarship Reward!
+        </p>
+
+        <button onclick="closeRewardModalAndProceed()" type="button" class="btn-primary" style="background: linear-gradient(135deg, #FF7700, #F59E0B); padding: 16px 20px; font-size: 1.05rem; font-weight: 900; width: 100%; border-radius: 14px; box-shadow: 0 8px 25px rgba(255, 119, 0, 0.5); animation: pulseGlow 2s infinite;">
+          REDEEM REWARD NOW ➔
+        </button>
+      </div>
+    </div>
 
     <!-- SCREEN 3: DYS Course Details Page -->
     <main id="screen-course" class="view-screen hidden">
@@ -540,6 +556,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script src="qrcode.min.js"></script>
-  <script src="app.js?v=43.0"></script>
+  <script src="app.js?v=44.0"></script>
 </body>
 </html>

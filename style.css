@@ -1854,3 +1854,25 @@ body {
   transform-origin: center center !important;
   margin: 10px 0 !important;
 }
+
+/* One-Time Reward Modal Animations & Spiritual Glow */
+@keyframes popIn {
+  0% { opacity: 0; transform: scale(0.6) translateY(30px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 12px rgba(255, 119, 0, 0.4), 0 0 25px rgba(245, 158, 11, 0.2); }
+  50% { box-shadow: 0 0 28px rgba(255, 119, 0, 0.8), 0 0 45px rgba(245, 158, 11, 0.5); }
+  100% { box-shadow: 0 0 12px rgba(255, 119, 0, 0.4), 0 0 25px rgba(245, 158, 11, 0.2); }
+}
+
+/* High Visibility Spiritual Redeem Button */
+.btn-spiritual-cta {
+  background: linear-gradient(135deg, #FF7700, #F59E0B, #D97706) !important;
+  border: 1px solid #FCD34D !important;
+  color: #FFFFFF !important;
+  font-weight: 900 !important;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  animation: pulseGlow 2s infinite ease-in-out;
+}

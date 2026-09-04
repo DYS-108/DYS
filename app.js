@@ -1074,7 +1074,7 @@ async function calculateResultsAndShow(existingRecord) {
           : `🎉 बधाई हो! अपना इनाम पाने के लिए यहाँ क्लिक करें 🎁`;
 
         ctaBox.innerHTML = `
-          <button id="btn-result-cta" onclick="gotoCourseDetailsPage()" type="button" class="btn-primary" style="background: linear-gradient(135deg, #FF7700, #F59E0B); padding: 18px 16px; font-size: 1.05rem; width: 100%; border-radius: 14px; box-shadow: 0 8px 25px rgba(255, 119, 0, 0.4);">
+          <button id="btn-result-cta" onclick="gotoCourseDetailsPage()" type="button" class="btn-primary btn-spiritual-cta" style="padding: 18px 16px; font-size: 1.08rem; width: 100%; border-radius: 14px;">
             ${btnText}
           </button>
         `;
@@ -1083,9 +1083,31 @@ async function calculateResultsAndShow(existingRecord) {
 
     switchScreen('screen-quiz', 'screen-result');
     triggerConfetti();
+
+    // Trigger one-time animated reward celebration popup
+    setTimeout(() => {
+      showRewardModal();
+    }, 600);
   } catch (err) {
     console.error("Results calculation error:", err);
   }
+}
+
+function showRewardModal() {
+  const modal = document.getElementById('reward-popup-modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    modal.style.display = 'flex';
+  }
+}
+
+function closeRewardModalAndProceed() {
+  const modal = document.getElementById('reward-popup-modal');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.style.display = 'none';
+  }
+  gotoCourseDetailsPage();
 }
 
 // 6-Tier Razorpay Payment Button & Fee Tier Helper Functions

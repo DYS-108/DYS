@@ -409,8 +409,8 @@ body {
 
 /* Dynamic Motivational Banner Box */
 .motivation-banner-box {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(255, 119, 0, 0.15));
-  border: 1px solid var(--gold-accent);
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.4);
   color: var(--text-gold);
   padding: 8px 14px;
   border-radius: 12px;
@@ -421,7 +421,7 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+  box-shadow: none;
 }
 
 /* Quiz Container Header */
@@ -1211,15 +1211,16 @@ body {
 
 /* Motivational Progress Banner */
 .motivation-banner-box {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(255, 119, 0, 0.15));
-  border: 1px solid var(--gold-accent);
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.4);
   border-radius: var(--radius-md);
   padding: 10px 16px;
   text-align: center;
   font-size: 0.9rem;
   font-weight: 700;
   color: var(--text-gold);
-  animation: pulseGlow 2s infinite ease-in-out;
+  box-shadow: none;
+  animation: none;
 }
 
 @keyframes pulseGlow {

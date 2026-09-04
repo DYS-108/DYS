@@ -596,6 +596,8 @@ function restoreAppState() {
       showToast("Welcome back! Restored your quiz session & payment state ➔");
     } else if (state.activeScreenId === 'screen-course' && lastCalculatedResult) {
       updateCoursePageUI(lastCalculatedResult.finalPercent, lastCalculatedResult.discountPercentage);
+    } else if (state.activeScreenId === 'screen-result' && lastCalculatedResult) {
+      calculateResultsAndShow(lastCalculatedResult.existingRecord);
     }
 
     return true;

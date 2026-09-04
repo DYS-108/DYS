@@ -103,9 +103,11 @@
           <!-- Dynamically populated -->
         </div>
 
-        <!-- Score-Based Conditional CTA Box (< 60% vs >= 60%) -->
+        <!-- Score-Based Conditional CTA Box (< 50% vs >= 50%) -->
         <div id="res-conditional-cta-box" style="margin-top:16px;">
-          <!-- Dynamically populated in app.js -->
+          <button id="btn-result-cta" onclick="gotoCourseDetailsPage()" type="button" class="btn-primary" style="background: linear-gradient(135deg, #FF7700, #F59E0B); padding: 18px 16px; font-size: 1.05rem; width: 100%; border-radius: 14px; box-shadow: 0 8px 25px rgba(255, 119, 0, 0.4);">
+            🎉 Congratulations! Click here to redeem your reward 🎁
+          </button>
         </div>
       </div>
     </main>
@@ -537,6 +539,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script src="qrcode.min.js"></script>
-  <script src="app.js?v=38.0"></script>
+  <script src="app.js?v=39.0"></script>
 </body>
 </html>

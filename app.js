@@ -523,10 +523,10 @@ const uiText = {
   }
 };
 
-// State Persistence Helpers (Survives app switching to GPay & page reloads)
+// State Persistence Helpers (Survives app switching to GPay, page reloads & closing browser)
 function saveAppState(activeScreenId) {
-  // Only save state when on payment screen or beyond (to survive UPI app switch)
-  const screensToSave = ['screen-payment', 'screen-registration', 'screen-pass', 'screen-course'];
+  // Only save state when on payment screen or beyond (to survive UPI app switch & page reloads)
+  const screensToSave = ['screen-payment', 'screen-registration', 'screen-pass', 'screen-course', 'screen-result'];
   if (!screensToSave.includes(activeScreenId)) return;
 
   try {
@@ -536,16 +536,18 @@ function saveAppState(activeScreenId) {
       userAnswers,
       currentQuestionIndex,
       studentData,
-      lastCalculatedResult
+      lastCalculatedResult,
+      timestamp: Date.now()
     };
-    sessionStorage.setItem('dys_app_session_state', JSON.stringify(state));
-    // Mark that we're in an active session (payment in progress)
-    sessionStorage.setItem('dys_payment_redirect', '1');
+    localStorage.setItem('dys_app_session_state', JSON.stringify(state));
+    localStorage.setItem('dys_payment_redirect', '1');
   } catch (e) {}
 }
 
 function clearAppState() {
   try {
+    localStorage.removeItem('dys_app_session_state');
+    localStorage.removeItem('dys_payment_redirect');
     sessionStorage.removeItem('dys_app_session_state');
     sessionStorage.removeItem('dys_payment_redirect');
   } catch (e) {}
@@ -553,15 +555,20 @@ function clearAppState() {
 
 function restoreAppState() {
   try {
-    // Only restore if we set a payment redirect flag (user went to UPI app & came back)
-    const isPaymentRedirect = sessionStorage.getItem('dys_payment_redirect');
+    const isPaymentRedirect = localStorage.getItem('dys_payment_redirect') || sessionStorage.getItem('dys_payment_redirect');
     if (!isPaymentRedirect) return false;
 
-    const raw = sessionStorage.getItem('dys_app_session_state');
+    const raw = localStorage.getItem('dys_app_session_state') || sessionStorage.getItem('dys_app_session_state');
     if (!raw) return false;
 
     const state = JSON.parse(raw);
     if (!state || !state.activeScreenId) return false;
+
+    // Expire saved sessions older than 48 hours
+    if (state.timestamp && (Date.now() - state.timestamp > 48 * 60 * 60 * 1000)) {
+      clearAppState();
+      return false;
+    }
 
     currentLang = state.currentLang || currentLang;
     userAnswers = state.userAnswers || {};
@@ -586,6 +593,7 @@ function restoreAppState() {
 
     if (state.activeScreenId === 'screen-payment' && lastCalculatedResult) {
       generateUpiQR(lastCalculatedResult.payableAmount);
+      showToast("Welcome back! Restored your quiz session & payment state ➔");
     } else if (state.activeScreenId === 'screen-course' && lastCalculatedResult) {
       updateCoursePageUI(lastCalculatedResult.finalPercent, lastCalculatedResult.discountPercentage);
     }
@@ -1656,6 +1664,9 @@ async function completeRegistrationAndGeneratePass() {
   saveRegistrationToSupabase(record);
 
   switchScreen('screen-registration', 'screen-pass');
+
+  // Clear temporary payment session state once pass is generated
+  clearAppState();
 
   // Confetti Explosion
   triggerConfetti();

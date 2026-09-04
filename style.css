@@ -1834,3 +1834,23 @@ body {
   align-items: center !important;
   justify-content: center !important;
 }
+
+/* Enlarge Razorpay Hosted Payment Button */
+#razorpay-hosted-button-wrapper {
+  margin: 22px 0 !important;
+  width: 100% !important;
+}
+
+#razorpay-hosted-button-wrapper form {
+  width: 100% !important;
+  display: flex !important;
+  justify-content: center !important;
+}
+
+#razorpay-hosted-button-wrapper iframe,
+#razorpay-hosted-button-wrapper button,
+#razorpay-hosted-button-wrapper .razorpay-payment-button {
+  transform: scale(1.22) !important;
+  transform-origin: center center !important;
+  margin: 10px 0 !important;
+}

@@ -523,9 +523,9 @@ const uiText = {
   }
 };
 
-// State Persistence Helpers (Survives app switching to GPay, page reloads & closing browser)
+// State Persistence Helpers (Survives app switching to GPay & page reloads in current tab, opens fresh on new tabs)
 function saveAppState(activeScreenId) {
-  // Only save state when on payment screen or beyond (to survive UPI app switch & page reloads)
+  // Only save state when on payment screen or beyond (to survive UPI app switch & page reloads in same tab)
   const screensToSave = ['screen-payment', 'screen-registration', 'screen-pass', 'screen-course', 'screen-result'];
   if (!screensToSave.includes(activeScreenId)) return;
 
@@ -539,15 +539,13 @@ function saveAppState(activeScreenId) {
       lastCalculatedResult,
       timestamp: Date.now()
     };
-    localStorage.setItem('dys_app_session_state', JSON.stringify(state));
-    localStorage.setItem('dys_payment_redirect', '1');
+    sessionStorage.setItem('dys_app_session_state', JSON.stringify(state));
+    sessionStorage.setItem('dys_payment_redirect', '1');
   } catch (e) {}
 }
 
 function clearAppState() {
   try {
-    localStorage.removeItem('dys_app_session_state');
-    localStorage.removeItem('dys_payment_redirect');
     sessionStorage.removeItem('dys_app_session_state');
     sessionStorage.removeItem('dys_payment_redirect');
   } catch (e) {}
@@ -555,20 +553,14 @@ function clearAppState() {
 
 function restoreAppState() {
   try {
-    const isPaymentRedirect = localStorage.getItem('dys_payment_redirect') || sessionStorage.getItem('dys_payment_redirect');
+    const isPaymentRedirect = sessionStorage.getItem('dys_payment_redirect');
     if (!isPaymentRedirect) return false;
 
-    const raw = localStorage.getItem('dys_app_session_state') || sessionStorage.getItem('dys_app_session_state');
+    const raw = sessionStorage.getItem('dys_app_session_state');
     if (!raw) return false;
 
     const state = JSON.parse(raw);
     if (!state || !state.activeScreenId) return false;
-
-    // Expire saved sessions older than 48 hours
-    if (state.timestamp && (Date.now() - state.timestamp > 48 * 60 * 60 * 1000)) {
-      clearAppState();
-      return false;
-    }
 
     currentLang = state.currentLang || currentLang;
     userAnswers = state.userAnswers || {};

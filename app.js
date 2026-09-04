@@ -1559,7 +1559,7 @@ async function getNextPassId() {
   }
 
   let localCounter = parseInt(localStorage.getItem('dys_pass_counter') || '2000');
-  let finalCount = Math.max(baseCount + 1, localCounter + 1);
+  let finalCount = Math.max(baseCount + 1, (localCounter > 2000 ? localCounter + 1 : 2001));
   localStorage.setItem('dys_pass_counter', finalCount.toString());
 
   const randomSuffix = Math.floor(100 + Math.random() * 900);

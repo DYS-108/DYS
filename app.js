@@ -716,6 +716,59 @@ function switchScreen(fromId, toId) {
   }
 }
 
+// 5-Minute Quiz Countdown Timer
+let quizTimerInterval = null;
+let quizTimeRemainingSeconds = 300; // 5 minutes = 300 seconds
+
+function startQuizTimer() {
+  stopQuizTimer(); // Clear any existing interval
+  quizTimeRemainingSeconds = 300;
+  updateTimerDisplay();
+
+  quizTimerInterval = setInterval(() => {
+    quizTimeRemainingSeconds--;
+    updateTimerDisplay();
+
+    if (quizTimeRemainingSeconds <= 0) {
+      stopQuizTimer();
+      showToast("⏰ Time's up! Auto-submitting test now...");
+      setTimeout(() => {
+        calculateResultsAndShow();
+      }, 500);
+    }
+  }, 1000);
+}
+
+function stopQuizTimer() {
+  if (quizTimerInterval) {
+    clearInterval(quizTimerInterval);
+    quizTimerInterval = null;
+  }
+}
+
+function updateTimerDisplay() {
+  const clock = document.getElementById('quiz-timer-clock');
+  const badge = document.getElementById('quiz-timer-badge');
+  if (!clock) return;
+
+  const minutes = Math.floor(Math.max(0, quizTimeRemainingSeconds) / 60);
+  const seconds = Math.max(0, quizTimeRemainingSeconds) % 60;
+  const formatted = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  clock.innerText = formatted;
+
+  if (badge) {
+    if (quizTimeRemainingSeconds <= 60) {
+      badge.style.background = 'rgba(239, 68, 68, 0.3)';
+      badge.style.borderColor = '#EF4444';
+      badge.style.color = '#FF9999';
+    } else {
+      badge.style.background = 'rgba(239, 68, 68, 0.15)';
+      badge.style.borderColor = '#EF4444';
+      badge.style.color = '#FCA5A5';
+    }
+  }
+}
+
 // Initial Language Selection Callback
 function selectInitialLanguage(lang) {
   currentLang = lang || 'en';
@@ -730,6 +783,7 @@ function selectInitialLanguage(lang) {
   renderLanguageUI();
   switchScreen(null, 'screen-quiz');
   renderQuestion(0);
+  startQuizTimer();
 }
 
 // Toggle Language Button Handler
@@ -1081,33 +1135,12 @@ async function calculateResultsAndShow(existingRecord) {
       }
     }
 
+    stopQuizTimer();
     switchScreen('screen-quiz', 'screen-result');
     triggerConfetti();
-
-    // Trigger one-time animated reward celebration popup
-    setTimeout(() => {
-      showRewardModal();
-    }, 600);
   } catch (err) {
     console.error("Results calculation error:", err);
   }
-}
-
-function showRewardModal() {
-  const modal = document.getElementById('reward-popup-modal');
-  if (modal) {
-    modal.classList.remove('hidden');
-    modal.style.display = 'flex';
-  }
-}
-
-function closeRewardModalAndProceed() {
-  const modal = document.getElementById('reward-popup-modal');
-  if (modal) {
-    modal.classList.add('hidden');
-    modal.style.display = 'none';
-  }
-  gotoCourseDetailsPage();
 }
 
 // 6-Tier Razorpay Payment Button & Fee Tier Helper Functions

@@ -41,7 +41,10 @@
 
       <div class="quiz-meta-row" style="margin-top: 6px;">
         <span id="quiz-progress-text" class="question-badge">Q 1/10</span>
-        <span id="txt-marking-notice" class="marking-info-tag">Marking: +2 Correct | -1 Wrong | 0 Unattempted</span>
+        <span id="quiz-timer-badge" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #EF4444; color: #FCA5A5; padding: 4px 10px; border-radius: 14px; font-size: 0.82rem; font-weight: 800; font-family: monospace; display: flex; align-items: center; gap: 4px;">
+          ⏱️ <span id="quiz-timer-clock">05:00</span>
+        </span>
+        <span id="txt-marking-notice" class="marking-info-tag">Marking: +2 Correct | -1 Wrong</span>
       </div>
 
       <!-- 10 Question Quick Navigation Grid (Always Visible) -->
@@ -111,22 +114,6 @@
         </div>
       </div>
     </main>
-
-    <!-- Spiritual Reward Celebration Popup Modal -->
-    <div id="reward-popup-modal" class="hidden" style="position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15,23,42,0.75); z-index:9999; display:flex; align-items:center; justify-content:center; padding:20px;">
-      <div style="background: linear-gradient(145deg, #1E1B4B, #0F172A); border: 2px solid var(--gold-accent); border-radius: 24px; padding: 28px 24px; text-align: center; max-width: 380px; width: 100%; box-shadow: 0 20px 50px rgba(245, 158, 11, 0.35); position: relative; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
-        
-        <div style="font-size: 3.5rem; margin-bottom: 8px; filter: drop-shadow(0 0 10px rgba(245,158,11,0.6));">🎁</div>
-        <h3 style="font-size: 1.45rem; font-weight: 900; color: #FFF; margin-bottom: 6px;">🎉 Congratulations!</h3>
-        <p style="font-size: 0.95rem; color: var(--text-gold); font-weight: 700; line-height: 1.4; margin-bottom: 18px;">
-          You have unlocked your special Bhagavad Gita Scholarship Reward!
-        </p>
-
-        <button onclick="closeRewardModalAndProceed()" type="button" class="btn-primary" style="background: linear-gradient(135deg, #FF7700, #F59E0B); padding: 16px 20px; font-size: 1.05rem; font-weight: 900; width: 100%; border-radius: 14px; box-shadow: 0 8px 25px rgba(255, 119, 0, 0.5); animation: pulseGlow 2s infinite;">
-          REDEEM REWARD NOW ➔
-        </button>
-      </div>
-    </div>
 
     <!-- SCREEN 3: DYS Course Details Page -->
     <main id="screen-course" class="view-screen hidden">
@@ -556,6 +543,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script src="qrcode.min.js"></script>
-  <script src="app.js?v=45.0"></script>
+  <script src="app.js?v=46.0"></script>
 </body>
 </html>

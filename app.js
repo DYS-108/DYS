@@ -1167,37 +1167,32 @@ function renderRazorpayPaymentButton(buttonId) {
   const wrapper = document.getElementById('razorpay-hosted-button-wrapper');
   if (!wrapper) return;
 
-  // Render instantaneous loading indicator while Razorpay CDN script fetches
+  // Render instantaneous native Pay Now button first (100% reliable on mobile networks)
   wrapper.innerHTML = `
-    <div id="rzp-btn-loader" style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:12px; color:var(--text-gold); font-size:0.9rem; font-weight:700;">
-      <div style="width:28px; height:28px; border:3px solid rgba(245, 158, 11, 0.3); border-top-color:var(--gold-accent); border-radius:50%; animation: spin 0.8s linear infinite;"></div>
-      Loading Pay Now Button...
-    </div>
+    <button id="btn-instant-pay-now" onclick="payWithRazorpay()" type="button" class="btn-primary" style="background: linear-gradient(135deg, #10B981, #059669); padding: 18px 24px; font-size: 1.15rem; font-weight: 900; width: 100%; border-radius: 14px; box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4); display: flex; align-items: center; justify-content: center; gap: 8px;">
+      💳 PAY NOW WITH RAZORPAY
+    </button>
   `;
 
-  const form = document.createElement('form');
-  const script = document.createElement('script');
-  script.src = 'https://checkout.razorpay.com/v1/payment-button.js';
-  script.setAttribute('data-payment_button_id', buttonId);
-  script.async = true;
+  // Asynchronously attempt to load Razorpay Hosted Payment Button script
+  try {
+    const form = document.createElement('form');
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/payment-button.js';
+    script.setAttribute('data-payment_button_id', buttonId);
+    script.async = true;
 
-  script.onload = () => {
-    const loader = document.getElementById('rzp-btn-loader');
-    if (loader) loader.remove();
-  };
+    script.onload = () => {
+      // If Razorpay hosted button script loaded successfully, replace fallback wrapper cleanly
+      const instantBtn = document.getElementById('btn-instant-pay-now');
+      if (instantBtn) instantBtn.remove();
+    };
 
-  script.onerror = () => {
-    if (wrapper) {
-      wrapper.innerHTML = `
-        <div style="color:#F87171; font-weight:700; font-size:0.88rem; padding:10px; text-align:center;">
-          ⚠️ Payment button taking too long to load.<br>Please check your internet or use <b>Pay via Cash</b> below.
-        </div>
-      `;
-    }
-  };
-
-  form.appendChild(script);
-  wrapper.appendChild(form);
+    form.appendChild(script);
+    wrapper.appendChild(form);
+  } catch (err) {
+    console.warn("Razorpay hosted button script load notice:", err);
+  }
 }
 
 function checkIsPaymentCompleted() {

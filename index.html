@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Discover Your Self - Bhagavad Gita Quiz & Course Registration</title>
   <meta name="description" content="Discover Your Self Course Registration & Bhagavad Gita Quiz. Earn up to 50% scholarship discount!">
-  <link rel="stylesheet" href="style.css?v=21.0">
+  <link rel="stylesheet" href="style.css?v=22.0">
 </head>
 <body>
 
@@ -60,13 +60,10 @@
       </div>
 
       <div class="question-card">
-        <h2 id="question-title" class="question-text">1. What is your real identity?</h2>
+        <h2 id="question-title" class="question-text">Loading question...</h2>
 
         <div id="options-list" class="options-list">
-          <div class="option-item" onclick="selectOption(0, 'A')"><div class="option-prefix">A</div><div class="option-label">I am an Engineer/doctor/professional.</div></div>
-          <div class="option-item" onclick="selectOption(0, 'B')"><div class="option-prefix">B</div><div class="option-label">I am a human being and my name is so and so.</div></div>
-          <div class="option-item" onclick="selectOption(0, 'C')"><div class="option-prefix">C</div><div class="option-label">I am an immortal spirit soul.</div></div>
-          <div class="option-item" onclick="selectOption(0, 'D')"><div class="option-prefix">D</div><div class="option-label">I am an Indian.</div></div>
+          <!-- Rendered dynamically -->
         </div>
       </div>
 
@@ -477,10 +474,10 @@
       <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:20px;">Select Preferred Language / भाषा चुनें</p>
       
       <div style="display:flex; flex-direction:column; gap:12px;">
-        <button id="btn-lang-en" onclick="selectInitialLanguage('en');" class="btn-primary" type="button" style="background: linear-gradient(135deg, #FF7700, #F59E0B); cursor:pointer;">
+        <button id="btn-lang-en" onclick="selectInitialLanguage('en')" class="btn-primary" type="button" style="background: linear-gradient(135deg, #FF7700, #F59E0B); cursor:pointer;">
           Continue in English →
         </button>
-        <button id="btn-lang-hi" onclick="selectInitialLanguage('hi');" class="btn-primary" type="button" style="background: linear-gradient(135deg, #F59E0B, #E65100); cursor:pointer;">
+        <button id="btn-lang-hi" onclick="selectInitialLanguage('hi')" class="btn-primary" type="button" style="background: linear-gradient(135deg, #F59E0B, #E65100); cursor:pointer;">
           हिंदी में आगे बढ़ें →
         </button>
       </div>
@@ -554,6 +551,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script src="qrcode.min.js"></script>
-  <script src="app.js?v=60.0"></script>
+  <script src="app.js?v=61.0"></script>
 </body>
 </html>

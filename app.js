@@ -662,9 +662,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   setupEventListeners();
 
-  renderLanguageUI();
-  renderQuestion(0);
-
   autoVerifyPaymentOnLoad();
 
   const restored = restoreAppState();
@@ -672,12 +669,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Fresh load — clear any stale state and show language selector
     clearAppState();
     const modal = document.getElementById('lang-select-modal');
-    if (modal) {
-      modal.classList.remove('hidden');
-      modal.style.display = 'flex';
-      modal.style.opacity = '1';
-      modal.style.pointerEvents = 'auto';
-    }
+    if (modal) modal.classList.remove('hidden');
     renderLanguageUI();
     renderQuestion(0);
   }
@@ -778,8 +770,6 @@ function selectInitialLanguage(lang) {
   if (modal) {
     modal.classList.add('hidden');
     modal.style.display = 'none';
-    modal.style.opacity = '0';
-    modal.style.pointerEvents = 'none';
   }
 
   renderLanguageUI();

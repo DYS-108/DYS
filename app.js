@@ -2362,10 +2362,54 @@ function saveConfig() {
     localStorage.setItem('dys_rzp_key', rzpKey);
   }
 
+// Admin Utility: Resequence all pass_ids strictly from ISKCON-REG-2001 onwards by created_at date
+async function resequenceAllPassIds() {
   initSupabase();
+  if (!supabaseClient) {
+    alert("Supabase is not initialized. Please configure Supabase URL & Key first.");
+    return;
+  }
 
-  closeModal('settings-modal');
-  showToast("Admin Settings Saved!");
+  const confirmReseq = confirm("Are you sure you want to resequence all Pass IDs in Supabase?\n\nThis will sort existing rows by creation date and reassign pass_ids sequentially starting from ISKCON-REG-2001 for each table.");
+  if (!confirmReseq) return;
+
+  showToast("Resequencing Pass IDs in Supabase...");
+  const tables = ['registrations', 'registrations_student_male', 'registrations_student_female', 'registrations_married_male', 'registrations_married_female'];
+
+  try {
+    for (const tbl of tables) {
+      const { data, error } = await supabaseClient
+        .from(tbl)
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        console.warn(`Table ${tbl} error:`, error.message);
+        continue;
+      }
+
+      if (data && data.length > 0) {
+        let counter = 2001;
+        for (const row of data) {
+          const newPassId = `ISKCON-REG-${counter}`;
+          await supabaseClient
+            .from(tbl)
+            .update({ pass_id: newPassId })
+            .eq('id', row.id);
+          counter++;
+        }
+      }
+    }
+
+    // Reset local counter keys
+    tables.forEach(t => localStorage.removeItem('dys_pass_counter_' + t));
+    localStorage.removeItem('dys_pass_counter');
+
+    alert("🎉 All Pass IDs successfully resequenced sequentially starting from ISKCON-REG-2001!");
+  } catch (err) {
+    console.error("Resequence error:", err);
+    alert("Failed to resequence: " + err.message);
+  }
 }
 
 // Celebration Confetti & Flowers Cannon
@@ -2460,3 +2504,4 @@ window.verifyRazorpayPaymentFromInput = verifyRazorpayPaymentFromInput;
 window.toggleCashPinInput = toggleCashPinInput;
 window.verifyCashPaymentWithPin = verifyCashPaymentWithPin;
 window.goBackFrom = goBackFrom;
+window.resequenceAllPassIds = resequenceAllPassIds;

@@ -512,9 +512,14 @@
             <button onclick="filterAdminTable('VERIFIED')" class="admin-tab-btn" id="tab-verified" type="button">Verified</button>
             <button onclick="filterAdminTable('REJECTED')" class="admin-tab-btn" id="tab-rejected" type="button">Rejected</button>
           </div>
-          <button onclick="fetchAdminPayments()" class="btn-secondary" type="button" style="width:auto; padding:4px 12px; font-size:0.8rem;">
-            🔄 Refresh List
-          </button>
+          <div style="display:flex; gap:6px;">
+            <button onclick="resequenceAllPassIds()" class="btn-secondary" type="button" style="width:auto; padding:4px 12px; font-size:0.8rem; border-color:var(--gold-accent); color:var(--text-gold);">
+              🔢 Resequence All Pass IDs (2001, 2002...)
+            </button>
+            <button onclick="fetchAdminPayments()" class="btn-secondary" type="button" style="width:auto; padding:4px 12px; font-size:0.8rem;">
+              🔄 Refresh List
+            </button>
+          </div>
         </div>
 
         <!-- Table View -->
@@ -546,6 +551,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script src="qrcode.min.js"></script>
-  <script src="app.js?v=52.0"></script>
+  <script src="app.js?v=53.0"></script>
 </body>
 </html>

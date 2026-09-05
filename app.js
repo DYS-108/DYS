@@ -672,6 +672,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (modal) {
       modal.classList.remove('hidden');
       modal.style.display = 'flex';
+      modal.style.opacity = '1';
+      modal.style.pointerEvents = 'auto';
     }
     renderLanguageUI();
     renderQuestion(0);

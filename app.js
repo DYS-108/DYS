@@ -662,6 +662,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   setupEventListeners();
 
+  renderLanguageUI();
+  renderQuestion(0);
+
   autoVerifyPaymentOnLoad();
 
   const restored = restoreAppState();

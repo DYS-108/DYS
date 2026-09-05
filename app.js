@@ -1618,24 +1618,40 @@ function setGender(g) {
 // Sequential Pass ID Generator Counter (ISKCON-REG-2001, 2002...)
 async function getNextPassId(categoryTable) {
   initSupabase();
-  let baseCount = 2000;
+  let maxPassNum = 2000;
   const targetTable = categoryTable || 'registrations_student_male';
+  
   if (supabaseClient) {
     try {
-      const { count, error } = await supabaseClient
+      // Query recent records from target table to find the highest pass_id number
+      const { data, error } = await supabaseClient
         .from(targetTable)
-        .select('*', { count: 'exact', head: true });
-      if (!error && typeof count === 'number') {
-        baseCount = 2000 + count;
+        .select('pass_id')
+        .order('created_at', { ascending: false })
+        .limit(100);
+
+      if (!error && data && data.length > 0) {
+        data.forEach(row => {
+          if (row.pass_id) {
+            // Extract numeric sequence (e.g. from 'ISKCON-REG-2012' or 'ISKCON-REG-2012-550' -> 2012)
+            const match = row.pass_id.match(/ISKCON-REG-(\d+)/i);
+            if (match && match[1]) {
+              const num = parseInt(match[1], 10);
+              if (!isNaN(num) && num > maxPassNum) {
+                maxPassNum = num;
+              }
+            }
+          }
+        });
       }
     } catch (e) {
-      console.warn("Could not fetch count from Supabase category table, using fallback:", e);
+      console.warn("Could not fetch max pass_id from Supabase, using local fallback:", e);
     }
   }
 
   let storageKey = 'dys_pass_counter_' + targetTable;
   let localCounter = parseInt(localStorage.getItem(storageKey) || '2000');
-  let finalCount = Math.max(baseCount + 1, localCounter + 1);
+  let finalCount = Math.max(maxPassNum + 1, localCounter + 1);
   localStorage.setItem(storageKey, finalCount.toString());
 
   return 'ISKCON-REG-' + finalCount;

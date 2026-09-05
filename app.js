@@ -571,9 +571,8 @@ function restoreAppState() {
     renderLanguageUI();
 
     const modal = document.getElementById('lang-select-modal');
-    if (modal) {
+    if (modal && state.activeScreenId !== 'screen-quiz') {
       modal.classList.add('hidden');
-      modal.style.display = 'none';
     }
 
     const screens = document.querySelectorAll('.view-screen');
@@ -670,10 +669,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Fresh load — clear any stale state and show language selector
     clearAppState();
     const modal = document.getElementById('lang-select-modal');
-    if (modal) {
-      modal.classList.remove('hidden');
-      modal.style.display = 'flex';
-    }
+    if (modal) modal.classList.remove('hidden');
     renderLanguageUI();
     renderQuestion(0);
   }
@@ -2111,6 +2107,14 @@ function copyUpiId() {
   });
 }
 
+function saveConfig(rzpKey) {
+  if (rzpKey) {
+    appConfig.razorpayKeyId = rzpKey;
+    localStorage.setItem('dys_rzp_key', rzpKey);
+  }
+}
+
+// Admin Utility: Resequence all pass_ids strictly from ISKCON-REG-2001 onwards by created_at date
 // Section 9: UTR Submission (Post-Payment Action)
 async function submitUtrPayment() {
   const utrInput = document.getElementById('input-utr');
@@ -2365,6 +2369,7 @@ function saveConfig() {
     appConfig.razorpayKeyId = rzpKey;
     localStorage.setItem('dys_rzp_key', rzpKey);
   }
+}
 
 // Admin Utility: Resequence all pass_ids strictly from ISKCON-REG-2001 onwards by created_at date
 async function resequenceAllPassIds() {

@@ -669,7 +669,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Fresh load — clear any stale state and show language selector
     clearAppState();
     const modal = document.getElementById('lang-select-modal');
-    if (modal) modal.classList.remove('hidden');
+    if (modal) {
+      modal.classList.remove('hidden');
+      modal.style.display = 'flex';
+    }
     renderLanguageUI();
     renderQuestion(0);
   }

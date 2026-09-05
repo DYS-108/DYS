@@ -773,6 +773,8 @@ function selectInitialLanguage(lang) {
   if (modal) {
     modal.classList.add('hidden');
     modal.style.display = 'none';
+    modal.style.opacity = '0';
+    modal.style.pointerEvents = 'none';
   }
 
   renderLanguageUI();

@@ -432,7 +432,7 @@ app.post('/api/payments/razorpay/verify', (req, res) => {
     if (reg) {
       reg.status = 'VERIFIED';
       reg.updated_at = new Date().toISOString();
-      syncToSupabase(reg, payment);
+      // syncToSupabase(reg, payment);
     }
 
     writeDB(db);
@@ -505,7 +505,7 @@ app.post('/api/payments/razorpay/fetch-and-verify', async (req, res) => {
     if (reg) {
       reg.status = 'VERIFIED';
       reg.updated_at = new Date().toISOString();
-      syncToSupabase(reg, payment);
+      // syncToSupabase(reg, payment);
     }
 
     writeDB(db);
@@ -562,7 +562,7 @@ app.post('/api/payments/verify-cash', (req, res) => {
     if (reg) {
       reg.status = 'VERIFIED';
       reg.updated_at = new Date().toISOString();
-      syncToSupabase(reg, payment);
+      // syncToSupabase(reg, payment);
     }
 
     writeDB(db);
@@ -633,9 +633,9 @@ app.post('/api/registration/complete', (req, res) => {
 
     writeDB(db);
 
-    // Sync to Supabase Cloud Database asynchronously
-    const payment = db.payments.find(p => p.registration_id === registration_id);
-    syncToSupabase(reg, payment);
+    // Sync handled on client-side app.js to prevent duplicate inserts
+    // const payment = db.payments.find(p => p.registration_id === registration_id);
+    // syncToSupabase(reg, payment);
 
     return res.json({ success: true, registration: reg });
   } catch (err) {
@@ -647,7 +647,19 @@ app.post('/api/registration/complete', (req, res) => {
 async function syncToSupabase(reg, payment) {
   if (!SUPABASE_URL || !SUPABASE_KEY || SUPABASE_URL === 'YOUR_SUPABASE_PROJECT_URL') return;
   try {
-    const baseUrl = SUPABASE_URL.trim().replace(/\/rest\/v1\/?$/i, '').replace(/\/+$/, '') + '/rest/v1';
+    const cleanUrl = SUPABASE_URL.trim().replace(/\/rest\/v1\/?$/i, '').replace(/\/+$/, '') + '/rest/v1/registrations';
+    let modeStr = 'ONLINE';
+    if (payment && payment.method) {
+      const pm = String(payment.method).toUpperCase();
+      modeStr = pm.includes('CASH') ? 'CASH' : (pm.includes('RAZORPAY') ? 'RAZORPAY' : pm);
+    } else if (payment) {
+      modeStr = 'RAZORPAY';
+    }
+    let remarkText = reg.remarks || '';
+    if (!remarkText.includes('Mode:')) {
+      remarkText = `Mode: ${modeStr}${remarkText ? ' | ' + remarkText : ''}`;
+    }
+
     const payload = {
       pass_id: reg.registration_id,
       full_name: reg.full_name || 'Participant',
@@ -664,38 +676,52 @@ async function syncToSupabase(reg, payment) {
       paid_amount: (payment && payment.amount) || reg.calculated_fee || 150,
       utr_number: (payment && payment.utr) || null,
       language: reg.language || 'en',
-      remarks: reg.remarks || null
+      remarks: remarkText || null
     };
 
-    // 1. Sync to Master Table 'registrations'
-    fetch(`${baseUrl}/registrations`, {
-      method: 'POST',
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify([payload])
-    }).catch(e => console.warn("[Supabase Master Sync Warning]:", e.message));
+    // 1. Sync to Master registrations table
+    try {
+      await fetch(cleanUrl, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify(payload)
+      });
+    } catch (mErr) { console.warn("[Supabase Master Sync Warning]:", mErr.message); }
 
-    // 2. Sync to Demographic Target Table ('registrations_student_male' / 'registrations_student_female' / 'registrations_married')
-    let demoTable = 'registrations_student_male';
-    if (reg.marital_status === 'married') {
-      demoTable = 'registrations_married';
-    } else if (reg.gender === 'female') {
-      demoTable = 'registrations_student_female';
+    // 2. Sync to Category Table (e.g. registrations_student_male)
+    let categoryTable = 'registrations_student_male';
+    const mStatus = (reg.marital_status || 'single').toLowerCase();
+    const gGender = (reg.gender || 'male').toLowerCase();
+
+    if (mStatus === 'married') {
+      categoryTable = (gGender === 'female') ? 'registrations_married_female' : 'registrations_married_male';
+    } else {
+      categoryTable = (gGender === 'female') ? 'registrations_student_female' : 'registrations_student_male';
     }
 
-    fetch(`${baseUrl}/${demoTable}`, {
+    const catUrl = SUPABASE_URL.trim().replace(/\/rest\/v1\/?$/i, '').replace(/\/+$/, '') + '/rest/v1/' + categoryTable;
+    const catRes = await fetch(catUrl, {
       method: 'POST',
       headers: {
         'apikey': SUPABASE_KEY,
         'Authorization': `Bearer ${SUPABASE_KEY}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
       },
-      body: JSON.stringify([payload])
-    }).catch(e => console.warn(`[Supabase ${demoTable} Sync Warning]:`, e.message));
+      body: JSON.stringify(payload)
+    });
 
+    if (catRes.ok) {
+      console.log(`[Supabase Category Sync Success] Saved to BOTH master and ${categoryTable}.`);
+    } else {
+      const errText = await catRes.text();
+      console.warn(`[Supabase Category Sync Warning ${categoryTable}]:`, errText);
+    }
   } catch (e) {
     console.error("[Supabase Sync Exception]:", e.message);
   }

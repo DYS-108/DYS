@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Discover Your Self - Bhagavad Gita Quiz & Course Registration</title>
   <meta name="description" content="Discover Your Self Course Registration & Bhagavad Gita Quiz. Earn up to 50% scholarship discount!">
-  <link rel="stylesheet" href="style.css?v=17.0">
+  <link rel="stylesheet" href="style.css?v=22.0">
 </head>
 <body>
 
@@ -39,9 +39,15 @@
         Taking your first step towards self-discovery! ✨
       </div>
 
-      <div class="quiz-meta-row" style="margin-top: 6px;">
-        <span id="quiz-progress-text" class="question-badge">Q 1/10</span>
-        <span id="txt-marking-notice" class="marking-info-tag">Marking: +2 Correct | -1 Wrong | 0 Unattempted</span>
+      <div class="quiz-meta-row" style="margin-top: 6px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+        <span id="quiz-progress-text" class="question-badge" style="font-size: 0.88rem; padding: 4px 12px;">Q 1/10</span>
+        
+        <!-- Prominent Large Timer Badge -->
+        <span id="quiz-timer-badge" style="background: rgba(239, 68, 68, 0.15); border: 1.5px solid #EF4444; color: #FF9999; padding: 5px 16px; border-radius: 20px; font-size: 1.15rem; font-weight: 900; font-family: monospace; display: flex; align-items: center; gap: 6px; box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);">
+          ⏱️ <span id="quiz-timer-clock">05:00</span>
+        </span>
+
+        <span id="txt-marking-notice" class="marking-info-tag" style="font-size: 0.78rem;">Marking: +2 -1 0</span>
       </div>
 
       <!-- 10 Question Quick Navigation Grid (Always Visible) -->
@@ -103,9 +109,11 @@
           <!-- Dynamically populated -->
         </div>
 
-        <!-- Score-Based Conditional CTA Box (< 60% vs >= 60%) -->
+        <!-- Score-Based Conditional CTA Box (< 50% vs >= 50%) -->
         <div id="res-conditional-cta-box" style="margin-top:16px;">
-          <!-- Dynamically populated in app.js -->
+          <button id="btn-result-cta" onclick="gotoCourseDetailsPage()" type="button" class="btn-primary btn-spiritual-cta" style="padding: 18px 16px; font-size: 1.08rem; width: 100%; border-radius: 14px;">
+            🎉 Congratulations! Click here to redeem your reward 🎁
+          </button>
         </div>
       </div>
     </main>
@@ -137,14 +145,15 @@
           <div class="highlight-chip"><span id="lbl-tag-meditation">✨ Mantra Meditation</span></div>
         </div>
 
+        <!-- Button shifted between text grid & poster image -->
+        <button id="btn-goto-payment" onclick="gotoPaymentScreen()" type="button" class="btn-primary" style="margin: 20px 0; background: linear-gradient(135deg, #FF7700, #F59E0B); padding: 18px 16px; font-size: 1.05rem;">
+          Proceed to Register & Pay Fee 💳
+        </button>
+
         <!-- 8-Session Journey Poster Section -->
         <div style="margin: 20px 0;">
           <img src="dys_poster_new.png?v=16.0" alt="Discover Your Self 8-Session Journey Poster" class="rsp-poster-img">
         </div>
-
-        <button id="btn-goto-payment" onclick="gotoPaymentScreen()" type="button" class="btn-primary" style="margin-top:20px; background: linear-gradient(135deg, #FF7700, #F59E0B);">
-          Proceed to Register & Pay Fee 💳
-        </button>
       </div>
     </main>
 
@@ -194,8 +203,8 @@
 
         <!-- Cash Payment Mode Collapsible Box -->
         <div id="cash-payment-container" style="background: rgba(245, 158, 11, 0.08); border: 1px dashed rgba(245, 158, 11, 0.3); border-radius: 14px; padding: 14px 16px; margin-bottom: 16px; text-align: center;">
-          <button onclick="toggleCashPinInput()" type="button" class="btn-secondary" style="width:100%; border-color:var(--gold-accent); color:var(--text-gold); font-weight:700; padding:10px; font-size:0.88rem;">
-            💵 Pay via Cash (Admin Passcode Verification)
+          <button onclick="toggleCashPinInput()" type="button" class="btn-secondary" style="width:100%; border-color:var(--gold-accent); color:var(--text-gold); font-weight:700; padding:12px; font-size:1.02rem;">
+            💵 Pay via Cash
           </button>
 
           <div id="cash-pin-wrapper" class="hidden" style="margin-top: 12px; text-align: left;">
@@ -503,9 +512,14 @@
             <button onclick="filterAdminTable('VERIFIED')" class="admin-tab-btn" id="tab-verified" type="button">Verified</button>
             <button onclick="filterAdminTable('REJECTED')" class="admin-tab-btn" id="tab-rejected" type="button">Rejected</button>
           </div>
-          <button onclick="fetchAdminPayments()" class="btn-secondary" type="button" style="width:auto; padding:4px 12px; font-size:0.8rem;">
-            🔄 Refresh List
-          </button>
+          <div style="display:flex; gap:6px;">
+            <button onclick="resequenceAllPassIds()" class="btn-secondary" type="button" style="width:auto; padding:4px 12px; font-size:0.8rem; border-color:var(--gold-accent); color:var(--text-gold);">
+              🔢 Resequence All Pass IDs (2001, 2002...)
+            </button>
+            <button onclick="fetchAdminPayments()" class="btn-secondary" type="button" style="width:auto; padding:4px 12px; font-size:0.8rem;">
+              🔄 Refresh List
+            </button>
+          </div>
         </div>
 
         <!-- Table View -->
@@ -537,6 +551,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script src="qrcode.min.js"></script>
-  <script src="app.js?v=33.0"></script>
+  <script src="app.js?v=64.0"></script>
 </body>
 </html>

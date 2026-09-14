@@ -341,7 +341,7 @@ const uiText = {
     nextBtn: "Next Question ➔",
     prevBtn: "⬅ Previous",
     submitBtn: "Submit Test & Review Score 🎯",
-    markingNotice: "Marking: +2 Correct | -1 Wrong | 0 Unattempted",
+    markingNotice: "Marking: +2 -1 0",
     congratsTitle: "Test Completed Successfully!",
     scoreTotal: "/ 20 Marks",
     correctCountLabel: "Correct Answers (+2):",
@@ -434,7 +434,7 @@ const uiText = {
     nextBtn: "अगला प्रश्न ➔",
     prevBtn: "⬅ पिछला",
     submitBtn: "टेस्ट जमा करें और स्कोर देखें 🎯",
-    markingNotice: "+2 सही | -1 गलत | 0 अनुत्तरित",
+    markingNotice: "अंक योजना: +2 -1 0",
     congratsTitle: "परीक्षण सफलतापूर्वक पूर्ण!",
     scoreTotal: "/ 20 अंक",
     correctCountLabel: "सही उत्तर (+2):",
@@ -523,10 +523,10 @@ const uiText = {
   }
 };
 
-// State Persistence Helpers (Survives app switching to GPay & page reloads)
+// State Persistence Helpers (Survives app switching to GPay & page reloads in current tab, opens fresh on new tabs)
 function saveAppState(activeScreenId) {
-  // Only save state when on payment screen or beyond (to survive UPI app switch)
-  const screensToSave = ['screen-payment', 'screen-registration', 'screen-pass', 'screen-course'];
+  // Only save state when on payment screen or beyond (to survive UPI app switch & page reloads in same tab)
+  const screensToSave = ['screen-payment', 'screen-registration', 'screen-pass', 'screen-course', 'screen-result'];
   if (!screensToSave.includes(activeScreenId)) return;
 
   try {
@@ -536,10 +536,10 @@ function saveAppState(activeScreenId) {
       userAnswers,
       currentQuestionIndex,
       studentData,
-      lastCalculatedResult
+      lastCalculatedResult,
+      timestamp: Date.now()
     };
     sessionStorage.setItem('dys_app_session_state', JSON.stringify(state));
-    // Mark that we're in an active session (payment in progress)
     sessionStorage.setItem('dys_payment_redirect', '1');
   } catch (e) {}
 }
@@ -553,7 +553,6 @@ function clearAppState() {
 
 function restoreAppState() {
   try {
-    // Only restore if we set a payment redirect flag (user went to UPI app & came back)
     const isPaymentRedirect = sessionStorage.getItem('dys_payment_redirect');
     if (!isPaymentRedirect) return false;
 
@@ -584,10 +583,13 @@ function restoreAppState() {
       target.classList.remove('hidden');
     }
 
-    if (state.activeScreenId === 'screen-payment' && lastCalculatedResult) {
-      generateUpiQR(lastCalculatedResult.payableAmount);
+    if (state.activeScreenId === 'screen-payment') {
+      gotoPaymentScreen();
+      showToast("Welcome back! Restored your quiz session & payment state ➔");
     } else if (state.activeScreenId === 'screen-course' && lastCalculatedResult) {
       updateCoursePageUI(lastCalculatedResult.finalPercent, lastCalculatedResult.discountPercentage);
+    } else if (state.activeScreenId === 'screen-result' && lastCalculatedResult) {
+      calculateResultsAndShow(lastCalculatedResult.existingRecord);
     }
 
     return true;
@@ -706,6 +708,59 @@ function switchScreen(fromId, toId) {
   }
 }
 
+// 5-Minute Quiz Countdown Timer
+let quizTimerInterval = null;
+let quizTimeRemainingSeconds = 300; // 5 minutes = 300 seconds
+
+function startQuizTimer() {
+  stopQuizTimer(); // Clear any existing interval
+  quizTimeRemainingSeconds = 300;
+  updateTimerDisplay();
+
+  quizTimerInterval = setInterval(() => {
+    quizTimeRemainingSeconds--;
+    updateTimerDisplay();
+
+    if (quizTimeRemainingSeconds <= 0) {
+      stopQuizTimer();
+      showToast("⏰ Time's up! Auto-submitting test now...");
+      setTimeout(() => {
+        calculateResultsAndShow();
+      }, 500);
+    }
+  }, 1000);
+}
+
+function stopQuizTimer() {
+  if (quizTimerInterval) {
+    clearInterval(quizTimerInterval);
+    quizTimerInterval = null;
+  }
+}
+
+function updateTimerDisplay() {
+  const clock = document.getElementById('quiz-timer-clock');
+  const badge = document.getElementById('quiz-timer-badge');
+  if (!clock) return;
+
+  const minutes = Math.floor(Math.max(0, quizTimeRemainingSeconds) / 60);
+  const seconds = Math.max(0, quizTimeRemainingSeconds) % 60;
+  const formatted = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  clock.innerText = formatted;
+
+  if (badge) {
+    if (quizTimeRemainingSeconds <= 60) {
+      badge.style.background = 'rgba(239, 68, 68, 0.3)';
+      badge.style.borderColor = '#EF4444';
+      badge.style.color = '#FF9999';
+    } else {
+      badge.style.background = 'rgba(239, 68, 68, 0.15)';
+      badge.style.borderColor = '#EF4444';
+      badge.style.color = '#FCA5A5';
+    }
+  }
+}
+
 // Initial Language Selection Callback
 function selectInitialLanguage(lang) {
   currentLang = lang || 'en';
@@ -720,6 +775,7 @@ function selectInitialLanguage(lang) {
   renderLanguageUI();
   switchScreen(null, 'screen-quiz');
   renderQuestion(0);
+  startQuizTimer();
 }
 
 // Toggle Language Button Handler
@@ -1064,13 +1120,14 @@ async function calculateResultsAndShow(existingRecord) {
           : `🎉 बधाई हो! अपना इनाम पाने के लिए यहाँ क्लिक करें 🎁`;
 
         ctaBox.innerHTML = `
-          <button id="btn-result-cta" onclick="gotoCourseDetailsPage()" type="button" class="btn-primary" style="background: linear-gradient(135deg, #FF7700, #F59E0B); padding: 18px 16px; font-size: 1.05rem; width: 100%; border-radius: 14px; box-shadow: 0 8px 25px rgba(255, 119, 0, 0.4);">
+          <button id="btn-result-cta" onclick="gotoCourseDetailsPage()" type="button" class="btn-primary btn-spiritual-cta" style="padding: 18px 16px; font-size: 1.08rem; width: 100%; border-radius: 14px;">
             ${btnText}
           </button>
         `;
       }
     }
 
+    stopQuizTimer();
     switchScreen('screen-quiz', 'screen-result');
     triggerConfetti();
   } catch (err) {
@@ -1110,15 +1167,32 @@ function renderRazorpayPaymentButton(buttonId) {
   const wrapper = document.getElementById('razorpay-hosted-button-wrapper');
   if (!wrapper) return;
 
-  wrapper.innerHTML = ''; // Reset wrapper
-  const form = document.createElement('form');
-  const script = document.createElement('script');
-  script.src = 'https://checkout.razorpay.com/v1/payment-button.js';
-  script.setAttribute('data-payment_button_id', buttonId);
-  script.async = true;
+  // Render instantaneous native Pay Now button first (100% reliable on mobile networks)
+  wrapper.innerHTML = `
+    <button id="btn-instant-pay-now" onclick="payWithRazorpay()" type="button" class="btn-primary" style="background: linear-gradient(135deg, #10B981, #059669); padding: 18px 24px; font-size: 1.15rem; font-weight: 900; width: 100%; border-radius: 14px; box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4); display: flex; align-items: center; justify-content: center; gap: 8px;">
+      💳 PAY NOW WITH RAZORPAY
+    </button>
+  `;
 
-  form.appendChild(script);
-  wrapper.appendChild(form);
+  // Asynchronously attempt to load Razorpay Hosted Payment Button script
+  try {
+    const form = document.createElement('form');
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/payment-button.js';
+    script.setAttribute('data-payment_button_id', buttonId);
+    script.async = true;
+
+    script.onload = () => {
+      // If Razorpay hosted button script loaded successfully, replace fallback wrapper cleanly
+      const instantBtn = document.getElementById('btn-instant-pay-now');
+      if (instantBtn) instantBtn.remove();
+    };
+
+    form.appendChild(script);
+    wrapper.appendChild(form);
+  } catch (err) {
+    console.warn("Razorpay hosted button script load notice:", err);
+  }
 }
 
 function checkIsPaymentCompleted() {
@@ -1172,6 +1246,7 @@ async function verifyCashPaymentWithPin() {
 
     if (res.ok && data.verified) {
       sessionStorage.setItem('dys_payment_completed', '1');
+      currentPaymentData = { method: 'cash', status: 'CASH_VERIFIED' };
       const msgTag = document.getElementById('verified-success-msg');
       if (msgTag) msgTag.innerText = "🎉 Cash Payment Verified by Admin! ✓";
 
@@ -1192,6 +1267,7 @@ async function verifyCashPaymentWithPin() {
     console.warn("Backend verify cash notice:", err);
     if (passcode === '108108' || passcode === 'admin123') {
       sessionStorage.setItem('dys_payment_completed', '1');
+      currentPaymentData = { method: 'cash', status: 'CASH_VERIFIED' };
       const msgTag = document.getElementById('verified-success-msg');
       if (msgTag) msgTag.innerText = "🎉 Cash Payment Verified by Admin! ✓";
 
@@ -1515,12 +1591,12 @@ function setMaritalStatus(status) {
   if (status === 'single') {
     if (btnSingle) btnSingle.classList.add('active');
     if (btnMarried) btnMarried.classList.remove('active');
-    if (boxSingleGender) boxSingleGender.classList.remove('hidden');
   } else {
     if (btnMarried) btnMarried.classList.add('active');
     if (btnSingle) btnSingle.classList.remove('active');
-    if (boxSingleGender) boxSingleGender.classList.add('hidden');
   }
+  // Gender is always available for all candidates (Single & Married)
+  if (boxSingleGender) boxSingleGender.classList.remove('hidden');
 }
 
 // Gender Selector Toggle ('male' vs 'female')
@@ -1540,15 +1616,53 @@ function setGender(g) {
 }
 
 // Sequential Pass ID Generator Counter (ISKCON-REG-2001, 2002...)
-function getNextPassId() {
-  let counter = parseInt(localStorage.getItem('dys_pass_counter') || '2000');
-  counter++;
-  localStorage.setItem('dys_pass_counter', counter.toString());
-  return 'ISKCON-REG-' + counter;
+async function getNextPassId(categoryTable) {
+  initSupabase();
+  let maxPassNum = 2000;
+  const targetTable = categoryTable || 'registrations_student_male';
+  
+  if (supabaseClient) {
+    try {
+      // Query recent records from target table to find the highest pass_id number
+      const { data, error } = await supabaseClient
+        .from(targetTable)
+        .select('pass_id')
+        .order('created_at', { ascending: false })
+        .limit(100);
+
+      if (!error && data && data.length > 0) {
+        data.forEach(row => {
+          if (row.pass_id) {
+            // Extract numeric sequence (e.g. from 'ISKCON-REG-2012' or 'ISKCON-REG-2012-550' -> 2012)
+            const match = row.pass_id.match(/ISKCON-REG-(\d+)/i);
+            if (match && match[1]) {
+              const num = parseInt(match[1], 10);
+              if (!isNaN(num) && num > maxPassNum) {
+                maxPassNum = num;
+              }
+            }
+          }
+        });
+      }
+    } catch (e) {
+      console.warn("Could not fetch max pass_id from Supabase, using local fallback:", e);
+    }
+  }
+
+  let storageKey = 'dys_pass_counter_' + targetTable;
+  let localCounter = parseInt(localStorage.getItem(storageKey) || '2000');
+  let finalCount = Math.max(maxPassNum + 1, localCounter + 1);
+  localStorage.setItem(storageKey, finalCount.toString());
+  const randomSuffix = Math.floor(100 + Math.random() * 900);
+  return 'ISKCON-REG-' + finalCount + '-' + randomSuffix;
 }
 
+let isSubmittingRegistration = false;
+
 // Complete Registration & Generate Pass Ticket
-function completeRegistrationAndGeneratePass() {
+async function completeRegistrationAndGeneratePass() {
+  if (isSubmittingRegistration) return;
+
   const name = document.getElementById('input-name').value.trim();
   const age = document.getElementById('input-age').value.trim();
   const phone = document.getElementById('input-phone').value.trim();
@@ -1556,6 +1670,14 @@ function completeRegistrationAndGeneratePass() {
   if (!name || !age || !phone) {
     showToast(uiText[currentLang].fillErrorReg);
     return;
+  }
+
+  isSubmittingRegistration = true;
+  const submitBtn = document.getElementById('btn-complete-registration');
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.style.opacity = '0.6';
+    submitBtn.style.cursor = 'not-allowed';
   }
 
   studentData.name = name;
@@ -1569,7 +1691,16 @@ function completeRegistrationAndGeneratePass() {
   studentData.position = document.getElementById('input-position') ? document.getElementById('input-position').value.trim() : '';
   studentData.remarks = document.getElementById('input-remarks') ? document.getElementById('input-remarks').value.trim() : '';
 
-  let regPassId = getNextPassId();
+  let categoryTable = 'registrations_student_male';
+  const mStatus = (studentData.maritalStatus || 'single').toLowerCase();
+  const gGender = (studentData.gender || 'male').toLowerCase();
+  if (mStatus === 'married') {
+    categoryTable = (gGender === 'female') ? 'registrations_married_female' : 'registrations_married_male';
+  } else {
+    categoryTable = (gGender === 'female') ? 'registrations_student_female' : 'registrations_student_male';
+  }
+
+  let regPassId = await getNextPassId(categoryTable);
   const nowStr = new Date().toLocaleString();
 
   document.getElementById('pass-reg-id').innerText = regPassId;
@@ -1638,6 +1769,15 @@ function completeRegistrationAndGeneratePass() {
 
   switchScreen('screen-registration', 'screen-pass');
 
+  // Clear temporary payment session state once pass is generated
+  clearAppState();
+  isSubmittingRegistration = false;
+  if (submitBtn) {
+    submitBtn.disabled = false;
+    submitBtn.style.opacity = '1';
+    submitBtn.style.cursor = 'pointer';
+  }
+
   // Confetti Explosion
   triggerConfetti();
   showToast(uiText[currentLang].paymentSuccessToast);
@@ -1668,8 +1808,18 @@ async function saveRegistrationToSupabase(record) {
 
   try {
     let combinedRemarks = studentData.remarks || '';
+    let payMethod = 'ONLINE';
+    if (currentPaymentData && currentPaymentData.method) {
+      const m = String(currentPaymentData.method).toUpperCase();
+      payMethod = m.includes('CASH') ? 'CASH' : (m.includes('RAZORPAY') ? 'RAZORPAY' : m);
+    } else {
+      payMethod = 'RAZORPAY';
+    }
+
     if (studentData.address) {
-      combinedRemarks = combinedRemarks ? `Address: ${studentData.address} | ${combinedRemarks}` : `Address: ${studentData.address}`;
+      combinedRemarks = `Address: ${studentData.address} | Mode: ${payMethod}${combinedRemarks ? ' | ' + combinedRemarks : ''}`;
+    } else {
+      combinedRemarks = `Mode: ${payMethod}${combinedRemarks ? ' | ' + combinedRemarks : ''}`;
     }
 
     const utrVal = (currentPaymentData && currentPaymentData.utr) || (document.getElementById('input-utr') ? document.getElementById('input-utr').value.trim() : null);
@@ -1693,31 +1843,27 @@ async function saveRegistrationToSupabase(record) {
       remarks: combinedRemarks || null
     };
 
-    // 1. Insert into Master Table 'registrations'
-    const masterRes = await supabaseClient.from('registrations').insert([payload]);
-    if (masterRes.error) {
-      console.warn("Supabase Master DB Save Warning:", masterRes.error);
-    } else {
-      console.log("Registration successfully saved to Supabase Master Table 'registrations'!", masterRes.data);
-    }
-
-    // 2. Insert into Demographic Target Table ('registrations_student_male' / 'registrations_student_female' / 'registrations_married')
-    let demoTable = 'registrations_student_male';
-    if (studentData.maritalStatus === 'married') {
-      demoTable = 'registrations_married';
-    } else if (studentData.gender === 'female') {
-      demoTable = 'registrations_student_female';
-    }
-
+    // 1. Master Registrations Table Save (Upsert by pass_id to prevent duplicates)
     try {
-      const demoRes = await supabaseClient.from(demoTable).insert([payload]);
-      if (demoRes.error) {
-        console.warn(`Supabase Demographic Table ('${demoTable}') Warning:`, demoRes.error);
-      } else {
-        console.log(`Registration successfully saved to Supabase Demographic Table '${demoTable}'!`, demoRes.data);
-      }
-    } catch (demoErr) {
-      console.warn(`Supabase Demographic Table ('${demoTable}') Exception:`, demoErr);
+      await supabaseClient.from('registrations').upsert([payload], { onConflict: 'pass_id' });
+    } catch (mErr) { console.warn("Master table save warning:", mErr); }
+
+    // 2. Specific Category Table Save (e.g. registrations_student_male)
+    let categoryTable = 'registrations_student_male';
+    const mStatus = (studentData.maritalStatus || 'single').toLowerCase();
+    const gGender = (studentData.gender || 'male').toLowerCase();
+
+    if (mStatus === 'married') {
+      categoryTable = (gGender === 'female') ? 'registrations_married_female' : 'registrations_married_male';
+    } else {
+      categoryTable = (gGender === 'female') ? 'registrations_student_female' : 'registrations_student_male';
+    }
+
+    const { data: catData, error: catError } = await supabaseClient.from(categoryTable).upsert([payload], { onConflict: 'pass_id' });
+    if (catError) {
+      console.warn(`Supabase Category Table (${categoryTable}) Save Warning:`, catError);
+    } else {
+      console.log(`Registration successfully saved to BOTH master and Category DB (${categoryTable})!`, catData);
     }
   } catch (e) {
     console.error("Supabase Connection Exception:", e);
@@ -1960,6 +2106,14 @@ function copyUpiId() {
   });
 }
 
+function saveConfig(rzpKey) {
+  if (rzpKey) {
+    appConfig.razorpayKeyId = rzpKey;
+    localStorage.setItem('dys_rzp_key', rzpKey);
+  }
+}
+
+// Admin Utility: Resequence all pass_ids strictly from ISKCON-REG-2001 onwards by created_at date
 // Section 9: UTR Submission (Post-Payment Action)
 async function submitUtrPayment() {
   const utrInput = document.getElementById('input-utr');
@@ -2214,11 +2368,56 @@ function saveConfig() {
     appConfig.razorpayKeyId = rzpKey;
     localStorage.setItem('dys_rzp_key', rzpKey);
   }
+}
 
+// Admin Utility: Resequence all pass_ids strictly from ISKCON-REG-2001 onwards by created_at date
+async function resequenceAllPassIds() {
   initSupabase();
+  if (!supabaseClient) {
+    alert("Supabase is not initialized. Please configure Supabase URL & Key first.");
+    return;
+  }
 
-  closeModal('settings-modal');
-  showToast("Admin Settings Saved!");
+  const confirmReseq = confirm("Are you sure you want to resequence all Pass IDs in Supabase?\n\nThis will sort existing rows by creation date and reassign pass_ids sequentially starting from ISKCON-REG-2001 for each table.");
+  if (!confirmReseq) return;
+
+  showToast("Resequencing Pass IDs in Supabase...");
+  const tables = ['registrations', 'registrations_student_male', 'registrations_student_female', 'registrations_married_male', 'registrations_married_female'];
+
+  try {
+    for (const tbl of tables) {
+      const { data, error } = await supabaseClient
+        .from(tbl)
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        console.warn(`Table ${tbl} error:`, error.message);
+        continue;
+      }
+
+      if (data && data.length > 0) {
+        let counter = 2001;
+        for (const row of data) {
+          const newPassId = `ISKCON-REG-${counter}`;
+          await supabaseClient
+            .from(tbl)
+            .update({ pass_id: newPassId })
+            .eq('id', row.id);
+          counter++;
+        }
+      }
+    }
+
+    // Reset local counter keys
+    tables.forEach(t => localStorage.removeItem('dys_pass_counter_' + t));
+    localStorage.removeItem('dys_pass_counter');
+
+    alert("🎉 All Pass IDs successfully resequenced sequentially starting from ISKCON-REG-2001!");
+  } catch (err) {
+    console.error("Resequence error:", err);
+    alert("Failed to resequence: " + err.message);
+  }
 }
 
 // Celebration Confetti & Flowers Cannon
@@ -2313,3 +2512,4 @@ window.verifyRazorpayPaymentFromInput = verifyRazorpayPaymentFromInput;
 window.toggleCashPinInput = toggleCashPinInput;
 window.verifyCashPaymentWithPin = verifyCashPaymentWithPin;
 window.goBackFrom = goBackFrom;
+window.resequenceAllPassIds = resequenceAllPassIds;

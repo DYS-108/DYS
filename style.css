@@ -360,9 +360,9 @@ body {
 }
 
 .form-label {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #FFFFFF;
 }
 
 .form-input {
@@ -409,8 +409,8 @@ body {
 
 /* Dynamic Motivational Banner Box */
 .motivation-banner-box {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(255, 119, 0, 0.15));
-  border: 1px solid var(--gold-accent);
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.4);
   color: var(--text-gold);
   padding: 8px 14px;
   border-radius: 12px;
@@ -421,7 +421,7 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+  box-shadow: none;
 }
 
 /* Quiz Container Header */
@@ -1211,15 +1211,16 @@ body {
 
 /* Motivational Progress Banner */
 .motivation-banner-box {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(255, 119, 0, 0.15));
-  border: 1px solid var(--gold-accent);
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.4);
   border-radius: var(--radius-md);
   padding: 10px 16px;
   text-align: center;
   font-size: 0.9rem;
   font-weight: 700;
   color: var(--text-gold);
-  animation: pulseGlow 2s infinite ease-in-out;
+  box-shadow: none;
+  animation: none;
 }
 
 @keyframes pulseGlow {
@@ -1833,4 +1834,46 @@ body {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+}
+
+/* Enlarge Razorpay Hosted Payment Button */
+#razorpay-hosted-button-wrapper {
+  margin: 22px 0 !important;
+  width: 100% !important;
+}
+
+#razorpay-hosted-button-wrapper form {
+  width: 100% !important;
+  display: flex !important;
+  justify-content: center !important;
+}
+
+#razorpay-hosted-button-wrapper iframe,
+#razorpay-hosted-button-wrapper button,
+#razorpay-hosted-button-wrapper .razorpay-payment-button {
+  transform: scale(1.22) !important;
+  transform-origin: center center !important;
+  margin: 10px 0 !important;
+}
+
+/* One-Time Reward Modal Animations & Spiritual Glow */
+@keyframes popIn {
+  0% { opacity: 0; transform: scale(0.6) translateY(30px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 12px rgba(255, 119, 0, 0.4), 0 0 25px rgba(245, 158, 11, 0.2); }
+  50% { box-shadow: 0 0 28px rgba(255, 119, 0, 0.8), 0 0 45px rgba(245, 158, 11, 0.5); }
+  100% { box-shadow: 0 0 12px rgba(255, 119, 0, 0.4), 0 0 25px rgba(245, 158, 11, 0.2); }
+}
+
+/* High Visibility Spiritual Redeem Button */
+.btn-spiritual-cta {
+  background: linear-gradient(135deg, #FF7700, #F59E0B, #D97706) !important;
+  border: 1px solid #FCD34D !important;
+  color: #FFFFFF !important;
+  font-weight: 900 !important;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  animation: pulseGlow 2s infinite ease-in-out;
 }

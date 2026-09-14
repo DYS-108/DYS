@@ -1693,11 +1693,31 @@ async function saveRegistrationToSupabase(record) {
       remarks: combinedRemarks || null
     };
 
-    const { data, error } = await supabaseClient.from('registrations').insert([payload]);
-    if (error) {
-      console.warn("Supabase Cloud DB Save Warning:", error);
+    // 1. Insert into Master Table 'registrations'
+    const masterRes = await supabaseClient.from('registrations').insert([payload]);
+    if (masterRes.error) {
+      console.warn("Supabase Master DB Save Warning:", masterRes.error);
     } else {
-      console.log("Registration successfully saved to Supabase Cloud DB!", data);
+      console.log("Registration successfully saved to Supabase Master Table 'registrations'!", masterRes.data);
+    }
+
+    // 2. Insert into Demographic Target Table ('registrations_student_male' / 'registrations_student_female' / 'registrations_married')
+    let demoTable = 'registrations_student_male';
+    if (studentData.maritalStatus === 'married') {
+      demoTable = 'registrations_married';
+    } else if (studentData.gender === 'female') {
+      demoTable = 'registrations_student_female';
+    }
+
+    try {
+      const demoRes = await supabaseClient.from(demoTable).insert([payload]);
+      if (demoRes.error) {
+        console.warn(`Supabase Demographic Table ('${demoTable}') Warning:`, demoRes.error);
+      } else {
+        console.log(`Registration successfully saved to Supabase Demographic Table '${demoTable}'!`, demoRes.data);
+      }
+    } catch (demoErr) {
+      console.warn(`Supabase Demographic Table ('${demoTable}') Exception:`, demoErr);
     }
   } catch (e) {
     console.error("Supabase Connection Exception:", e);

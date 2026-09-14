@@ -647,7 +647,7 @@ app.post('/api/registration/complete', (req, res) => {
 async function syncToSupabase(reg, payment) {
   if (!SUPABASE_URL || !SUPABASE_KEY || SUPABASE_URL === 'YOUR_SUPABASE_PROJECT_URL') return;
   try {
-    const cleanUrl = SUPABASE_URL.trim().replace(/\/rest\/v1\/?$/i, '').replace(/\/+$/, '') + '/rest/v1/registrations';
+    const baseUrl = SUPABASE_URL.trim().replace(/\/rest\/v1\/?$/i, '').replace(/\/+$/, '') + '/rest/v1';
     const payload = {
       pass_id: reg.registration_id,
       full_name: reg.full_name || 'Participant',
@@ -659,31 +659,43 @@ async function syncToSupabase(reg, payment) {
       branch: reg.branch || null,
       marital_status: reg.marital_status || 'single',
       gender: reg.gender || null,
-      quiz_score: reg.quiz_score || 20,
-      percentage: reg.percentage || 100,
+      quiz_score: reg.quiz_score !== undefined ? reg.quiz_score : 20,
+      percentage: reg.percentage !== undefined ? reg.percentage : 100,
       paid_amount: (payment && payment.amount) || reg.calculated_fee || 150,
       utr_number: (payment && payment.utr) || null,
       language: reg.language || 'en',
       remarks: reg.remarks || null
     };
 
-    const response = await fetch(cleanUrl, {
+    // 1. Sync to Master Table 'registrations'
+    fetch(`${baseUrl}/registrations`, {
       method: 'POST',
       headers: {
         'apikey': SUPABASE_KEY,
         'Authorization': `Bearer ${SUPABASE_KEY}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=representation'
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify(payload)
-    });
+      body: JSON.stringify([payload])
+    }).catch(e => console.warn("[Supabase Master Sync Warning]:", e.message));
 
-    if (response.ok) {
-      console.log(`[Supabase Sync Success] Registration ${reg.registration_id} saved to Supabase.`);
-    } else {
-      const errText = await response.text();
-      console.warn(`[Supabase Sync Warning] Status ${response.status}:`, errText);
+    // 2. Sync to Demographic Target Table ('registrations_student_male' / 'registrations_student_female' / 'registrations_married')
+    let demoTable = 'registrations_student_male';
+    if (reg.marital_status === 'married') {
+      demoTable = 'registrations_married';
+    } else if (reg.gender === 'female') {
+      demoTable = 'registrations_student_female';
     }
+
+    fetch(`${baseUrl}/${demoTable}`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify([payload])
+    }).catch(e => console.warn(`[Supabase ${demoTable} Sync Warning]:`, e.message));
+
   } catch (e) {
     console.error("[Supabase Sync Exception]:", e.message);
   }

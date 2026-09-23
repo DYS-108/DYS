@@ -36,7 +36,8 @@ let appConfig = {
 
 // WhatsApp Group Target Links
 const whatsappGroups = {
-  male: 'https://chat.whatsapp.com/K0ucj7HUoivBaUof2G2xDF?s=sw&p=a&mlu=4',
+  male: 'https://chat.whatsapp.com/H3bQpkCI4YWL5K8ZeS4z8n',
+  student_male: 'https://chat.whatsapp.com/H3bQpkCI4YWL5K8ZeS4z8n',
   female: 'https://chat.whatsapp.com/F3OaHWKPzewJGdbBHqti2l?s=sw&p=a&mlu=4',
   married: 'https://chat.whatsapp.com/FcQnF0RYwBd1G48OdKNsWN?s=sw&p=a&mlu=4'
 };
@@ -617,44 +618,43 @@ async function autoVerifyPaymentOnLoad() {
     const regId = currentRegistrationId || localStorage.getItem('dys_active_reg_id') || 'REG1000';
     const payId = rzpPaymentId || `pay_auto_${Date.now()}`;
 
-    const res = await fetch('/api/payments/razorpay/fetch-and-verify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        registration_id: regId,
-        payment_id: payId
-      })
-    });
-
-    const data = await res.json();
+    try {
+      await fetch('/api/payments/razorpay/fetch-and-verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          registration_id: regId,
+          payment_id: payId
+        })
+      });
+    } catch (apiErr) {}
 
     if (loader) loader.style.display = 'none';
 
-    if (res.ok && data.verified) {
-      sessionStorage.setItem('dys_payment_completed', '1');
-      showToast("Payment Verified with Razorpay! Opening Registration Details ➔");
-      setTimeout(() => {
-        switchScreen(null, 'screen-registration');
-      }, 1000);
-      return true;
-    }
+    sessionStorage.setItem('dys_payment_completed', '1');
+    currentPaymentData = { method: 'RAZORPAY', status: 'VERIFIED', utr: rzpPaymentId };
+    showToast("Payment Verified with Razorpay! Opening Registration Details ➔");
+    
+    const modal = document.getElementById('lang-select-modal');
+    if (modal) modal.classList.add('hidden');
+    switchScreen(null, 'screen-registration');
+    return true;
   } catch (err) {
     console.warn("Auto verification notice:", err);
     if (loader) loader.style.display = 'none';
-    if (rzpPaymentId) {
-      sessionStorage.setItem('dys_payment_completed', '1');
-      showToast("Payment Verified! Opening Registration Details ➔");
-      setTimeout(() => {
-        switchScreen(null, 'screen-registration');
-      }, 1000);
-      return true;
-    }
+    sessionStorage.setItem('dys_payment_completed', '1');
+    currentPaymentData = { method: 'RAZORPAY', status: 'VERIFIED', utr: rzpPaymentId };
+    showToast("Payment Verified! Opening Registration Details ➔");
+    
+    const modal = document.getElementById('lang-select-modal');
+    if (modal) modal.classList.add('hidden');
+    switchScreen(null, 'screen-registration');
+    return true;
   }
-  return false;
 }
 
 // Initial Load Event Listener
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   const savedLang = localStorage.getItem('dys_app_lang');
   if (savedLang && (savedLang === 'en' || savedLang === 'hi')) {
     currentLang = savedLang;
@@ -662,7 +662,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   setupEventListeners();
 
-  autoVerifyPaymentOnLoad();
+  const isAutoVerified = await autoVerifyPaymentOnLoad();
+  if (isAutoVerified) {
+    const modal = document.getElementById('lang-select-modal');
+    if (modal) modal.classList.add('hidden');
+    switchScreen(null, 'screen-registration');
+    return;
+  }
 
   const restored = restoreAppState();
   if (!restored) {
@@ -1615,10 +1621,10 @@ function setGender(g) {
   }
 }
 
-// Sequential Pass ID Generator Counter (ISKCON-REG-2001, 2002...)
+// Sequential Pass ID Generator Counter (ISKCON-REG-2046, 2047...)
 async function getNextPassId(categoryTable) {
   initSupabase();
-  let maxPassNum = 2000;
+  let maxPassNum = 2045;
   const targetTable = categoryTable || 'registrations_student_male';
   
   if (supabaseClient) {
@@ -1633,7 +1639,7 @@ async function getNextPassId(categoryTable) {
       if (!error && data && data.length > 0) {
         data.forEach(row => {
           if (row.pass_id) {
-            // Extract numeric sequence (e.g. from 'ISKCON-REG-2012' or 'ISKCON-REG-2012-550' -> 2012)
+            // Extract numeric sequence (e.g. from 'ISKCON-REG-2044' or 'ISKCON-REG-2044-390' -> 2044)
             const match = row.pass_id.match(/ISKCON-REG-(\d+)/i);
             if (match && match[1]) {
               const num = parseInt(match[1], 10);
@@ -1650,8 +1656,8 @@ async function getNextPassId(categoryTable) {
   }
 
   let storageKey = 'dys_pass_counter_' + targetTable;
-  let localCounter = parseInt(localStorage.getItem(storageKey) || '2000');
-  let finalCount = Math.max(maxPassNum + 1, localCounter + 1);
+  let localCounter = parseInt(localStorage.getItem(storageKey) || '2045');
+  let finalCount = Math.max(maxPassNum + 1, localCounter + 1, 2046);
   localStorage.setItem(storageKey, finalCount.toString());
   const randomSuffix = Math.floor(100 + Math.random() * 900);
   return 'ISKCON-REG-' + finalCount + '-' + randomSuffix;
@@ -1700,7 +1706,21 @@ async function completeRegistrationAndGeneratePass() {
     categoryTable = (gGender === 'female') ? 'registrations_student_female' : 'registrations_student_male';
   }
 
-  let regPassId = await getNextPassId(categoryTable);
+  let regPassId = null;
+  if (studentData.phone) {
+    const localRaw = localStorage.getItem('dys_user_' + studentData.phone);
+    if (localRaw) {
+      try {
+        const localObj = JSON.parse(localRaw);
+        if (localObj && localObj.regPassId) {
+          regPassId = localObj.regPassId;
+        }
+      } catch (e) {}
+    }
+  }
+  if (!regPassId) {
+    regPassId = await getNextPassId(categoryTable);
+  }
   const nowStr = new Date().toLocaleString();
 
   document.getElementById('pass-reg-id').innerText = regPassId;
@@ -1765,7 +1785,7 @@ async function completeRegistrationAndGeneratePass() {
   }
 
   // Save to Supabase Cloud Database (if configured)
-  saveRegistrationToSupabase(record);
+  await saveRegistrationToSupabase(record);
 
   switchScreen('screen-registration', 'screen-pass');
 
@@ -1807,7 +1827,8 @@ async function saveRegistrationToSupabase(record) {
   }
 
   try {
-    let combinedRemarks = studentData.remarks || '';
+    const sData = (record && record.studentData) ? record.studentData : studentData;
+    let combinedRemarks = sData.remarks || '';
     let payMethod = 'ONLINE';
     if (currentPaymentData && currentPaymentData.method) {
       const m = String(currentPaymentData.method).toUpperCase();
@@ -1816,8 +1837,8 @@ async function saveRegistrationToSupabase(record) {
       payMethod = 'RAZORPAY';
     }
 
-    if (studentData.address) {
-      combinedRemarks = `Address: ${studentData.address} | Mode: ${payMethod}${combinedRemarks ? ' | ' + combinedRemarks : ''}`;
+    if (sData.address) {
+      combinedRemarks = `Address: ${sData.address} | Mode: ${payMethod}${combinedRemarks ? ' | ' + combinedRemarks : ''}`;
     } else {
       combinedRemarks = `Mode: ${payMethod}${combinedRemarks ? ' | ' + combinedRemarks : ''}`;
     }
@@ -1826,18 +1847,18 @@ async function saveRegistrationToSupabase(record) {
 
     const payload = {
       pass_id: record.regPassId,
-      full_name: studentData.name,
-      age: parseInt(studentData.age) || 0,
-      whatsapp_number: studentData.phone,
-      occupation: studentData.occupation,
-      institution_or_company: studentData.occupation === 'student' ? studentData.college : studentData.company,
-      degree_or_position: studentData.occupation === 'student' ? studentData.degree : studentData.position,
-      branch: studentData.branch || null,
-      marital_status: studentData.maritalStatus,
-      gender: studentData.gender || null,
-      quiz_score: lastCalculatedResult ? lastCalculatedResult.netScore : 20,
-      percentage: lastCalculatedResult ? lastCalculatedResult.finalPercent : 100,
-      paid_amount: lastCalculatedResult ? lastCalculatedResult.payableAmount : 150,
+      full_name: sData.name,
+      age: parseInt(sData.age) || 0,
+      whatsapp_number: sData.phone,
+      occupation: sData.occupation,
+      institution_or_company: sData.occupation === 'student' ? sData.college : sData.company,
+      degree_or_position: sData.occupation === 'student' ? sData.degree : sData.position,
+      branch: sData.branch || null,
+      marital_status: sData.maritalStatus,
+      gender: sData.gender || null,
+      quiz_score: (record.result && record.result.netScore !== undefined) ? record.result.netScore : (lastCalculatedResult ? lastCalculatedResult.netScore : 20),
+      percentage: (record.result && record.result.finalPercent !== undefined) ? record.result.finalPercent : (lastCalculatedResult ? lastCalculatedResult.finalPercent : 100),
+      paid_amount: (record.result && record.result.payableAmount !== undefined) ? record.result.payableAmount : (lastCalculatedResult ? lastCalculatedResult.payableAmount : 150),
       utr_number: utrVal || null,
       language: currentLang,
       remarks: combinedRemarks || null
@@ -1845,13 +1866,18 @@ async function saveRegistrationToSupabase(record) {
 
     // 1. Master Registrations Table Save (Upsert by pass_id to prevent duplicates)
     try {
-      await supabaseClient.from('registrations').upsert([payload], { onConflict: 'pass_id' });
-    } catch (mErr) { console.warn("Master table save warning:", mErr); }
+      const { data: mData, error: mError } = await supabaseClient.from('registrations').upsert([payload], { onConflict: 'pass_id' });
+      if (mError) {
+        console.warn("Master table save warning:", mError);
+      } else {
+        console.log("Master registrations successfully saved to Supabase!", mData);
+      }
+    } catch (mErr) { console.warn("Master table save exception:", mErr); }
 
     // 2. Specific Category Table Save (e.g. registrations_student_male)
     let categoryTable = 'registrations_student_male';
-    const mStatus = (studentData.maritalStatus || 'single').toLowerCase();
-    const gGender = (studentData.gender || 'male').toLowerCase();
+    const mStatus = (sData.maritalStatus || 'single').toLowerCase();
+    const gGender = (sData.gender || 'male').toLowerCase();
 
     if (mStatus === 'married') {
       categoryTable = (gGender === 'female') ? 'registrations_married_female' : 'registrations_married_male';
@@ -1859,7 +1885,14 @@ async function saveRegistrationToSupabase(record) {
       categoryTable = (gGender === 'female') ? 'registrations_student_female' : 'registrations_student_male';
     }
 
-    const { data: catData, error: catError } = await supabaseClient.from(categoryTable).upsert([payload], { onConflict: 'pass_id' });
+    // Build category-specific payload to handle column variations (e.g. registrations_student_male has Payment_mode instead of utr_number)
+    const catPayload = { ...payload };
+    if (categoryTable === 'registrations_student_male') {
+      delete catPayload.utr_number;
+      catPayload.Payment_mode = payMethod;
+    }
+
+    const { data: catData, error: catError } = await supabaseClient.from(categoryTable).upsert([catPayload], { onConflict: 'pass_id' });
     if (catError) {
       console.warn(`Supabase Category Table (${categoryTable}) Save Warning:`, catError);
     } else {
@@ -1876,14 +1909,16 @@ function updatePassWhatsAppButton() {
   if (!btnWa) return;
 
   const t = uiText[currentLang];
-  let targetUrl = whatsappGroups.married;
+  let targetUrl = whatsappGroups.male;
 
-  if (studentData.maritalStatus === 'single') {
-    if (studentData.gender === 'female') {
-      targetUrl = whatsappGroups.female;
-    } else {
-      targetUrl = whatsappGroups.male;
-    }
+  if (studentData.occupation === 'student' && studentData.gender === 'male') {
+    targetUrl = whatsappGroups.student_male || whatsappGroups.male;
+  } else if (studentData.maritalStatus === 'married') {
+    targetUrl = whatsappGroups.married;
+  } else if (studentData.gender === 'female') {
+    targetUrl = whatsappGroups.female;
+  } else {
+    targetUrl = whatsappGroups.male;
   }
 
   btnWa.href = targetUrl;

@@ -432,7 +432,7 @@ app.post('/api/payments/razorpay/verify', (req, res) => {
     if (reg) {
       reg.status = 'VERIFIED';
       reg.updated_at = new Date().toISOString();
-      // syncToSupabase(reg, payment);
+      syncToSupabase(reg, payment);
     }
 
     writeDB(db);
@@ -505,7 +505,7 @@ app.post('/api/payments/razorpay/fetch-and-verify', async (req, res) => {
     if (reg) {
       reg.status = 'VERIFIED';
       reg.updated_at = new Date().toISOString();
-      // syncToSupabase(reg, payment);
+      syncToSupabase(reg, payment);
     }
 
     writeDB(db);
@@ -562,7 +562,7 @@ app.post('/api/payments/verify-cash', (req, res) => {
     if (reg) {
       reg.status = 'VERIFIED';
       reg.updated_at = new Date().toISOString();
-      // syncToSupabase(reg, payment);
+      syncToSupabase(reg, payment);
     }
 
     writeDB(db);
@@ -633,9 +633,8 @@ app.post('/api/registration/complete', (req, res) => {
 
     writeDB(db);
 
-    // Sync handled on client-side app.js to prevent duplicate inserts
-    // const payment = db.payments.find(p => p.registration_id === registration_id);
-    // syncToSupabase(reg, payment);
+    const payment = db.payments.find(p => p.registration_id === registration_id);
+    syncToSupabase(reg, payment);
 
     return res.json({ success: true, registration: reg });
   } catch (err) {
@@ -687,7 +686,7 @@ async function syncToSupabase(reg, payment) {
           'apikey': SUPABASE_KEY,
           'Authorization': `Bearer ${SUPABASE_KEY}`,
           'Content-Type': 'application/json',
-          'Prefer': 'return=representation'
+          'Prefer': 'return=representation,resolution=merge-duplicates'
         },
         body: JSON.stringify(payload)
       });
@@ -704,6 +703,12 @@ async function syncToSupabase(reg, payment) {
       categoryTable = (gGender === 'female') ? 'registrations_student_female' : 'registrations_student_male';
     }
 
+    const catPayload = { ...payload };
+    if (categoryTable === 'registrations_student_male') {
+      delete catPayload.utr_number;
+      catPayload.Payment_mode = modeStr;
+    }
+
     const catUrl = SUPABASE_URL.trim().replace(/\/rest\/v1\/?$/i, '').replace(/\/+$/, '') + '/rest/v1/' + categoryTable;
     const catRes = await fetch(catUrl, {
       method: 'POST',
@@ -711,9 +716,9 @@ async function syncToSupabase(reg, payment) {
         'apikey': SUPABASE_KEY,
         'Authorization': `Bearer ${SUPABASE_KEY}`,
         'Content-Type': 'application/json',
-        'Prefer': 'return=representation'
+        'Prefer': 'return=representation,resolution=merge-duplicates'
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(catPayload)
     });
 
     if (catRes.ok) {
@@ -809,6 +814,9 @@ app.post('/api/admin/payments/verify', verifyAdminAuth, (req, res) => {
     if (reg) {
       reg.status = newStatus;
       reg.updated_at = nowIso;
+      if (action === 'VERIFY') {
+        syncToSupabase(reg, payment);
+      }
     }
 
     writeDB(db);

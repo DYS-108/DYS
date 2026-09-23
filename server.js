@@ -654,10 +654,6 @@ async function syncToSupabase(reg, payment) {
     } else if (payment) {
       modeStr = 'RAZORPAY';
     }
-    let remarkText = reg.remarks || '';
-    if (!remarkText.includes('Mode:')) {
-      remarkText = `Mode: ${modeStr}${remarkText ? ' | ' + remarkText : ''}`;
-    }
 
     const payload = {
       pass_id: reg.registration_id,
@@ -673,9 +669,11 @@ async function syncToSupabase(reg, payment) {
       quiz_score: reg.quiz_score !== undefined ? reg.quiz_score : 20,
       percentage: reg.percentage !== undefined ? reg.percentage : 100,
       paid_amount: (payment && payment.amount) || reg.calculated_fee || 150,
-      utr_number: (payment && payment.utr) || null,
+      address: reg.address || null,
+      payment_mode: modeStr,
+      Payment_mode: modeStr,
       language: reg.language || 'en',
-      remarks: remarkText || null
+      remarks: reg.remarks || null
     };
 
     // 1. Sync to Master registrations table
@@ -692,22 +690,18 @@ async function syncToSupabase(reg, payment) {
       });
     } catch (mErr) { console.warn("[Supabase Master Sync Warning]:", mErr.message); }
 
-    // 2. Sync to Category Table (e.g. registrations_student_male)
-    let categoryTable = 'registrations_student_male';
+    // 2. Sync to Category Table (e.g. DYS_male_student_Saturday)
+    let categoryTable = 'DYS_male_student_Saturday';
     const mStatus = (reg.marital_status || 'single').toLowerCase();
     const gGender = (reg.gender || 'male').toLowerCase();
 
     if (mStatus === 'married') {
       categoryTable = (gGender === 'female') ? 'registrations_married_female' : 'registrations_married_male';
     } else {
-      categoryTable = (gGender === 'female') ? 'registrations_student_female' : 'registrations_student_male';
+      categoryTable = (gGender === 'female') ? 'registrations_student_female' : 'DYS_male_student_Saturday';
     }
 
     const catPayload = { ...payload };
-    if (categoryTable === 'registrations_student_male') {
-      delete catPayload.utr_number;
-      catPayload.Payment_mode = modeStr;
-    }
 
     const catUrl = SUPABASE_URL.trim().replace(/\/rest\/v1\/?$/i, '').replace(/\/+$/, '') + '/rest/v1/' + categoryTable;
     const catRes = await fetch(catUrl, {

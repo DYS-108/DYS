@@ -1624,8 +1624,10 @@ function setGender(g) {
 // Sequential Pass ID Generator Counter (ISKCON-REG-2046, 2047...)
 async function getNextPassId(categoryTable) {
   initSupabase();
-  let maxPassNum = 2045;
-  const targetTable = categoryTable || 'registrations_student_male';
+  const targetTable = categoryTable || 'DYS_male_student_Saturday';
+  let startSeq = (targetTable === 'DYS_male_student_Saturday') ? 2500 : 2045;
+  let minSeq = startSeq + 1;
+  let maxPassNum = startSeq;
   
   if (supabaseClient) {
     try {
@@ -1639,7 +1641,7 @@ async function getNextPassId(categoryTable) {
       if (!error && data && data.length > 0) {
         data.forEach(row => {
           if (row.pass_id) {
-            // Extract numeric sequence (e.g. from 'ISKCON-REG-2044' or 'ISKCON-REG-2044-390' -> 2044)
+            // Extract numeric sequence (e.g. from 'ISKCON-REG-2501' -> 2501)
             const match = row.pass_id.match(/ISKCON-REG-(\d+)/i);
             if (match && match[1]) {
               const num = parseInt(match[1], 10);
@@ -1656,8 +1658,8 @@ async function getNextPassId(categoryTable) {
   }
 
   let storageKey = 'dys_pass_counter_' + targetTable;
-  let localCounter = parseInt(localStorage.getItem(storageKey) || '2045');
-  let finalCount = Math.max(maxPassNum + 1, localCounter + 1, 2046);
+  let localCounter = parseInt(localStorage.getItem(storageKey) || startSeq.toString());
+  let finalCount = Math.max(maxPassNum + 1, localCounter + 1, minSeq);
   localStorage.setItem(storageKey, finalCount.toString());
   const randomSuffix = Math.floor(100 + Math.random() * 900);
   return 'ISKCON-REG-' + finalCount + '-' + randomSuffix;
@@ -1697,13 +1699,13 @@ async function completeRegistrationAndGeneratePass() {
   studentData.position = document.getElementById('input-position') ? document.getElementById('input-position').value.trim() : '';
   studentData.remarks = document.getElementById('input-remarks') ? document.getElementById('input-remarks').value.trim() : '';
 
-  let categoryTable = 'registrations_student_male';
+  let categoryTable = 'DYS_male_student_Saturday';
   const mStatus = (studentData.maritalStatus || 'single').toLowerCase();
   const gGender = (studentData.gender || 'male').toLowerCase();
   if (mStatus === 'married') {
     categoryTable = (gGender === 'female') ? 'registrations_married_female' : 'registrations_married_male';
   } else {
-    categoryTable = (gGender === 'female') ? 'registrations_student_female' : 'registrations_student_male';
+    categoryTable = (gGender === 'female') ? 'registrations_student_female' : 'DYS_male_student_Saturday';
   }
 
   let regPassId = null;
@@ -1828,19 +1830,12 @@ async function saveRegistrationToSupabase(record) {
 
   try {
     const sData = (record && record.studentData) ? record.studentData : studentData;
-    let combinedRemarks = sData.remarks || '';
     let payMethod = 'ONLINE';
     if (currentPaymentData && currentPaymentData.method) {
       const m = String(currentPaymentData.method).toUpperCase();
       payMethod = m.includes('CASH') ? 'CASH' : (m.includes('RAZORPAY') ? 'RAZORPAY' : m);
     } else {
       payMethod = 'RAZORPAY';
-    }
-
-    if (sData.address) {
-      combinedRemarks = `Address: ${sData.address} | Mode: ${payMethod}${combinedRemarks ? ' | ' + combinedRemarks : ''}`;
-    } else {
-      combinedRemarks = `Mode: ${payMethod}${combinedRemarks ? ' | ' + combinedRemarks : ''}`;
     }
 
     const utrVal = (currentPaymentData && currentPaymentData.utr) || (document.getElementById('input-utr') ? document.getElementById('input-utr').value.trim() : null);
@@ -1859,9 +1854,10 @@ async function saveRegistrationToSupabase(record) {
       quiz_score: (record.result && record.result.netScore !== undefined) ? record.result.netScore : (lastCalculatedResult ? lastCalculatedResult.netScore : 20),
       percentage: (record.result && record.result.finalPercent !== undefined) ? record.result.finalPercent : (lastCalculatedResult ? lastCalculatedResult.finalPercent : 100),
       paid_amount: (record.result && record.result.payableAmount !== undefined) ? record.result.payableAmount : (lastCalculatedResult ? lastCalculatedResult.payableAmount : 150),
-      utr_number: utrVal || null,
+      address: sData.address || null,
+      payment_mode: payMethod,
       language: currentLang,
-      remarks: combinedRemarks || null
+      remarks: sData.remarks || null
     };
 
     // 1. Master Registrations Table Save (Upsert by pass_id to prevent duplicates)
@@ -1874,23 +1870,18 @@ async function saveRegistrationToSupabase(record) {
       }
     } catch (mErr) { console.warn("Master table save exception:", mErr); }
 
-    // 2. Specific Category Table Save (e.g. registrations_student_male)
-    let categoryTable = 'registrations_student_male';
+    // 2. Specific Category Table Save (e.g. DYS_male_student_Saturday)
+    let categoryTable = 'DYS_male_student_Saturday';
     const mStatus = (sData.maritalStatus || 'single').toLowerCase();
     const gGender = (sData.gender || 'male').toLowerCase();
 
     if (mStatus === 'married') {
       categoryTable = (gGender === 'female') ? 'registrations_married_female' : 'registrations_married_male';
     } else {
-      categoryTable = (gGender === 'female') ? 'registrations_student_female' : 'registrations_student_male';
+      categoryTable = (gGender === 'female') ? 'registrations_student_female' : 'DYS_male_student_Saturday';
     }
 
-    // Build category-specific payload to handle column variations (e.g. registrations_student_male has Payment_mode instead of utr_number)
     const catPayload = { ...payload };
-    if (categoryTable === 'registrations_student_male') {
-      delete catPayload.utr_number;
-      catPayload.Payment_mode = payMethod;
-    }
 
     const { data: catData, error: catError } = await supabaseClient.from(categoryTable).upsert([catPayload], { onConflict: 'pass_id' });
     if (catError) {

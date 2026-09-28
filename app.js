@@ -1230,25 +1230,12 @@ function renderRazorpayPaymentButton(buttonId) {
   const wrapper = document.getElementById('razorpay-hosted-button-wrapper');
   if (!wrapper) return;
 
-  // Render instantaneous native Pay Now button (100% reliable on all mobile networks)
+  // Single 100% reliable primary Razorpay checkout button (opens in-app modal overlay)
   wrapper.innerHTML = `
-    <button id="btn-instant-pay-now" onclick="payWithRazorpay()" type="button" class="btn-primary" style="background: linear-gradient(135deg, #10B981, #059669); padding: 18px 24px; font-size: 1.15rem; font-weight: 900; width: 100%; border-radius: 14px; box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4); display: flex; align-items: center; justify-content: center; gap: 8px;">
+    <button id="btn-instant-pay-now" onclick="payWithRazorpay()" type="button" class="btn-primary" style="background: linear-gradient(135deg, #10B981, #059669); padding: 16px 20px; font-size: 1.1rem; font-weight: 800; width: 100%; border-radius: 14px; box-shadow: 0 8px 25px rgba(16, 185, 129, 0.35); display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; border: none; color: #FFFFFF;">
       💳 PAY NOW WITH RAZORPAY
     </button>
   `;
-
-  // Asynchronously attempt to load Razorpay Hosted Payment Button script as secondary option
-  try {
-    const form = document.createElement('form');
-    const script = document.createElement('script');
-    script.src = 'https://checkout.razorpay.com/v1/payment-button.js';
-    script.setAttribute('data-payment_button_id', buttonId);
-    script.async = true;
-    form.appendChild(script);
-    wrapper.appendChild(form);
-  } catch (err) {
-    console.warn("Razorpay hosted button script load notice:", err);
-  }
 }
 
 function checkIsPaymentCompleted() {

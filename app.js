@@ -1372,16 +1372,6 @@ function handleRazorpayClickWithConsent() {
 }
 
 function triggerRazorpayPaymentClick() {
-  const finalPercent = lastCalculatedResult ? lastCalculatedResult.finalPercent : 100;
-  const buttonId = getRazorpayButtonId(finalPercent);
-
-  // Direct browser redirection to the official Razorpay Hosted Payment Link URL
-  if (buttonId) {
-    window.location.href = `https://api.razorpay.com/v1/payment_link/${buttonId}/view`;
-    return;
-  }
-
-  // Fallback direct Razorpay SDK launcher
   payWithRazorpay();
 }
 

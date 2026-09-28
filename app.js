@@ -1654,7 +1654,6 @@ async function payWithRazorpay() {
     name: "Discover Your Self",
     description: "DYS Course Registration Payment",
     image: "iskcon_logo.png",
-    order_id: orderId,
     handler: async function (response) {
       showToast("Payment Successful! Confirming registration...");
       const regId = currentRegistrationId || localStorage.getItem('dys_active_reg_id');
@@ -1688,6 +1687,10 @@ async function payWithRazorpay() {
       color: "#10B981"
     }
   };
+
+  if (orderId && typeof orderId === 'string' && orderId.trim().length > 0) {
+    options.order_id = orderId;
+  }
 
   if (window.Razorpay) {
     try {

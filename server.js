@@ -339,9 +339,16 @@ app.post('/api/payments/razorpay/create-order', async (req, res) => {
     }
 
     const db = readDB();
-    const reg = db.registrations.find(r => r.registration_id === registration_id);
+    let reg = db.registrations.find(r => r.registration_id === registration_id);
     if (!reg) {
-      return res.status(404).json({ error: 'Registration record not found.' });
+      reg = {
+        id: `REG_${Date.now()}`,
+        registration_id,
+        status: 'PAYMENT_PENDING',
+        created_at: new Date().toISOString()
+      };
+      db.registrations.push(reg);
+      writeDB(db);
     }
 
     const amountInPaise = Math.round((reg.calculated_fee || 150) * 100);

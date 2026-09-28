@@ -522,21 +522,88 @@
     </main>
 
     <!-- Footer -->
-    <footer class="footer-note">
-      <div class="footer-links">
-        <button type="button" class="footer-link-btn" onclick="openPolicyModal('terms')">Terms & Conditions</button>
-        <span class="footer-dot">•</span>
-        <button type="button" class="footer-link-btn" onclick="openPolicyModal('privacy')">Privacy Policy</button>
-        <span class="footer-dot">•</span>
-        <button type="button" class="footer-link-btn" onclick="openPolicyModal('delivery')">Digital Delivery &
-          Fulfilment</button>
-        <span class="footer-dot">•</span>
-        <button type="button" class="footer-link-btn" onclick="openPolicyModal('refund')">Cancellation & Refund</button>
-        <span class="footer-dot">•</span>
-        <button type="button" class="footer-link-btn" onclick="openPolicyModal('contact')">Contact Us</button>
-      </div>
-      <div class="footer-copy">
-        <span id="lbl-footer-text">© Discover Your Self Course | Merchant: RAHUL KAMAL BAMBORDE</span>
+    <footer class="dys-footer">
+      <div class="footer-container">
+        <!-- Top Contact / Information Area -->
+        <div class="footer-info-area">
+          <div class="footer-info-item">
+            <span class="info-icon">📞</span>
+            <div class="info-content">
+              <a href="tel:+919892961661" class="info-link">+91 9892961661</a>
+              <span class="info-subtext">For Discover Your Self / DYS</span>
+            </div>
+          </div>
+
+          <div class="footer-info-item">
+            <span class="info-icon">✉</span>
+            <div class="info-content">
+              <a href="mailto:dys.bg.asitis@gmail.com" class="info-link">dys.bg.asitis@gmail.com</a>
+            </div>
+          </div>
+
+          <div class="footer-info-item">
+            <span class="info-icon">📍</span>
+            <div class="info-content">
+              <span class="info-label">Registered / Operational Address</span>
+              <address class="info-address">
+                Platform Operator Office<br>
+                c/o RAHUL KAMAL BAMBORDE<br>
+                Flat no B-109, Dwarika Nagari, Near ISKCON NVCC Temple, Tilekar Nagar, Kondhwa BK, Pune - 411048, Maharashtra, India
+              </address>
+            </div>
+          </div>
+        </div>
+
+        <!-- Single Footer Link Section (2-Column x 3-Row Grid) -->
+        <div class="footer-grid-section">
+          <div class="footer-links-grid">
+            <button type="button" class="footer-grid-link" onclick="openPolicyModal('about')">
+              <span class="tilak-bullet" aria-hidden="true"></span>
+              <span>About Us</span>
+            </button>
+
+            <button type="button" class="footer-grid-link" onclick="openPolicyModal('terms')">
+              <span class="tilak-bullet" aria-hidden="true"></span>
+              <span>Terms &amp; Conditions</span>
+            </button>
+
+            <button type="button" class="footer-grid-link" onclick="openPolicyModal('contact')">
+              <span class="tilak-bullet" aria-hidden="true"></span>
+              <span>Contact Us</span>
+            </button>
+
+            <button type="button" class="footer-grid-link" onclick="openPolicyModal('privacy')">
+              <span class="tilak-bullet" aria-hidden="true"></span>
+              <span>Privacy Policy</span>
+            </button>
+
+            <button type="button" class="footer-grid-link" onclick="openPolicyModal('delivery')">
+              <span class="tilak-bullet" aria-hidden="true"></span>
+              <span>Shipping &amp; Delivery Policy</span>
+            </button>
+
+            <button type="button" class="footer-grid-link" onclick="openPolicyModal('refund')">
+              <span class="tilak-bullet" aria-hidden="true"></span>
+              <span>Cancellation &amp; Refund</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Horizontal Divider -->
+        <div class="footer-divider"></div>
+
+        <!-- Bottom Section -->
+        <div class="footer-bottom-bar">
+          <div class="footer-notice">
+            Before paying, please note: <span class="chk-mark">☑</span> I agree to the 
+            <button type="button" class="footer-inline-link" onclick="openPolicyModal('terms')">Terms &amp; Conditions</button> 
+            and acknowledge the 
+            <button type="button" class="footer-inline-link" onclick="openPolicyModal('refund')">Cancellation &amp; Refund Policy</button>.
+          </div>
+          <div class="footer-copyright">
+            © 2026 Discover Your Self Course
+          </div>
+        </div>
       </div>
     </footer>
 
@@ -647,16 +714,18 @@
     <div class="modal-card policy-modal-card">
       <div class="modal-title policy-modal-header">
         <div class="policy-modal-tabs">
+          <button onclick="switchPolicyTab('about')" class="policy-tab-btn" id="tab-policy-about"
+            type="button">About Us</button>
+          <button onclick="switchPolicyTab('contact')" class="policy-tab-btn" id="tab-policy-contact"
+            type="button">Contact Us</button>
           <button onclick="switchPolicyTab('terms')" class="policy-tab-btn" id="tab-policy-terms" type="button">Terms &
             Conditions</button>
           <button onclick="switchPolicyTab('privacy')" class="policy-tab-btn" id="tab-policy-privacy"
             type="button">Privacy Policy</button>
           <button onclick="switchPolicyTab('delivery')" class="policy-tab-btn" id="tab-policy-delivery"
-            type="button">Digital Delivery</button>
+            type="button">Shipping & Delivery</button>
           <button onclick="switchPolicyTab('refund')" class="policy-tab-btn" id="tab-policy-refund"
             type="button">Cancellation & Refund</button>
-          <button onclick="switchPolicyTab('contact')" class="policy-tab-btn" id="tab-policy-contact"
-            type="button">Contact Us</button>
         </div>
         <button onclick="closePolicyModal()" class="close-modal-btn" type="button"
           style="background:none; border:none; color:#FFF; font-size:1.6rem; cursor:pointer;"
@@ -664,6 +733,54 @@
       </div>
 
       <div id="policy-modal-body" class="policy-modal-body">
+        <!-- Section 0: About Us -->
+        <section id="policy-sec-about" class="policy-section">
+          <h2>About Us</h2>
+          <p>Welcome to <strong>Discover Your Self (DYS)</strong>, a transformative educational digital initiative dedicated to guiding individuals toward purposeful living, mental clarity, and spiritual fulfillment through the timeless wisdom of the <em>Bhagavad Gita As It Is</em>.</p>
+          <p>Operating online via <a href="https://dys-gray.vercel.app/" target="_blank">https://dys-gray.vercel.app</a> and conducting sessions both virtually and physically at <strong>ISKCON NVCC Pune</strong>, Discover Your Self serves as a modern bridge between ancient Vedic philosophy and contemporary life challenges.</p>
+
+          <h3>🌟 Our Mission &amp; Vision</h3>
+          <h4 style="color:var(--text-gold); margin-top:8px;">Our Mission</h4>
+          <p>To empower students, youth, working professionals, families, and self-development seekers with practical life principles and spiritual processes from the Bhagavad Gita As It is—including the sublime path of <strong>Bhakti Yoga (Loving Devotional Service)</strong>—enabling them to master the mind, overcome stress, build strong moral character, and discover their true inner potential.</p>
+          <h4 style="color:var(--text-gold); margin-top:8px;">Our Vision</h4>
+          <p>To cultivate a conscious, values-driven generation grounded in the principles of the Bhagavad Gita, equipped with emotional resilience, spiritual intelligence, and a deep sense of purpose to lead a balanced, joyful, and impactful life.</p>
+
+          <h3>💡 What We Offer</h3>
+          <h4 style="color:var(--text-gold); margin-top:8px;">1. Interactive Bhagavad Gita Quiz &amp; Merit Scholarships</h4>
+          <p>Our digital portal hosts the DYS Self-Discovery Quiz, allowing participants to evaluate their understanding of fundamental life concepts, earn merit-based scholarship discounts, and unlock access to full foundational courses.</p>
+          <h4 style="color:var(--text-gold); margin-top:8px;">2. About the Course (8-Session Syllabus)</h4>
+          <p>We all are chasing one common thing in life - <strong>Happiness</strong>. For this sake, We facilitate our bodily needs but it only leads us to further hankering &amp; dissatisfaction. This Course explains Proven methods to attain the true inner joy of heart and gives answers to all the Inquiries about Higher Principles in life.</p>
+          <p style="margin-top:6px; font-weight:700;">Course Syllabus (8 Sessions):</p>
+          <ul style="padding-left:20px; margin-top:6px; line-height:1.6;">
+            <li><strong>Session 1 (DYS 1):</strong> Discover Inner Self</li>
+            <li><strong>Session 2 (DYS 2):</strong> Discover The Ultimate Genius</li>
+            <li><strong>Session 3 (DYS 3):</strong> Discover Manual of Life</li>
+            <li><strong>Session 4 (DYS 4):</strong> Discover Lasting Solution</li>
+            <li><strong>Session 5 (DYS 5):</strong> Discover Sublime Joy Through Sound</li>
+            <li><strong>Session 6 (DYS 6):</strong> Discover The Real Eternal Love</li>
+            <li><strong>Session 7 (DYS 7):** Discover The Happy Planet</li>
+            <li><strong>Session 8 (DYS 8):** Discover the - True Unity in Diversity</li>
+          </ul>
+
+          <h4 style="color:var(--text-gold); margin-top:12px;">3. Flexible Learning Modes</h4>
+          <p>To ensure accessibility for everyone:</p>
+          <ul style="padding-left:20px; margin-top:4px;">
+            <li><strong>Online-Only Mode:</strong> Live interactive webinars and digital streaming for participants across India and globally.</li>
+            <li><strong>Offline-Only Mode:</strong> Immersive in-person seminars, discussions, and community interaction hosted at ISKCON NVCC Pune.</li>
+          </ul>
+
+          <h3>🌿 Our Core Values</h3>
+          <ul style="padding-left:20px; line-height:1.6;">
+            <li><strong>Authenticity:</strong> Delivering spiritual education rooted strictly in the genuine, authorized teachings of Bhagavad Gita As It Is.</li>
+            <li><strong>Practical Relevance:</strong> Translating ancient philosophy into real-world tools for stress relief, focus, Mind Control, and self control.</li>
+            <li><strong>Inclusivity:</strong> Open to seekers of all ages and backgrounds—students, professionals, married individuals, and families alike.</li>
+            <li><strong>Community &amp; Care:</strong> Building a supportive network of like-minded individuals dedicated to self-improvement and mutual growth.</li>
+          </ul>
+
+          <h3>👤 Leadership &amp; Initiative Operator</h3>
+          <p>The Discover Your Self (DYS) portal (<a href="https://dys-gray.vercel.app/" target="_blank">https://dys-gray.vercel.app</a>) is operated under the individual merchant responsibility of <strong>Rahul Kamal Bombarde</strong> (Lead Coordinator &amp; Platform Operator), based in Pune, Maharashtra.</p>
+          <p>Under his leadership and supported by dedicated volunteers, educators, and youth coordinators, DYS organizes educational seminars, manages digital pass registrations, and ensures seamless participant care for hundreds of learners every batch.</p>
+        </section>
         <!-- Section 1: Terms & Conditions -->
         <section id="policy-sec-terms" class="policy-section">
           <h2>Terms & Conditions</h2>

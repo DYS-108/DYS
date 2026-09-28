@@ -2888,7 +2888,7 @@ function closePolicyModal() {
 }
 
 function switchPolicyTab(policyKey) {
-  const keys = ['terms', 'privacy', 'delivery', 'refund', 'contact'];
+  const keys = ['about', 'terms', 'privacy', 'delivery', 'refund', 'contact'];
   const activeKey = keys.includes(policyKey) ? policyKey : 'terms';
 
   keys.forEach(k => {

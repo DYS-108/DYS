@@ -1361,14 +1361,54 @@ async function confirmConsentAndProceedPayment() {
   }
 }
 
-function handleRazorpayClickWithConsent() {
-  if (isTermsAccepted()) {
-    const overlay = document.getElementById('razorpay-consent-overlay');
-    if (overlay) overlay.style.display = 'none';
-    triggerRazorpayPaymentClick();
+function handleInlineTermsToggle() {
+  const chk = document.getElementById('inline-terms-checkbox');
+  const btn = document.getElementById('btn-inline-agree-proceed');
+  if (!btn) return;
+
+  if (chk && chk.checked) {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.style.cursor = 'pointer';
   } else {
-    openConsentModal('RAZORPAY');
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    btn.style.cursor = 'not-allowed';
   }
+}
+
+async function confirmInlineTermsAndProceed() {
+  const chk = document.getElementById('inline-terms-checkbox');
+  if (!chk || !chk.checked) {
+    showToast("Please check the agreement box to proceed.");
+    return;
+  }
+
+  const regId = currentRegistrationId || localStorage.getItem('dys_active_reg_id') || 'REG1000';
+  localStorage.setItem(`dys_terms_accepted_${regId}`, 'true');
+  localStorage.setItem('dys_terms_accepted', 'true');
+
+  fetch('/api/payments/accept-terms', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      registration_id: regId,
+      terms_accepted: true
+    })
+  }).catch(err => console.warn("Terms log notice:", err));
+
+  const optionsContainer = document.getElementById('payment-options-unlocked-container');
+  if (optionsContainer) {
+    optionsContainer.classList.remove('hidden');
+    optionsContainer.style.display = 'block';
+    optionsContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  showToast("Terms & Refund Policy Accepted ✓ Payment options unlocked!");
+}
+
+function handleRazorpayClickWithConsent() {
+  triggerRazorpayPaymentClick();
 }
 
 function triggerRazorpayPaymentClick() {
@@ -1376,11 +1416,6 @@ function triggerRazorpayPaymentClick() {
 }
 
 function toggleCashPinInput() {
-  if (!isTermsAccepted()) {
-    openConsentModal('CASH');
-    return;
-  }
-
   const pinWrapper = document.getElementById('cash-pin-wrapper');
   if (pinWrapper) {
     if (pinWrapper.classList.contains('hidden') || pinWrapper.style.display === 'none') {
@@ -1567,13 +1602,32 @@ async function gotoPaymentScreen() {
   // Render score-specific Razorpay Payment Button
   renderRazorpayPaymentButton(targetButtonId);
 
-  // Configure Terms Consent Overlay
-  const overlay = document.getElementById('razorpay-consent-overlay');
-  if (overlay) {
-    if (isTermsAccepted()) {
-      overlay.style.display = 'none';
-    } else {
-      overlay.style.display = 'block';
+  // Sync inline Terms Consent & unlocked payment options state
+  const optionsContainer = document.getElementById('payment-options-unlocked-container');
+  const inlineChk = document.getElementById('inline-terms-checkbox');
+  const inlineBtn = document.getElementById('btn-inline-agree-proceed');
+
+  if (isTermsAccepted()) {
+    if (inlineChk) inlineChk.checked = true;
+    if (inlineBtn) {
+      inlineBtn.disabled = false;
+      inlineBtn.style.opacity = '1';
+      inlineBtn.style.cursor = 'pointer';
+    }
+    if (optionsContainer) {
+      optionsContainer.classList.remove('hidden');
+      optionsContainer.style.display = 'block';
+    }
+  } else {
+    if (inlineChk) inlineChk.checked = false;
+    if (inlineBtn) {
+      inlineBtn.disabled = true;
+      inlineBtn.style.opacity = '0.5';
+      inlineBtn.style.cursor = 'not-allowed';
+    }
+    if (optionsContainer) {
+      optionsContainer.classList.add('hidden');
+      optionsContainer.style.display = 'none';
     }
   }
 
@@ -3072,4 +3126,6 @@ function switchPolicyTab(policyKey) {
 window.openPolicyModal = openPolicyModal;
 window.closePolicyModal = closePolicyModal;
 window.switchPolicyTab = switchPolicyTab;
+window.handleInlineTermsToggle = handleInlineTermsToggle;
+window.confirmInlineTermsAndProceed = confirmInlineTermsAndProceed;
 

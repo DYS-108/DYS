@@ -1372,31 +1372,16 @@ function handleRazorpayClickWithConsent() {
 }
 
 function triggerRazorpayPaymentClick() {
-  const wrapper = document.getElementById('razorpay-hosted-button-wrapper');
-  if (wrapper) {
-    const btn = wrapper.querySelector('.razorpay-payment-button') ||
-                wrapper.querySelector('input[type="submit"]') ||
-                wrapper.querySelector('button') ||
-                wrapper.querySelector('form button') ||
-                wrapper.querySelector('form input');
+  const finalPercent = lastCalculatedResult ? lastCalculatedResult.finalPercent : 100;
+  const buttonId = getRazorpayButtonId(finalPercent);
 
-    if (btn) {
-      try {
-        const clickEvt = new MouseEvent('click', {
-          view: window,
-          bubbles: true,
-          cancelable: true
-        });
-        btn.dispatchEvent(clickEvt);
-        btn.click();
-        return;
-      } catch (err) {
-        console.warn("Button click dispatch notice:", err);
-      }
-    }
+  // Direct browser redirection to the official Razorpay Hosted Payment Link URL
+  if (buttonId) {
+    window.location.href = `https://api.razorpay.com/v1/payment_link/${buttonId}/view`;
+    return;
   }
 
-  // Fallback direct Razorpay launcher
+  // Fallback direct Razorpay SDK launcher
   payWithRazorpay();
 }
 

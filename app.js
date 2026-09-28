@@ -1397,7 +1397,14 @@ async function confirmInlineTermsAndProceed() {
     })
   }).catch(err => console.warn("Terms log notice:", err));
 
+  const consentCard = document.getElementById('inline-terms-consent-card');
   const optionsContainer = document.getElementById('payment-options-unlocked-container');
+
+  if (consentCard) {
+    consentCard.classList.add('hidden');
+    consentCard.style.display = 'none';
+  }
+
   if (optionsContainer) {
     optionsContainer.classList.remove('hidden');
     optionsContainer.style.display = 'block';
@@ -1603,16 +1610,16 @@ async function gotoPaymentScreen() {
   renderRazorpayPaymentButton(targetButtonId);
 
   // Sync inline Terms Consent & unlocked payment options state
+  const consentCard = document.getElementById('inline-terms-consent-card');
   const optionsContainer = document.getElementById('payment-options-unlocked-container');
   const inlineChk = document.getElementById('inline-terms-checkbox');
   const inlineBtn = document.getElementById('btn-inline-agree-proceed');
 
   if (isTermsAccepted()) {
     if (inlineChk) inlineChk.checked = true;
-    if (inlineBtn) {
-      inlineBtn.disabled = false;
-      inlineBtn.style.opacity = '1';
-      inlineBtn.style.cursor = 'pointer';
+    if (consentCard) {
+      consentCard.classList.add('hidden');
+      consentCard.style.display = 'none';
     }
     if (optionsContainer) {
       optionsContainer.classList.remove('hidden');
@@ -1624,6 +1631,10 @@ async function gotoPaymentScreen() {
       inlineBtn.disabled = true;
       inlineBtn.style.opacity = '0.5';
       inlineBtn.style.cursor = 'not-allowed';
+    }
+    if (consentCard) {
+      consentCard.classList.remove('hidden');
+      consentCard.style.display = 'block';
     }
     if (optionsContainer) {
       optionsContainer.classList.add('hidden');

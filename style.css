@@ -1877,3 +1877,159 @@ body {
   text-shadow: 0 1px 3px rgba(0,0,0,0.4);
   animation: pulseGlow 2s infinite ease-in-out;
 }
+
+/* Footer Links & Policy Modal Styles */
+.footer-note {
+  text-align: center;
+  padding: 20px 15px;
+  background: rgba(7, 9, 19, 0.85);
+  border-top: 1px solid rgba(245, 158, 11, 0.2);
+  margin-top: 25px;
+}
+
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 8px 12px;
+  margin-bottom: 10px;
+}
+
+.footer-links a {
+  color: var(--text-gold, #FCD34D);
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 600;
+  transition: color 0.2s ease, text-decoration 0.2s ease;
+}
+
+.footer-links a:hover {
+  color: #FF7700;
+  text-decoration: underline;
+}
+
+.footer-dot {
+  color: var(--text-muted, #94A3B8);
+  font-size: 0.8rem;
+}
+
+.footer-copy {
+  font-size: 0.8rem;
+  color: var(--text-muted, #94A3B8);
+}
+
+/* Policy Modal */
+.policy-modal-card {
+  max-width: 900px !important;
+  width: 95% !important;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  padding: 20px !important;
+  text-align: left !important;
+  background: #0F172A !important;
+  border: 1px solid rgba(245, 158, 11, 0.3) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8) !important;
+}
+
+.policy-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+  gap: 12px;
+}
+
+.policy-modal-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+}
+
+.policy-tab-btn {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--text-muted, #94A3B8);
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.policy-tab-btn:hover {
+  background: rgba(245, 158, 11, 0.15);
+  color: #FFF;
+}
+
+.policy-tab-btn.active {
+  background: linear-gradient(135deg, #FF7700, #F59E0B);
+  color: #FFF;
+  border-color: #FCD34D;
+  font-weight: 700;
+}
+
+.policy-modal-body {
+  overflow-y: auto;
+  padding-right: 8px;
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: #E2E8F0;
+}
+
+.policy-modal-body h2 {
+  color: var(--text-gold, #FCD34D);
+  font-size: 1.35rem;
+  margin-bottom: 6px;
+}
+
+.policy-modal-body h3 {
+  color: var(--primary-saffron, #FF9900);
+  font-size: 1.05rem;
+  margin-top: 18px;
+  margin-bottom: 6px;
+}
+
+.policy-modal-body p {
+  margin-bottom: 12px;
+}
+
+.policy-modal-body ul {
+  margin: 8px 0 14px 20px;
+}
+
+.policy-modal-body li {
+  margin-bottom: 6px;
+}
+
+.policy-modal-body a {
+  color: #38BDF8;
+  text-decoration: underline;
+}
+
+.policy-modal-body .policy-date-badge {
+  display: inline-block;
+  background: rgba(245, 158, 11, 0.15);
+  color: #FCD34D;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+
+.policy-contact-box {
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 14px;
+}
+

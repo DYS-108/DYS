@@ -461,7 +461,20 @@
 
     <!-- Footer -->
     <footer class="footer-note">
-      <span id="lbl-footer-text">© Discover Your Self Course</span>
+      <div class="footer-links">
+        <a href="javascript:void(0)" onclick="openPolicyModal('terms')">Terms & Conditions</a>
+        <span class="footer-dot">•</span>
+        <a href="javascript:void(0)" onclick="openPolicyModal('privacy')">Privacy Policy</a>
+        <span class="footer-dot">•</span>
+        <a href="javascript:void(0)" onclick="openPolicyModal('delivery')">Digital Delivery & Fulfilment</a>
+        <span class="footer-dot">•</span>
+        <a href="javascript:void(0)" onclick="openPolicyModal('refund')">Cancellation & Refund</a>
+        <span class="footer-dot">•</span>
+        <a href="javascript:void(0)" onclick="openPolicyModal('contact')">Contact Us</a>
+      </div>
+      <div class="footer-copy">
+        <span id="lbl-footer-text">© Discover Your Self Course | Merchant: RAHUL KAMAL BAMBORDE</span>
+      </div>
     </footer>
 
   </div>
@@ -543,6 +556,23 @@
             </tbody>
           </table>
         </div>
+      </div>
+  <!-- Legal Policies & Contact Modal -->
+  <div id="policy-modal" class="modal-overlay hidden" onclick="if(event.target === this) closePolicyModal()">
+    <div class="modal-card policy-modal-card">
+      <div class="modal-title policy-modal-header">
+        <div class="policy-modal-tabs">
+          <button onclick="switchPolicyTab('terms')" class="policy-tab-btn" id="tab-policy-terms" type="button">Terms & Conditions</button>
+          <button onclick="switchPolicyTab('privacy')" class="policy-tab-btn" id="tab-policy-privacy" type="button">Privacy Policy</button>
+          <button onclick="switchPolicyTab('delivery')" class="policy-tab-btn" id="tab-policy-delivery" type="button">Digital Delivery</button>
+          <button onclick="switchPolicyTab('refund')" class="policy-tab-btn" id="tab-policy-refund" type="button">Cancellation & Refund</button>
+          <button onclick="switchPolicyTab('contact')" class="policy-tab-btn" id="tab-policy-contact" type="button">Contact Us</button>
+        </div>
+        <button onclick="closePolicyModal()" class="close-modal-btn" type="button" style="background:none; border:none; color:#FFF; font-size:1.6rem; cursor:pointer;" aria-label="Close">&times;</button>
+      </div>
+      
+      <div id="policy-modal-body" class="policy-modal-body">
+        <!-- Content will be rendered dynamically based on selected tab -->
       </div>
     </div>
   </div>

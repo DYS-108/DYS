@@ -2807,6 +2807,7 @@ function openPolicyModal(policyKey) {
   const modal = document.getElementById('policy-modal');
   if (modal) {
     modal.classList.remove('hidden');
+    modal.style.display = 'flex';
     switchPolicyTab(policyKey || 'terms');
   }
 }
@@ -2815,6 +2816,7 @@ function closePolicyModal() {
   const modal = document.getElementById('policy-modal');
   if (modal) {
     modal.classList.add('hidden');
+    modal.style.display = 'none';
   }
 }
 

@@ -69,7 +69,7 @@ function calculateTrustedFee(answers) {
   const finalPercent = Math.max(0, Math.round(rawPercent));
 
   let discountPercentage = 0;
-  let buttonId = 'pl_TgzdMZgAsnODVD';
+  let buttonId = 'pl_TX5IQ5tIp0H5ZV';
 
   if (finalPercent >= 90) {
     discountPercentage = 50;
@@ -88,7 +88,7 @@ function calculateTrustedFee(answers) {
     buttonId = 'pl_TX5HLh5S0cjrrE';
   } else {
     discountPercentage = 0;
-    buttonId = 'pl_TgzdMZgAsnODVD';
+    buttonId = 'pl_TX5IQ5tIp0H5ZV';
   }
 
   const baseFee = 300;

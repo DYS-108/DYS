@@ -645,7 +645,7 @@
       <label style="display:flex; align-items:flex-start; gap:12px; font-size:0.88rem; color:#F8FAFC; cursor:pointer; background:rgba(255,255,255,0.06); padding:14px; border-radius:12px; border:1px solid rgba(245, 158, 11, 0.3); margin-bottom:20px; line-height:1.45;">
         <input type="checkbox" id="chk-terms-agree" onchange="toggleConsentProceedBtn()" style="width:20px; height:20px; accent-color:#10B981; margin-top:2px; cursor:pointer; flex-shrink:0;">
         <span>
-          ☑ I agree to the <a href="javascript:void(0)" onclick="openPolicyModal('terms')" style="color:#60A5FA; font-weight:700; text-decoration:underline;">Terms & Conditions</a> and acknowledge the <a href="javascript:void(0)" onclick="openPolicyModal('refund')" style="color:#60A5FA; font-weight:700; text-decoration:underline;">Cancellation & Refund Policy</a>.
+          I agree to the <a href="javascript:void(0)" onclick="openPolicyModal('terms')" style="color:#60A5FA; font-weight:700; text-decoration:underline;">Terms & Conditions</a> and acknowledge the <a href="javascript:void(0)" onclick="openPolicyModal('refund')" style="color:#60A5FA; font-weight:700; text-decoration:underline;">Cancellation & Refund Policy</a>.
         </span>
       </label>
 
@@ -739,7 +739,7 @@
   </div>
 
   <!-- Legal Policies & Contact Modal -->
-  <div id="policy-modal" class="modal-overlay hidden" style="display: none;"
+  <div id="policy-modal" class="modal-overlay hidden" style="display: none; z-index: 100005;"
     onclick="if(event.target === this) closePolicyModal()">
     <div class="modal-card policy-modal-card">
       <div class="modal-title policy-modal-header">

@@ -1334,24 +1334,19 @@ async function confirmConsentAndProceedPayment() {
   localStorage.setItem(`dys_terms_accepted_${regId}`, 'true');
   localStorage.setItem('dys_terms_accepted', 'true');
 
-  try {
-    await fetch('/api/payments/accept-terms', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        registration_id: regId,
-        terms_accepted: true
-      })
-    });
-  } catch (err) {
-    console.warn("Terms log notice:", err);
-  }
+  fetch('/api/payments/accept-terms', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      registration_id: regId,
+      terms_accepted: true
+    })
+  }).catch(err => console.warn("Terms log notice:", err));
 
   const overlay = document.getElementById('razorpay-consent-overlay');
   if (overlay) overlay.style.display = 'none';
 
   closeConsentModal();
-  showToast("Terms & Refund Policy Accepted ✓");
 
   if (pendingConsentTarget === 'CASH') {
     const pinWrapper = document.getElementById('cash-pin-wrapper');
@@ -1360,7 +1355,8 @@ async function confirmConsentAndProceedPayment() {
       pinWrapper.style.display = 'block';
       pinWrapper.scrollIntoView({ behavior: 'smooth' });
     }
-  } else if (pendingConsentTarget === 'RAZORPAY') {
+  } else {
+    // Instantly launch payment without requiring extra tap!
     triggerRazorpayPaymentClick();
   }
 }
@@ -2753,6 +2749,25 @@ window.handleRazorpayClickWithConsent = handleRazorpayClickWithConsent;
 
 // Footer Legal Policies & Contact Modal Logic
 const POLICY_CONTENTS = {
+  about: `
+    <h2>About Us</h2>
+    <div class="policy-date-badge">Discover Your Self (DYS) Initiative</div>
+    <p>Welcome to <strong>Discover Your Self (DYS)</strong>, a transformative educational digital initiative dedicated to guiding individuals toward purposeful living, mental clarity, and spiritual fulfillment through the timeless wisdom of the <em>Bhagavad Gita As It Is</em>.</p>
+    <p>Operating online via <a href="https://dys-gray.vercel.app/" target="_blank">https://dys-gray.vercel.app</a> and conducting sessions both virtually and physically at <strong>ISKCON NVCC Pune</strong>, Discover Your Self serves as a modern bridge between ancient Vedic philosophy and contemporary life challenges.</p>
+
+    <h3>🌟 Our Mission & Vision</h3>
+    <h4 style="color:var(--text-gold); margin-top:8px;">Our Mission</h4>
+    <p>To empower students, youth, working professionals, families, and self-development seekers with practical life principles and spiritual processes from the Bhagavad Gita As It is—including the sublime path of <strong>Bhakti Yoga (Loving Devotional Service)</strong>—enabling them to master the mind, overcome stress, build strong moral character, and discover their true inner potential.</p>
+    <h4 style="color:var(--text-gold); margin-top:8px;">Our Vision</h4>
+    <p>To cultivate a conscious, values-driven generation grounded in the principles of the Bhagavad Gita, equipped with emotional resilience, spiritual intelligence, and a deep sense of purpose to lead a balanced, joyful, and impactful life.</p>
+
+    <h3>💡 What We Offer</h3>
+    <h4 style="color:var(--text-gold); margin-top:8px;">1. Interactive Bhagavad Gita Quiz & Merit Scholarships</h4>
+    <p>Our digital portal hosts the DYS Self-Discovery Quiz, allowing participants to evaluate their understanding of fundamental life concepts, earn merit-based scholarship discounts, and unlock access to full foundational courses.</p>
+    <h4 style="color:var(--text-gold); margin-top:8px;">2. About the Course (8-Session Syllabus)</h4>
+    <p>We all are chasing one common thing in life - <strong>Happiness</strong>. For this sake, We facilitate our bodily needs but it only leads us to further hankering & dissatisfaction. This Course explains Proven methods to attain the true inner joy of heart and gives answers to all the Inquiries about Higher Principles in life.</p>
+  `,
+
   terms: `
     <h2>Terms & Conditions</h2>
     <div class="policy-date-badge">Last Updated: 26 September 2026</div>
@@ -3019,6 +3034,7 @@ function openPolicyModal(policyKey) {
   if (modal) {
     modal.classList.remove('hidden');
     modal.style.setProperty('display', 'flex', 'important');
+    modal.style.setProperty('z-index', '100005', 'important');
     document.body.style.overflow = 'hidden';
     switchPolicyTab(policyKey || 'terms');
   }
@@ -3029,7 +3045,10 @@ function closePolicyModal() {
   if (modal) {
     modal.classList.add('hidden');
     modal.style.setProperty('display', 'none', 'important');
-    document.body.style.overflow = '';
+    const termsModal = document.getElementById('terms-consent-modal');
+    if (!termsModal || termsModal.style.display === 'none' || termsModal.classList.contains('hidden')) {
+      document.body.style.overflow = '';
+    }
   }
 }
 
@@ -3048,13 +3067,8 @@ function switchPolicyTab(policyKey) {
     }
   });
 
-  const targetSection = document.getElementById('policy-sec-' + activeKey);
   const bodyEl = document.getElementById('policy-modal-body');
-  
-  if (targetSection && bodyEl) {
-    const targetTop = targetSection.offsetTop - bodyEl.offsetTop - 10;
-    bodyEl.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
-  } else if (bodyEl && POLICY_CONTENTS[activeKey]) {
+  if (bodyEl && POLICY_CONTENTS[activeKey]) {
     bodyEl.innerHTML = POLICY_CONTENTS[activeKey];
     bodyEl.scrollTop = 0;
   }

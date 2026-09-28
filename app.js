@@ -2801,20 +2801,54 @@ const POLICY_CONTENTS = {
   about: `
     <h2>About Us</h2>
     <div class="policy-date-badge">Discover Your Self (DYS) Initiative</div>
-    <p>Welcome to <strong>Discover Your Self (DYS)</strong>, a transformative educational digital initiative dedicated to guiding individuals toward purposeful living, mental clarity, and spiritual fulfillment through the timeless wisdom of the <em>Bhagavad Gita As It Is</em>.</p>
-    <p>Operating online via <a href="https://dys-gray.vercel.app/" target="_blank">https://dys-gray.vercel.app</a> and conducting sessions both virtually and physically at <strong>ISKCON NVCC Pune</strong>, Discover Your Self serves as a modern bridge between ancient Vedic philosophy and contemporary life challenges.</p>
+    <p>Welcome to <strong>Discover Your Self (DYS)</strong>, an educational digital initiative dedicated to guiding individuals toward purposeful living, mental clarity, and spiritual growth through the timeless wisdom of the <em>Bhagavad Gita As It Is</em>.</p>
+    <p>Operating online through <a href="https://dys-gray.vercel.app/" target="_blank">https://dys-gray.vercel.app</a> and conducting sessions both virtually and in person at <strong>ISKCON NVCC Pune</strong>, Discover Your Self serves as a bridge between ancient Vedic philosophy and contemporary life challenges.</p>
 
     <h3>🌟 Our Mission & Vision</h3>
     <h4 style="color:var(--text-gold); margin-top:8px;">Our Mission</h4>
-    <p>To empower students, youth, working professionals, families, and self-development seekers with practical life principles and spiritual processes from the Bhagavad Gita As It is—including the sublime path of <strong>Bhakti Yoga (Loving Devotional Service)</strong>—enabling them to master the mind, overcome stress, build strong moral character, and discover their true inner potential.</p>
+    <p>To empower students, youth, working professionals, families, and self-development seekers with practical life principles and spiritual processes from the Bhagavad Gita As It Is, including the sublime path of Bhakti Yoga (Loving Devotional Service). Through these teachings, DYS aims to help participants develop greater mental clarity, manage stress, build strong moral character, and discover their inner potential.</p>
+
     <h4 style="color:var(--text-gold); margin-top:8px;">Our Vision</h4>
     <p>To cultivate a conscious, values-driven generation grounded in the principles of the Bhagavad Gita, equipped with emotional resilience, spiritual intelligence, and a deep sense of purpose to lead a balanced, joyful, and impactful life.</p>
 
     <h3>💡 What We Offer</h3>
     <h4 style="color:var(--text-gold); margin-top:8px;">1. Interactive Bhagavad Gita Quiz & Merit Scholarships</h4>
-    <p>Our digital portal hosts the DYS Self-Discovery Quiz, allowing participants to evaluate their understanding of fundamental life concepts, earn merit-based scholarship discounts, and unlock access to full foundational courses.</p>
-    <h4 style="color:var(--text-gold); margin-top:8px;">2. About the Course (8-Session Syllabus)</h4>
-    <p>We all are chasing one common thing in life - <strong>Happiness</strong>. For this sake, We facilitate our bodily needs but it only leads us to further hankering & dissatisfaction. This Course explains Proven methods to attain the true inner joy of heart and gives answers to all the Inquiries about Higher Principles in life.</p>
+    <p>Our digital portal hosts the DYS Self-Discovery Quiz, allowing participants to assess their understanding of fundamental life concepts, qualify for merit-based scholarship discounts, and unlock access to foundational courses.</p>
+
+    <h4 style="color:var(--text-gold); margin-top:8px;">2. About the Course — 8-Session Syllabus</h4>
+    <p>We all seek one common thing in life — happiness. In pursuit of it, we often focus primarily on fulfilling our bodily needs, which can sometimes lead to further hankering and dissatisfaction.</p>
+    <p>This course explores principles and practices for cultivating deeper inner satisfaction and addresses fundamental inquiries about higher principles and purpose in life.</p>
+
+    <h5 style="color:#FFF; margin-top:10px; margin-bottom:6px; font-weight:700;">📚 Course Syllabus — 8 Sessions</h5>
+    <ul style="list-style-type:none; padding-left:0; line-height:1.6; color:#E2E8F0; margin-bottom:12px;">
+      <li><strong>Session 1 (DYS 1):</strong> Discover Inner Self</li>
+      <li><strong>Session 2 (DYS 2):</strong> Discover The Ultimate Genius</li>
+      <li><strong>Session 3 (DYS 3):</strong> Discover Manual of Life</li>
+      <li><strong>Session 4 (DYS 4):</strong> Discover Lasting Solution</li>
+      <li><strong>Session 5 (DYS 5):</strong> Discover Sublime Joy Through Sound</li>
+      <li><strong>Session 6 (DYS 6):</strong> Discover The Real Eternal Love</li>
+      <li><strong>Session 7 (DYS 7):</strong> Discover The Happy Planet</li>
+      <li><strong>Session 8 (DYS 8):</strong> Discover True Unity in Diversity</li>
+    </ul>
+
+    <h4 style="color:var(--text-gold); margin-top:8px;">3. Flexible Learning Modes</h4>
+    <p>To ensure accessibility for everyone:</p>
+    <ul style="line-height:1.6; color:#E2E8F0; margin-bottom:12px;">
+      <li><strong>Online-Only Mode:</strong> Live interactive webinars and digital streaming for participants across India and globally.</li>
+      <li><strong>Offline-Only Mode:</strong> In-person seminars, discussions, and community interaction hosted at ISKCON NVCC Pune.</li>
+    </ul>
+
+    <h3>🌿 Our Core Values</h3>
+    <ul style="line-height:1.6; color:#E2E8F0; margin-bottom:12px;">
+      <li><strong>Authenticity:</strong> Delivering spiritual education rooted in the teachings of Bhagavad Gita As It Is.</li>
+      <li><strong>Practical Relevance:</strong> Connecting ancient philosophical principles with contemporary life, including stress management, focus, mental discipline, and self-control.</li>
+      <li><strong>Inclusivity:</strong> Open to seekers of different ages and backgrounds, including students, professionals, married individuals, and families.</li>
+      <li><strong>Community & Care:</strong> Building a supportive network of like-minded individuals dedicated to self-improvement and mutual growth.</li>
+    </ul>
+
+    <h3>👤 Leadership & Initiative Operator</h3>
+    <p>The Discover Your Self (DYS) portal (<a href="https://dys-gray.vercel.app/" target="_blank">https://dys-gray.vercel.app</a>) is operated under the individual merchant responsibility of <strong>Rahul Kamal Bombarde</strong>, serving as Lead Coordinator & Platform Operator, based in Pune, Maharashtra.</p>
+    <p>With the support of dedicated volunteers, educators, and youth coordinators, DYS organizes educational seminars, manages digital pass registrations, and supports participants throughout their program experience.</p>
   `,
 
   terms: `

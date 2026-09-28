@@ -523,6 +523,32 @@ app.post('/api/payments/razorpay/fetch-and-verify', async (req, res) => {
   }
 });
 
+// 3.7.5. Live Payment Status Check Endpoint
+app.get('/api/payments/status', (req, res) => {
+  try {
+    const regId = req.query.registration_id;
+    if (!regId) {
+      return res.status(400).json({ error: 'registration_id parameter is required.' });
+    }
+
+    const db = readDB();
+    const payment = db.payments.find(p => p.registration_id === regId && p.status === 'VERIFIED');
+    const reg = db.registrations.find(r => r.registration_id === regId);
+
+    const isVerified = Boolean(payment || (reg && (reg.status === 'VERIFIED' || reg.payment_status === 'VERIFIED')));
+
+    return res.json({
+      success: true,
+      verified: isVerified,
+      status: isVerified ? 'VERIFIED' : 'PENDING',
+      registration_id: regId
+    });
+  } catch (err) {
+    console.error("Payment status check exception:", err);
+    return res.status(500).json({ error: 'Failed to fetch payment status.' });
+  }
+});
+
 // 3.8. Cash Payment Admin Verification Endpoint
 app.post('/api/payments/verify-cash', (req, res) => {
   try {

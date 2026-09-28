@@ -2342,6 +2342,18 @@ function setupEventListeners() {
       }
     });
   }
+
+  // Footer Legal Policy Modal Triggers (Direct Event Binding for Mobile & Desktop)
+  document.querySelectorAll('.footer-link-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const onclickAttr = btn.getAttribute('onclick') || '';
+      const match = onclickAttr.match(/openPolicyModal\(['"]([^'"]+)['"]\)/);
+      const key = match ? match[1] : 'terms';
+      openPolicyModal(key);
+    });
+  });
 }
 
 function openAdminSettings() {
@@ -2807,7 +2819,8 @@ function openPolicyModal(policyKey) {
   const modal = document.getElementById('policy-modal');
   if (modal) {
     modal.classList.remove('hidden');
-    modal.style.display = 'flex';
+    modal.style.setProperty('display', 'flex', 'important');
+    document.body.style.overflow = 'hidden';
     switchPolicyTab(policyKey || 'terms');
   }
 }
@@ -2816,7 +2829,8 @@ function closePolicyModal() {
   const modal = document.getElementById('policy-modal');
   if (modal) {
     modal.classList.add('hidden');
-    modal.style.display = 'none';
+    modal.style.setProperty('display', 'none', 'important');
+    document.body.style.overflow = '';
   }
 }
 

@@ -1904,15 +1904,22 @@ body {
   margin-bottom: 10px;
 }
 
-.footer-links a {
+.footer-link-btn {
+  background: none;
+  border: none;
   color: var(--text-gold, #FCD34D);
-  text-decoration: none;
+  font-family: inherit;
   font-size: 0.88rem;
   font-weight: 600;
+  padding: 6px 4px;
+  cursor: pointer;
+  text-decoration: none;
   transition: color 0.2s ease, text-decoration 0.2s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: rgba(255, 119, 0, 0.3);
 }
 
-.footer-links a:hover {
+.footer-link-btn:hover, .footer-link-btn:active {
   color: #FF7700;
   text-decoration: underline;
 }
@@ -1935,15 +1942,15 @@ body {
 .policy-modal-card {
   max-width: 900px !important;
   width: 95% !important;
-  max-height: 88vh;
+  max-height: 90vh;
   display: flex;
   flex-direction: column;
-  padding: 20px !important;
+  padding: 18px 16px !important;
   text-align: left !important;
   background: #0F172A !important;
-  border: 1px solid rgba(245, 158, 11, 0.3) !important;
+  border: 1px solid rgba(245, 158, 11, 0.4) !important;
   border-radius: 16px !important;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8) !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9) !important;
 }
 
 .policy-modal-header {
@@ -1952,49 +1959,66 @@ body {
   align-items: center;
   border-bottom: 1px solid rgba(255, 255, 255, 0.15);
   padding-bottom: 12px;
-  margin-bottom: 16px;
-  gap: 12px;
+  margin-bottom: 14px;
+  gap: 10px;
   flex-shrink: 0;
 }
 
 .policy-modal-tabs {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   gap: 6px;
   flex: 1;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+}
+
+.policy-modal-tabs::-webkit-scrollbar {
+  height: 4px;
+}
+
+.policy-modal-tabs::-webkit-scrollbar-thumb {
+  background: rgba(245, 158, 11, 0.4);
+  border-radius: 4px;
 }
 
 .policy-tab-btn {
   background: rgba(255, 255, 255, 0.07);
   border: 1px solid rgba(255, 255, 255, 0.15);
   color: var(--text-muted, #94A3B8);
-  padding: 6px 14px;
+  padding: 8px 14px;
   border-radius: 8px;
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  touch-action: manipulation;
   transition: all 0.2s ease;
 }
 
-.policy-tab-btn:hover {
-  background: rgba(245, 158, 11, 0.15);
+.policy-tab-btn:hover, .policy-tab-btn:active {
+  background: rgba(245, 158, 11, 0.2);
   color: #FFF;
 }
 
 .policy-tab-btn.active {
-  background: linear-gradient(135deg, #FF7700, #F59E0B);
-  color: #FFF;
-  border-color: #FCD34D;
-  font-weight: 700;
+  background: linear-gradient(135deg, #FF7700, #F59E0B) !important;
+  color: #FFFFFF !important;
+  border-color: #FCD34D !important;
+  font-weight: 800 !important;
 }
 
 .policy-modal-body {
   flex: 1 1 auto;
-  min-height: 300px;
+  min-height: 250px;
   max-height: 72vh;
   overflow-y: auto;
-  padding-right: 8px;
-  font-size: 0.92rem;
+  -webkit-overflow-scrolling: touch;
+  padding-right: 6px;
+  font-size: 0.9rem;
   line-height: 1.65;
   color: #E2E8F0;
 }
@@ -2027,6 +2051,7 @@ body {
 .policy-modal-body a {
   color: #38BDF8;
   text-decoration: underline;
+  word-break: break-all;
 }
 
 .policy-modal-body .policy-date-badge {
@@ -2047,5 +2072,44 @@ body {
   border-radius: 12px;
   padding: 16px;
   margin-top: 14px;
+}
+
+/* Mobile Media Queries for Policy Modal */
+@media (max-width: 640px) {
+  .policy-modal-card {
+    width: 96% !important;
+    padding: 14px 10px !important;
+    max-height: 92vh;
+    border-radius: 14px !important;
+  }
+  
+  .policy-tab-btn {
+    padding: 8px 12px;
+    font-size: 0.78rem;
+  }
+  
+  .policy-modal-body {
+    font-size: 0.85rem;
+    line-height: 1.55;
+    padding-right: 4px;
+  }
+  
+  .policy-modal-body h2 {
+    font-size: 1.18rem !important;
+  }
+  
+  .policy-modal-body h3 {
+    font-size: 0.98rem !important;
+    margin-top: 14px !important;
+  }
+  
+  .footer-links {
+    gap: 4px 8px;
+  }
+  
+  .footer-link-btn {
+    font-size: 0.82rem;
+    padding: 6px 2px;
+  }
 }
 

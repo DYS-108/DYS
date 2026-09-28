@@ -1928,6 +1928,10 @@ body {
 }
 
 /* Policy Modal */
+#policy-modal {
+  z-index: 10050 !important;
+}
+
 .policy-modal-card {
   max-width: 900px !important;
   width: 95% !important;
@@ -1950,6 +1954,7 @@ body {
   padding-bottom: 12px;
   margin-bottom: 16px;
   gap: 12px;
+  flex-shrink: 0;
 }
 
 .policy-modal-tabs {
@@ -1984,6 +1989,9 @@ body {
 }
 
 .policy-modal-body {
+  flex: 1 1 auto;
+  min-height: 300px;
+  max-height: 72vh;
   overflow-y: auto;
   padding-right: 8px;
   font-size: 0.92rem;

@@ -1356,10 +1356,8 @@ async function confirmConsentAndProceedPayment() {
       pinWrapper.scrollIntoView({ behavior: 'smooth' });
     }
   } else {
-    // Instantly launch Razorpay Hosted Form submission or Checkout SDK!
-    setTimeout(() => {
-      triggerRazorpayPaymentClick();
-    }, 50);
+    // Instantly launch payment without requiring extra tap!
+    triggerRazorpayPaymentClick();
   }
 }
 
@@ -1376,31 +1374,29 @@ function handleRazorpayClickWithConsent() {
 function triggerRazorpayPaymentClick() {
   const wrapper = document.getElementById('razorpay-hosted-button-wrapper');
   if (wrapper) {
-    const form = wrapper.querySelector('form');
-    if (form) {
-      try {
-        if (typeof form.requestSubmit === 'function') {
-          form.requestSubmit();
-          return;
-        } else if (typeof form.submit === 'function') {
-          form.submit();
-          return;
-        }
-      } catch (err) {
-        console.warn("Form submit notice:", err);
-      }
-    }
+    const btn = wrapper.querySelector('.razorpay-payment-button') ||
+                wrapper.querySelector('input[type="submit"]') ||
+                wrapper.querySelector('button') ||
+                wrapper.querySelector('form button') ||
+                wrapper.querySelector('form input');
 
-    const btn = wrapper.querySelector('button') || wrapper.querySelector('input[type="submit"]') || wrapper.querySelector('.razorpay-payment-button');
     if (btn) {
       try {
+        const clickEvt = new MouseEvent('click', {
+          view: window,
+          bubbles: true,
+          cancelable: true
+        });
+        btn.dispatchEvent(clickEvt);
         btn.click();
         return;
-      } catch (err) {}
+      } catch (err) {
+        console.warn("Button click dispatch notice:", err);
+      }
     }
   }
 
-  // Direct Razorpay SDK launcher
+  // Fallback direct Razorpay launcher
   payWithRazorpay();
 }
 

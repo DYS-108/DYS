@@ -2849,8 +2849,13 @@ function switchPolicyTab(policyKey) {
     }
   });
 
+  const targetSection = document.getElementById('policy-sec-' + activeKey);
   const bodyEl = document.getElementById('policy-modal-body');
-  if (bodyEl && POLICY_CONTENTS[activeKey]) {
+  
+  if (targetSection && bodyEl) {
+    const targetTop = targetSection.offsetTop - bodyEl.offsetTop - 10;
+    bodyEl.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
+  } else if (bodyEl && POLICY_CONTENTS[activeKey]) {
     bodyEl.innerHTML = POLICY_CONTENTS[activeKey];
     bodyEl.scrollTop = 0;
   }

@@ -2935,7 +2935,7 @@ const POLICY_CONTENTS = {
 
   privacy: `
     <h2>Privacy Policy</h2>
-    <div class="policy-date-badge">Effective Date: 26 September 2026 | Last Updated: 26 September 2026</div>
+    <div class="policy-date-badge">Last Updated: 26 September 2026</div>
     <p>This Privacy Policy explains how RAHUL KAMAL BAMBORDE and Discover Your Self (DYS) collect and use information when you use the website, register for educational courses or programs, make payments, create profiles, request receipts, communicate with us, or participate in related digital services.</p>
     <p><strong>RAHUL KAMAL BAMBORDE</strong> is an individual merchant and platform operator. Discover Your Self (DYS) is a digital initiative operated under the individual merchant responsibility of RAHUL KAMAL BAMBORDE , created to support organized program registration, educational participation, student and participant care, payments, and service coordination.</p>
     <p>For personal data processing, RAHUL KAMAL BAMBORDE is the person responsible for processing personal data for Discover Your Self (DYS), subject to applicable law.</p>
@@ -3018,7 +3018,7 @@ const POLICY_CONTENTS = {
 
   delivery: `
     <h2>Digital Delivery & Fulfilment Policy</h2>
-    <div class="policy-date-badge">Effective Date: 26 September 2026 | Last Updated: 26 September 2026</div>
+    <div class="policy-date-badge">Last Updated: 26 September 2026</div>
     <p>Discover Your Self (DYS) is primarily a digital service platform operated by <strong>RAHUL KAMAL BAMBORDE</strong>. The website is used for program registrations, course enrollments, digital entry passes, payment receipts, communication, and event coordination. In most cases, there is no physical product to ship.</p>
     <p>Unless a specific physical item is expressly offered and confirmed, delivery means digital confirmation, digital pass generation, digital receipt, service confirmation, or in-person service fulfillment at the relevant course, event, or venue location.</p>
 
@@ -3051,7 +3051,7 @@ const POLICY_CONTENTS = {
 
   refund: `
     <h2>Cancellation & Refund Policy</h2>
-    <div class="policy-date-badge">Effective Date: 26 September 2026 | Last Updated: 26 September 2026</div>
+    <div class="policy-date-badge">Last Updated: 26 September 2026</div>
     <p>This policy applies to payments and registration fees made through Discover Your Self (DYS), a digital initiative operated by <strong>RAHUL KAMAL BAMBORDE</strong> ("Operator"). Refund eligibility depends on the nature of the payment, the program or service stage, committed venue costs, and the specific registration rules communicated for the relevant course, event, or service.</p>
     <p>Educational programs, seminars, workshops, and event arrangements often involve advance commitments to venues (such as ISKCON NVCC Pune), streaming infrastructure, technical services, and operational teams. Refunds are therefore handled under administrative guidelines.</p>
 

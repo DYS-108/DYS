@@ -1268,7 +1268,131 @@ function checkIsPaymentCompleted() {
   return sessionStorage.getItem('dys_payment_completed') === '1';
 }
 
+let pendingConsentTarget = null;
+
+function isTermsAccepted() {
+  const regId = currentRegistrationId || localStorage.getItem('dys_active_reg_id');
+  if (regId && localStorage.getItem(`dys_terms_accepted_${regId}`) === 'true') {
+    return true;
+  }
+  return localStorage.getItem('dys_terms_accepted') === 'true';
+}
+
+function openConsentModal(targetMethod) {
+  pendingConsentTarget = targetMethod || 'RAZORPAY';
+  const modal = document.getElementById('terms-consent-modal');
+  const chk = document.getElementById('chk-terms-agree');
+  const btn = document.getElementById('btn-agree-proceed-pay');
+
+  if (chk) chk.checked = false;
+  if (btn) {
+    btn.disabled = true;
+    btn.style.opacity = '0.4';
+    btn.style.cursor = 'not-allowed';
+  }
+
+  if (modal) {
+    modal.classList.remove('hidden');
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+}
+
+function closeConsentModal() {
+  const modal = document.getElementById('terms-consent-modal');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+}
+
+function toggleConsentProceedBtn() {
+  const chk = document.getElementById('chk-terms-agree');
+  const btn = document.getElementById('btn-agree-proceed-pay');
+  if (!btn) return;
+
+  if (chk && chk.checked) {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.style.cursor = 'pointer';
+  } else {
+    btn.disabled = true;
+    btn.style.opacity = '0.4';
+    btn.style.cursor = 'not-allowed';
+  }
+}
+
+async function confirmConsentAndProceedPayment() {
+  const chk = document.getElementById('chk-terms-agree');
+  if (!chk || !chk.checked) {
+    showToast("Please check the agreement box to proceed.");
+    return;
+  }
+
+  const regId = currentRegistrationId || localStorage.getItem('dys_active_reg_id') || 'REG1000';
+  localStorage.setItem(`dys_terms_accepted_${regId}`, 'true');
+  localStorage.setItem('dys_terms_accepted', 'true');
+
+  try {
+    await fetch('/api/payments/accept-terms', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        registration_id: regId,
+        terms_accepted: true
+      })
+    });
+  } catch (err) {
+    console.warn("Terms log notice:", err);
+  }
+
+  const overlay = document.getElementById('razorpay-consent-overlay');
+  if (overlay) overlay.style.display = 'none';
+
+  closeConsentModal();
+  showToast("Terms & Refund Policy Accepted ✓");
+
+  if (pendingConsentTarget === 'CASH') {
+    const pinWrapper = document.getElementById('cash-pin-wrapper');
+    if (pinWrapper) {
+      pinWrapper.classList.remove('hidden');
+      pinWrapper.style.display = 'block';
+      pinWrapper.scrollIntoView({ behavior: 'smooth' });
+    }
+  } else if (pendingConsentTarget === 'RAZORPAY') {
+    triggerRazorpayPaymentClick();
+  }
+}
+
+function handleRazorpayClickWithConsent() {
+  if (isTermsAccepted()) {
+    const overlay = document.getElementById('razorpay-consent-overlay');
+    if (overlay) overlay.style.display = 'none';
+    triggerRazorpayPaymentClick();
+  } else {
+    openConsentModal('RAZORPAY');
+  }
+}
+
+function triggerRazorpayPaymentClick() {
+  const wrapper = document.getElementById('razorpay-hosted-button-wrapper');
+  if (!wrapper) return;
+
+  const btn = wrapper.querySelector('button') || wrapper.querySelector('input[type="submit"]') || wrapper.querySelector('.razorpay-payment-button');
+  if (btn) {
+    btn.click();
+  } else {
+    payWithRazorpay();
+  }
+}
+
 function toggleCashPinInput() {
+  if (!isTermsAccepted()) {
+    openConsentModal('CASH');
+    return;
+  }
+
   const pinWrapper = document.getElementById('cash-pin-wrapper');
   if (pinWrapper) {
     if (pinWrapper.classList.contains('hidden') || pinWrapper.style.display === 'none') {
@@ -1454,6 +1578,16 @@ async function gotoPaymentScreen() {
 
   // Render score-specific Razorpay Payment Button
   renderRazorpayPaymentButton(targetButtonId);
+
+  // Configure Terms Consent Overlay
+  const overlay = document.getElementById('razorpay-consent-overlay');
+  if (overlay) {
+    if (isTermsAccepted()) {
+      overlay.style.display = 'none';
+    } else {
+      overlay.style.display = 'block';
+    }
+  }
 
   // Strict Payment Gate: PROCEED TO REGISTRATION button is ONLY shown if payment completed!
   const isPaid = checkIsPaymentCompleted();
@@ -2611,6 +2745,11 @@ window.verifyCashPaymentWithPin = verifyCashPaymentWithPin;
 window.goBackFrom = goBackFrom;
 window.resequenceAllPassIds = resequenceAllPassIds;
 window.checkBackendPaymentStatus = checkBackendPaymentStatus;
+window.openConsentModal = openConsentModal;
+window.closeConsentModal = closeConsentModal;
+window.toggleConsentProceedBtn = toggleConsentProceedBtn;
+window.confirmConsentAndProceedPayment = confirmConsentAndProceedPayment;
+window.handleRazorpayClickWithConsent = handleRazorpayClickWithConsent;
 
 // Footer Legal Policies & Contact Modal Logic
 const POLICY_CONTENTS = {

@@ -549,6 +549,50 @@ app.get('/api/payments/status', (req, res) => {
   }
 });
 
+// 3.7.6. Terms & Policy Acceptance Logging Endpoint
+app.post('/api/payments/accept-terms', (req, res) => {
+  try {
+    const { registration_id, terms_accepted } = req.body;
+    if (!registration_id) {
+      return res.status(400).json({ error: 'registration_id is required.' });
+    }
+
+    const db = readDB();
+    let reg = db.registrations.find(r => r.registration_id === registration_id);
+    if (!reg) {
+      reg = {
+        id: `REG_${Date.now()}`,
+        registration_id,
+        status: 'TERMS_ACCEPTED',
+        created_at: new Date().toISOString()
+      };
+      db.registrations.push(reg);
+    }
+
+    reg.terms_accepted = Boolean(terms_accepted !== false);
+    reg.terms_accepted_at = new Date().toISOString();
+    reg.updated_at = new Date().toISOString();
+
+    let payment = db.payments.find(p => p.registration_id === registration_id);
+    if (payment) {
+      payment.terms_accepted = true;
+      payment.terms_accepted_at = reg.terms_accepted_at;
+    }
+
+    writeDB(db);
+
+    return res.json({
+      success: true,
+      message: 'Terms & Conditions acceptance logged successfully.',
+      registration_id,
+      terms_accepted_at: reg.terms_accepted_at
+    });
+  } catch (err) {
+    console.error("Accept terms logging exception:", err);
+    return res.status(500).json({ error: 'Failed to log terms acceptance.' });
+  }
+});
+
 // 3.8. Cash Payment Admin Verification Endpoint
 app.post('/api/payments/verify-cash', (req, res) => {
   try {

@@ -750,6 +750,8 @@ async function syncToSupabase(reg, payment) {
       payment_mode: modeStr,
       Payment_mode: modeStr,
       language: reg.language || 'en',
+      terms_accepted: reg.terms_accepted !== undefined ? reg.terms_accepted : true,
+      terms_accepted_at: reg.terms_accepted_at || (reg.created_at || new Date().toISOString()),
       remarks: reg.remarks || null
     };
 

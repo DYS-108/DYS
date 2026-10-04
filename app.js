@@ -646,22 +646,37 @@ async function checkBackendPaymentStatus(showToasts = false) {
 }
 
 async function autoVerifyPaymentOnLoad() {
-  const regId = currentRegistrationId || localStorage.getItem('dys_active_reg_id');
-  if (regId && (localStorage.getItem(`dys_payment_completed_${regId}`) === '1' || localStorage.getItem('dys_payment_completed') === '1')) {
-    sessionStorage.setItem('dys_payment_completed', '1');
+  if (checkIsPaymentCompleted()) {
+    const modal = document.getElementById('lang-select-modal');
+    if (modal) modal.classList.add('hidden');
+    switchScreen(null, 'screen-registration');
     return true;
   }
 
+  const regId = currentRegistrationId || localStorage.getItem('dys_active_reg_id');
+
   if (regId) {
     const isBackendVerified = await checkBackendPaymentStatus(false);
-    if (isBackendVerified) return true;
+    if (isBackendVerified) {
+      const modal = document.getElementById('lang-select-modal');
+      if (modal) modal.classList.add('hidden');
+      switchScreen(null, 'screen-registration');
+      return true;
+    }
   }
 
   const searchParams = new URLSearchParams(window.location.search);
   const rzpPaymentId = searchParams.get('razorpay_payment_id') || searchParams.get('payment_id') || searchParams.get('razorpay_payment_link_id');
   const isPaidStatus = searchParams.get('razorpay_payment_link_status') === 'paid' || searchParams.get('status') === 'success' || searchParams.get('paid') === '1';
+  const hasAnyRazorpayParam = Array.from(searchParams.keys()).some(k => 
+    k.toLowerCase().includes('razorpay') || 
+    k.toLowerCase().includes('payment') || 
+    k.toLowerCase().includes('status') || 
+    k.toLowerCase().includes('paid') || 
+    k.toLowerCase().includes('success')
+  );
 
-  if (!rzpPaymentId && !isPaidStatus) return false;
+  if (!rzpPaymentId && !isPaidStatus && !hasAnyRazorpayParam) return false;
 
   const loader = document.getElementById('automated-verifying-loader');
   if (loader) {
@@ -2588,7 +2603,63 @@ async function verifyAdminPayment(regId, action) {
   }
 }
 
+function setupRazorpayReturnListeners() {
+  const handleReturnCheck = async () => {
+    const regId = currentRegistrationId || localStorage.getItem('dys_active_reg_id');
+    if (checkIsPaymentCompleted()) {
+      const modal = document.getElementById('lang-select-modal');
+      if (modal) modal.classList.add('hidden');
+      gotoRegistrationScreen();
+      return;
+    }
+
+    if (regId) {
+      const isVerified = await checkBackendPaymentStatus(false);
+      if (isVerified) {
+        const modal = document.getElementById('lang-select-modal');
+        if (modal) modal.classList.add('hidden');
+        gotoRegistrationScreen();
+      }
+    }
+  };
+
+  window.addEventListener('focus', handleReturnCheck);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') handleReturnCheck();
+  });
+
+  window.addEventListener('message', (event) => {
+    try {
+      const dataStr = typeof event.data === 'string' ? event.data : JSON.stringify(event.data || {});
+      const lower = dataStr.toLowerCase();
+      if (lower.includes('razorpay') || lower.includes('payment') || lower.includes('success') || lower.includes('captured') || lower.includes('done')) {
+        const regId = currentRegistrationId || localStorage.getItem('dys_active_reg_id');
+        if (regId) localStorage.setItem(`dys_payment_completed_${regId}`, '1');
+        localStorage.setItem('dys_payment_completed', '1');
+        sessionStorage.setItem('dys_payment_completed', '1');
+        const modal = document.getElementById('lang-select-modal');
+        if (modal) modal.classList.add('hidden');
+        showToast("Payment Complete! Opening Candidate Registration Details ➔");
+        gotoRegistrationScreen();
+      }
+    } catch (e) {}
+  });
+
+  setInterval(() => {
+    const activeScreen = document.querySelector('.view-screen:not(.hidden)');
+    if (activeScreen && activeScreen.id === 'screen-payment') {
+      if (checkIsPaymentCompleted()) {
+        const modal = document.getElementById('lang-select-modal');
+        if (modal) modal.classList.add('hidden');
+        gotoRegistrationScreen();
+      }
+    }
+  }, 1500);
+}
+
 function setupEventListeners() {
+  setupRazorpayReturnListeners();
+
   const btnEn = document.getElementById('btn-lang-en');
   if (btnEn) btnEn.addEventListener('click', () => selectInitialLanguage('en'));
 

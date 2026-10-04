@@ -1209,7 +1209,7 @@ function getRazorpayButtonId(finalPercent) {
   if (finalPercent >= 70) return 'pl_TX5FhAUVPOtHZj'; // 30% (14–15 Marks) -> ₹210
   if (finalPercent >= 60) return 'pl_TX5GaOEkFfaQ36'; // 20% (12–13 Marks) -> ₹240
   if (finalPercent >= 50) return 'pl_TX5HLh5S0cjrrE'; // 10% (10–11 Marks) -> ₹270
-  return 'pl_TX5IQ5tIp0H5ZV';                          // 0%  (0–9 Marks)   -> ₹300
+  return 'pl_TjmNQh9MCQb0ut';                          // Test button for ₹300 tier (0–9 Marks) -> pl_TjmNQh9MCQb0ut
 }
 
 function getTierPayableAmount(finalPercent) {

@@ -588,8 +588,12 @@ function restoreAppState() {
     }
 
     if (state.activeScreenId === 'screen-payment') {
-      gotoPaymentScreen();
-      showToast("Welcome back! Restored your quiz session & payment state ➔");
+      if (checkIsPaymentCompleted()) {
+        gotoRegistrationScreen();
+      } else {
+        gotoPaymentScreen();
+        showToast("Welcome back! Restored your quiz session & payment state ➔");
+      }
     } else if (state.activeScreenId === 'screen-course' && lastCalculatedResult) {
       updateCoursePageUI(lastCalculatedResult.finalPercent, lastCalculatedResult.discountPercentage);
     } else if (state.activeScreenId === 'screen-result' && lastCalculatedResult) {
@@ -1257,8 +1261,15 @@ function checkIsPaymentCompleted() {
   const searchParams = new URLSearchParams(window.location.search);
   const hasRzpPayId = searchParams.get('razorpay_payment_id') || searchParams.get('payment_id') || searchParams.get('razorpay_payment_link_id');
   const hasStatusSuccess = searchParams.get('razorpay_payment_link_status') === 'paid' || searchParams.get('status') === 'success' || searchParams.get('paid') === '1';
+  const hasAnyRazorpayParam = Array.from(searchParams.keys()).some(k => 
+    k.toLowerCase().includes('razorpay') || 
+    k.toLowerCase().includes('payment') || 
+    k.toLowerCase().includes('status') || 
+    k.toLowerCase().includes('paid') || 
+    k.toLowerCase().includes('success')
+  );
 
-  if (hasRzpPayId || hasStatusSuccess) {
+  if (hasRzpPayId || hasStatusSuccess || hasAnyRazorpayParam) {
     if (regId) localStorage.setItem(`dys_payment_completed_${regId}`, '1');
     localStorage.setItem('dys_payment_completed', '1');
     sessionStorage.setItem('dys_payment_completed', '1');
@@ -1586,6 +1597,11 @@ function updateCoursePageUI(finalPercent, discountPercentage) {
 
 // Redirect to Payment Screen & Dynamically Render Score Tier Razorpay Button
 async function gotoPaymentScreen() {
+  if (checkIsPaymentCompleted()) {
+    gotoRegistrationScreen();
+    return;
+  }
+
   if (!currentRegistrationId) {
     currentRegistrationId = 'REG' + (Math.floor(Math.random() * 8999) + 1000);
     localStorage.setItem('dys_active_reg_id', currentRegistrationId);

@@ -2093,12 +2093,32 @@ function startNewRegistrationSession() {
   localStorage.removeItem('dys_current_pass_record');
   localStorage.removeItem('dys_app_session_state');
   sessionStorage.removeItem('dys_app_session_state');
+  sessionStorage.removeItem('dys_payment_redirect');
   const regId = currentRegistrationId || localStorage.getItem('dys_active_reg_id');
   if (regId) {
     localStorage.removeItem(`dys_payment_completed_${regId}`);
     sessionStorage.removeItem(`dys_payment_completed_${regId}`);
+    localStorage.removeItem(`dys_terms_accepted_${regId}`);
   }
-  window.location.href = window.location.origin + window.location.pathname;
+  localStorage.removeItem('dys_active_reg_id');
+  localStorage.removeItem('dys_payment_completed');
+  sessionStorage.removeItem('dys_payment_completed');
+
+  // Reset all registration form input values
+  ['input-name', 'input-age', 'input-phone', 'input-college', 'input-degree', 'input-branch', 'input-company', 'input-position', 'input-address', 'input-remarks'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+
+  currentRegistrationId = null;
+  lastCalculatedResult = null;
+  currentPaymentData = null;
+  userAnswers = {};
+  currentQuestionIndex = 0;
+  studentData = { name: '', age: '', phone: '', occupation: 'student', college: '', degree: '', branch: '', company: '', position: '', maritalStatus: 'single', gender: 'male', address: '', language: 'en' };
+
+  // Use location.replace to replace history entry so Back button cannot return to previous session
+  window.location.replace(window.location.origin + window.location.pathname);
 }
 
 let isSubmittingRegistration = false;
@@ -2844,6 +2864,33 @@ function setupRazorpayReturnListeners() {
 
 function setupEventListeners() {
   setupRazorpayReturnListeners();
+
+  // Prevent Mobile Back Button / gesture from restoring stale registration form from cache
+  window.addEventListener('popstate', () => {
+    const activeScreen = document.querySelector('.view-screen:not(.hidden)');
+    if (!localStorage.getItem('dys_current_pass_record') && !checkIsPaymentCompleted()) {
+      if (activeScreen && (activeScreen.id === 'screen-registration' || activeScreen.id === 'screen-pass')) {
+        switchScreen(null, 'screen-quiz');
+        const modal = document.getElementById('lang-select-modal');
+        if (modal) modal.classList.remove('hidden');
+        renderQuestion(0);
+      }
+    }
+  });
+
+  window.addEventListener('pageshow', (e) => {
+    if (e.persisted) {
+      const activeScreen = document.querySelector('.view-screen:not(.hidden)');
+      if (!localStorage.getItem('dys_current_pass_record') && !checkIsPaymentCompleted()) {
+        if (activeScreen && (activeScreen.id === 'screen-registration' || activeScreen.id === 'screen-pass')) {
+          switchScreen(null, 'screen-quiz');
+          const modal = document.getElementById('lang-select-modal');
+          if (modal) modal.classList.remove('hidden');
+          renderQuestion(0);
+        }
+      }
+    }
+  });
 
   const btnEn = document.getElementById('btn-lang-en');
   if (btnEn) btnEn.addEventListener('click', () => selectInitialLanguage('en'));

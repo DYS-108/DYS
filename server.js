@@ -36,6 +36,16 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 
+// Health Check Endpoint
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    razorpay_configured: !!(RAZORPAY_KEY_ID && RAZORPAY_KEY_SECRET),
+    environment: process.env.VERCEL ? 'vercel' : 'local'
+  });
+});
+
 // Quiz Correct Answer Key
 const QUIZ_ANSWER_KEY = {
   0: 'C',

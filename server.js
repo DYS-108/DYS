@@ -834,6 +834,98 @@ async function syncToSupabase(reg, payment) {
 }
 
 // -----------------------------------------------------------------------------
+// Student Registration Container Endpoints
+// -----------------------------------------------------------------------------
+
+// Save or Update Full Isolated Student Registration Container
+app.post('/api/registrations/complete', (req, res) => {
+  try {
+    const { studentData, result, regPassId, userAnswers, timestamp } = req.body;
+    if (!studentData || !regPassId) {
+      return res.status(400).json({ error: 'Missing required student data or pass ID.' });
+    }
+
+    const db = readDB();
+    const regId = req.body.registration_id || `REG_${Date.now()}`;
+
+    // Find existing or create new container for this student
+    let studentContainer = db.registrations.find(r => r.pass_id === regPassId || r.registration_id === regId);
+    if (!studentContainer) {
+      studentContainer = {
+        registration_id: regId,
+        pass_id: regPassId,
+        created_at: timestamp || new Date().toISOString()
+      };
+      db.registrations.push(studentContainer);
+    }
+
+    studentContainer.pass_id = regPassId;
+    studentContainer.full_name = studentData.name || '';
+    studentContainer.age = parseInt(studentData.age) || 0;
+    studentContainer.whatsapp_number = studentData.phone || '';
+    studentContainer.occupation = studentData.occupation || 'student';
+    studentContainer.institution_or_company = studentData.occupation === 'student' ? studentData.college : studentData.company;
+    studentContainer.degree_or_position = studentData.occupation === 'student' ? studentData.degree : studentData.position;
+    studentContainer.branch = studentData.branch || null;
+    studentContainer.marital_status = studentData.maritalStatus || 'single';
+    studentContainer.gender = studentData.gender || 'male';
+    studentContainer.address = studentData.address || '';
+    studentContainer.quiz_score = result ? result.netScore : 0;
+    studentContainer.percentage = result ? result.finalPercent : 0;
+    studentContainer.calculated_fee = result ? result.payableAmount : 300;
+    studentContainer.discount_percentage = result ? result.discountPercentage : 0;
+    studentContainer.answers = userAnswers || {};
+    studentContainer.status = 'REGISTERED';
+    studentContainer.updated_at = new Date().toISOString();
+
+    writeDB(db);
+
+    return res.json({
+      success: true,
+      message: 'Student container successfully saved.',
+      student: studentContainer
+    });
+  } catch (err) {
+    console.error("Error saving student container:", err);
+    return res.status(500).json({ error: 'Failed to save student container.' });
+  }
+});
+
+// Access specific student container by registration_id or pass_id
+app.get('/api/registrations/:id', (req, res) => {
+  try {
+    const id = req.params.id;
+    const db = readDB();
+    const student = db.registrations.find(r => r.registration_id === id || r.pass_id === id);
+    if (!student) {
+      return res.status(404).json({ error: 'Student record not found.' });
+    }
+    const payment = db.payments.find(p => p.registration_id === student.registration_id);
+    return res.json({
+      success: true,
+      student,
+      payment: payment || null
+    });
+  } catch (err) {
+    return res.status(500).json({ error: 'Error fetching student record.' });
+  }
+});
+
+// List all student containers
+app.get('/api/registrations', (req, res) => {
+  try {
+    const db = readDB();
+    return res.json({
+      success: true,
+      total_students: db.registrations.length,
+      students: db.registrations
+    });
+  } catch (err) {
+    return res.status(500).json({ error: 'Error fetching registrations list.' });
+  }
+});
+
+// -----------------------------------------------------------------------------
 // Admin Verification Endpoints
 // -----------------------------------------------------------------------------
 

@@ -2312,6 +2312,22 @@ async function saveRegistrationToSupabase(record) {
     } else {
       console.log(`Registration successfully saved to BOTH master and Category DB (${categoryTable})!`, catData);
     }
+
+    // 3. Sync to Backend Server Student Container
+    try {
+      fetch('/api/registrations/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          registration_id: currentRegistrationId || localStorage.getItem('dys_active_reg_id'),
+          studentData: sData,
+          result: record.result || lastCalculatedResult,
+          regPassId: record.regPassId,
+          userAnswers: record.userAnswers || userAnswers,
+          timestamp: record.timestamp
+        })
+      }).catch(() => {});
+    } catch (apiErr) {}
   } catch (e) {
     console.error("Supabase Connection Exception:", e);
   }

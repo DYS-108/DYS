@@ -1898,6 +1898,19 @@ function updatePaymentStatusBanner(status, customMessage) {
 
 // Redirect to Post-Payment Registration Form
 function gotoRegistrationScreen() {
+  // If the candidate has already generated their pass, keep them on the Pass Screen!
+  const savedPassRaw = localStorage.getItem('dys_current_pass_record');
+  if (savedPassRaw) {
+    try {
+      const savedPass = JSON.parse(savedPassRaw);
+      if (savedPass && savedPass.regPassId) {
+        renderPassScreenFromRecord(savedPass);
+        switchScreen(null, 'screen-pass');
+        return;
+      }
+    } catch (e) {}
+  }
+
   if (!lastCalculatedResult) {
     showToast("Please complete the quiz test first!");
     switchScreen(null, 'screen-quiz');
@@ -2715,6 +2728,15 @@ async function verifyAdminPayment(regId, action) {
 
 function setupRazorpayReturnListeners() {
   const handleReturnCheck = async () => {
+    // If the candidate has already generated their pass, NEVER kick them back!
+    if (localStorage.getItem('dys_current_pass_record')) return;
+
+    // ONLY check return if user is currently on the Payment Screen!
+    const activeScreen = document.querySelector('.view-screen:not(.hidden)');
+    if (!activeScreen || activeScreen.id !== 'screen-payment') {
+      return;
+    }
+
     const regId = currentRegistrationId || localStorage.getItem('dys_active_reg_id');
     if (checkIsPaymentCompleted()) {
       const modal = document.getElementById('lang-select-modal');
@@ -2808,6 +2830,7 @@ function setupRazorpayReturnListeners() {
   });
 
   setInterval(() => {
+    if (localStorage.getItem('dys_current_pass_record')) return;
     const activeScreen = document.querySelector('.view-screen:not(.hidden)');
     if (activeScreen && activeScreen.id === 'screen-payment') {
       if (checkIsPaymentCompleted()) {

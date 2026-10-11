@@ -19,7 +19,7 @@ try {
 // Initial Database Structure
 const initialData = {
   counters: {
-    registration_seq: 1000,
+    registration_seq: 2523,
     payment_seq: 0
   },
   registrations: [],

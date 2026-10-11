@@ -553,11 +553,27 @@ function clearAppState() {
   try {
     sessionStorage.removeItem('dys_app_session_state');
     sessionStorage.removeItem('dys_payment_redirect');
+    localStorage.removeItem('dys_app_session_state');
   } catch (e) {}
 }
 
 function restoreAppState() {
   try {
+    // If user already generated a registration pass, restore the Pass Screen directly
+    const savedPassRaw = localStorage.getItem('dys_current_pass_record');
+    if (savedPassRaw) {
+      try {
+        const savedPass = JSON.parse(savedPassRaw);
+        if (savedPass && savedPass.regPassId) {
+          renderPassScreenFromRecord(savedPass);
+          const modal = document.getElementById('lang-select-modal');
+          if (modal) modal.classList.add('hidden');
+          switchScreen(null, 'screen-pass');
+          return true;
+        }
+      } catch (e) {}
+    }
+
     const raw = sessionStorage.getItem('dys_app_session_state') || localStorage.getItem('dys_app_session_state');
     if (!raw) return false;
 
@@ -587,7 +603,14 @@ function restoreAppState() {
       target.style.display = 'block';
     }
 
-    if (state.activeScreenId === 'screen-registration') {
+    if (state.activeScreenId === 'screen-pass') {
+      const rec = state.passRecord || (savedPassRaw ? JSON.parse(savedPassRaw) : null);
+      if (rec) {
+        renderPassScreenFromRecord(rec);
+        switchScreen(null, 'screen-pass');
+        return true;
+      }
+    } else if (state.activeScreenId === 'screen-registration') {
       if (!lastCalculatedResult) {
         clearAppState();
         return false;
@@ -758,6 +781,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   const searchParams = new URLSearchParams(window.location.search);
   const rzpPaymentId = searchParams.get('razorpay_payment_id') || searchParams.get('payment_id');
 
+  // If candidate already has an active completed pass record, stay on Pass Screen!
+  const savedPassRaw = localStorage.getItem('dys_current_pass_record');
+  if (savedPassRaw && !rzpPaymentId) {
+    try {
+      const savedPass = JSON.parse(savedPassRaw);
+      if (savedPass && savedPass.regPassId) {
+        renderPassScreenFromRecord(savedPass);
+        const modal = document.getElementById('lang-select-modal');
+        if (modal) modal.classList.add('hidden');
+        switchScreen(null, 'screen-pass');
+        return;
+      }
+    } catch (e) {}
+  }
+
   if (rzpPaymentId) {
     const isAutoVerified = await autoVerifyPaymentOnLoad();
     if (isAutoVerified) return;
@@ -765,7 +803,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const restored = restoreAppState();
   if (restored) {
-    await autoVerifyPaymentOnLoad();
+    if (!localStorage.getItem('dys_current_pass_record')) {
+      await autoVerifyPaymentOnLoad();
+    }
   } else {
     // Fresh load — clear any stale state and show language selector
     clearAppState();
@@ -1974,6 +2014,80 @@ async function getNextPassId(categoryTable) {
   return 'ISKCON-REG-' + finalCount + '-' + randomSuffix;
 }
 
+function renderPassScreenFromRecord(record) {
+  if (!record) return;
+  const sData = record.studentData || {};
+  const res = record.result || lastCalculatedResult;
+  const passId = record.regPassId || 'ISKCON-REG';
+  const nowStr = record.timestamp ? new Date(record.timestamp).toLocaleString() : new Date().toLocaleString();
+
+  const regEl = document.getElementById('pass-reg-id');
+  if (regEl) regEl.innerText = passId;
+
+  const nameEl = document.getElementById('pass-student-name');
+  if (nameEl) nameEl.innerText = sData.name || 'Participant';
+
+  const statusStr = sData.maritalStatus === 'single'
+    ? (sData.gender === 'female' ? 'Single • Female' : 'Single • Male')
+    : 'Married';
+  const ageEl = document.getElementById('pass-age');
+  if (ageEl) ageEl.innerText = `${sData.age || '-'} yrs (${statusStr})`;
+
+  const phoneEl = document.getElementById('pass-phone');
+  if (phoneEl) phoneEl.innerText = sData.phone || '-';
+
+  const occText = sData.occupation === 'student'
+    ? `${sData.college || ''} (${sData.degree || ''} ${sData.branch || ''})`.trim()
+    : `${sData.company || ''} (${sData.position || ''})`.trim();
+  const occEl = document.getElementById('pass-occupation');
+  if (occEl) occEl.innerText = occText || '-';
+
+  const scoreNum = res && res.netScore !== undefined ? res.netScore : (lastCalculatedResult ? lastCalculatedResult.netScore : 0);
+  const scoreEl = document.getElementById('pass-score');
+  if (scoreEl) scoreEl.innerText = `${scoreNum} / 20 Marks`;
+
+  const paidAmt = res && res.payableAmount !== undefined ? `₹${res.payableAmount}` : (lastCalculatedResult ? `₹${lastCalculatedResult.payableAmount}` : '₹300');
+  const amtEl = document.getElementById('pass-amount');
+  if (amtEl) amtEl.innerText = paidAmt;
+
+  const timeEl = document.getElementById('pass-time');
+  if (timeEl) timeEl.innerText = nowStr;
+
+  const qrBox = document.getElementById('pass-qrcode-container');
+  if (qrBox) {
+    qrBox.innerHTML = '';
+    if (window.QRCode) {
+      try {
+        new QRCode(qrBox, {
+          text: `DYS-PASS:${passId}:${sData.name || ''}:${sData.phone || ''}`,
+          width: 72,
+          height: 72,
+          colorDark: "#000000",
+          colorLight: "#FFFFFF"
+        });
+      } catch (qrErr) {}
+    }
+  }
+
+  const barcodeTxt = document.getElementById('pass-barcode-text');
+  if (barcodeTxt) barcodeTxt.innerText = passId;
+
+  studentData = sData;
+  updatePassWhatsAppButton();
+}
+
+function startNewRegistrationSession() {
+  localStorage.removeItem('dys_current_pass_record');
+  localStorage.removeItem('dys_app_session_state');
+  sessionStorage.removeItem('dys_app_session_state');
+  const regId = currentRegistrationId || localStorage.getItem('dys_active_reg_id');
+  if (regId) {
+    localStorage.removeItem(`dys_payment_completed_${regId}`);
+    sessionStorage.removeItem(`dys_payment_completed_${regId}`);
+  }
+  window.location.href = window.location.origin + window.location.pathname;
+}
+
 let isSubmittingRegistration = false;
 
 // Complete Registration & Generate Pass Ticket
@@ -2044,57 +2158,7 @@ async function completeRegistrationAndGeneratePass() {
   if (!regPassId) {
     regPassId = await getNextPassId(categoryTable);
   }
-  const nowStr = new Date().toLocaleString();
-
-  document.getElementById('pass-reg-id').innerText = regPassId;
-  document.getElementById('pass-student-name').innerText = studentData.name || 'Participant';
-
-  // Formatted Age & Demographics Status
-  const statusStr = studentData.maritalStatus === 'single'
-    ? (studentData.gender === 'female' ? 'Single • Female' : 'Single • Male')
-    : 'Married';
-  document.getElementById('pass-age').innerText = `${studentData.age || '-'} yrs (${statusStr})`;
-
-  document.getElementById('pass-phone').innerText = studentData.phone || '-';
-
-  const occText = studentData.occupation === 'student'
-    ? `${studentData.college || ''} (${studentData.degree || ''} ${studentData.branch || ''})`.trim()
-    : `${studentData.company || ''} (${studentData.position || ''})`.trim();
-  document.getElementById('pass-occupation').innerText = occText || '-';
-
-  const scoreNum = lastCalculatedResult ? lastCalculatedResult.netScore : '20';
-  document.getElementById('pass-score').innerText = `${scoreNum} / 20 Marks`;
-
-  const paidAmt = lastCalculatedResult ? `₹${lastCalculatedResult.payableAmount}` : '₹150';
-  document.getElementById('pass-amount').innerText = paidAmt;
-  document.getElementById('pass-time').innerText = nowStr;
-
-  // Render Venue Entry QR Code & Barcode Code
-  const qrBox = document.getElementById('pass-qrcode-container');
-  if (qrBox) {
-    qrBox.innerHTML = '';
-    if (window.QRCode) {
-      try {
-        new QRCode(qrBox, {
-          text: `DYS-PASS:${regPassId}:${studentData.name}:${studentData.phone}`,
-          width: 72,
-          height: 72,
-          colorDark: "#000000",
-          colorLight: "#FFFFFF"
-        });
-      } catch (qrErr) {}
-    }
-  }
-
-  const barcodeTxt = document.getElementById('pass-barcode-text');
-  if (barcodeTxt) {
-    barcodeTxt.innerText = regPassId;
-  }
-
-  // Targeted WhatsApp Group Routing (Behind the scenes target URL, generic button text)
-  updatePassWhatsAppButton();
-
-  // Save Complete Record to LocalStorage & Supabase Cloud DB
+  // Create Complete Record
   const record = {
     studentData,
     userAnswers,
@@ -2103,17 +2167,22 @@ async function completeRegistrationAndGeneratePass() {
     timestamp: new Date().toISOString(),
     isPaid: true
   };
+
+  // Render pass into DOM
+  renderPassScreenFromRecord(record);
+
   if (studentData.phone) {
     localStorage.setItem('dys_user_' + studentData.phone, JSON.stringify(record));
   }
+  // Persist pass record so returning from WhatsApp or reloads stay on pass!
+  localStorage.setItem('dys_current_pass_record', JSON.stringify(record));
 
   // Save to Supabase Cloud Database (if configured)
   await saveRegistrationToSupabase(record);
 
   switchScreen('screen-registration', 'screen-pass');
+  saveAppState('screen-pass');
 
-  // Clear temporary payment session state once pass is generated
-  clearAppState();
   isSubmittingRegistration = false;
   if (submitBtn) {
     submitBtn.disabled = false;

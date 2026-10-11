@@ -587,7 +587,16 @@ function restoreAppState() {
       target.style.display = 'block';
     }
 
-    if (state.activeScreenId === 'screen-payment') {
+    if (state.activeScreenId === 'screen-registration') {
+      if (!lastCalculatedResult) {
+        clearAppState();
+        return false;
+      }
+      if (!checkIsPaymentCompleted()) {
+        gotoPaymentScreen();
+        return true;
+      }
+    } else if (state.activeScreenId === 'screen-payment') {
       if (checkIsPaymentCompleted()) {
         gotoRegistrationScreen();
       } else {
@@ -646,37 +655,48 @@ async function checkBackendPaymentStatus(showToasts = false) {
 }
 
 async function autoVerifyPaymentOnLoad() {
-  if (checkIsPaymentCompleted()) {
-    const modal = document.getElementById('lang-select-modal');
-    if (modal) modal.classList.add('hidden');
-    switchScreen(null, 'screen-registration');
-    return true;
-  }
-
-  const regId = currentRegistrationId || localStorage.getItem('dys_active_reg_id');
-
-  if (regId) {
-    const isBackendVerified = await checkBackendPaymentStatus(false);
-    if (isBackendVerified) {
-      const modal = document.getElementById('lang-select-modal');
-      if (modal) modal.classList.add('hidden');
-      switchScreen(null, 'screen-registration');
-      return true;
-    }
-  }
+  // Purge any legacy global un-scoped flag
+  try {
+    localStorage.removeItem('dys_payment_completed');
+    sessionStorage.removeItem('dys_payment_completed');
+  } catch (e) {}
 
   const searchParams = new URLSearchParams(window.location.search);
-  const rzpPaymentId = searchParams.get('razorpay_payment_id') || searchParams.get('payment_id') || searchParams.get('razorpay_payment_link_id');
-  const isPaidStatus = searchParams.get('razorpay_payment_link_status') === 'paid' || searchParams.get('status') === 'success' || searchParams.get('paid') === '1';
-  const hasAnyRazorpayParam = Array.from(searchParams.keys()).some(k => 
-    k.toLowerCase().includes('razorpay') || 
-    k.toLowerCase().includes('payment') || 
-    k.toLowerCase().includes('status') || 
-    k.toLowerCase().includes('paid') || 
-    k.toLowerCase().includes('success')
-  );
+  const rzpPaymentId = searchParams.get('razorpay_payment_id') || searchParams.get('payment_id');
+  const regId = currentRegistrationId || sessionStorage.getItem('dys_active_reg_id') || localStorage.getItem('dys_active_reg_id') || 'REG1020';
 
-  if (!rzpPaymentId && !isPaidStatus && !hasAnyRazorpayParam) return false;
+  if (!rzpPaymentId) {
+    if (!lastCalculatedResult) return false;
+    if (checkIsPaymentCompleted()) {
+      const modal = document.getElementById('lang-select-modal');
+      if (modal) modal.classList.add('hidden');
+      gotoRegistrationScreen();
+      return true;
+    }
+    const isBackendVerified = await checkBackendPaymentStatus(false);
+    if (isBackendVerified) {
+      sessionStorage.setItem(`dys_payment_completed_${regId}`, '1');
+      const modal = document.getElementById('lang-select-modal');
+      if (modal) modal.classList.add('hidden');
+      gotoRegistrationScreen();
+      return true;
+    }
+    return false;
+  }
+
+  // A payment ID is present in the URL (returning from Razorpay redirect)
+  if (!lastCalculatedResult) {
+    try {
+      const raw = sessionStorage.getItem('dys_app_session_state') || localStorage.getItem('dys_app_session_state');
+      if (raw) {
+        const state = JSON.parse(raw);
+        if (state && state.lastCalculatedResult) lastCalculatedResult = state.lastCalculatedResult;
+      }
+    } catch (e) {}
+    if (!lastCalculatedResult) {
+      lastCalculatedResult = { finalPercent: 0, netScore: 0, payableAmount: 300, discountPercentage: 0 };
+    }
+  }
 
   const loader = document.getElementById('automated-verifying-loader');
   if (loader) {
@@ -684,53 +704,50 @@ async function autoVerifyPaymentOnLoad() {
     loader.style.display = 'block';
   }
 
-  showToast("Detecting Razorpay Payment... Verifying automatically 🔄");
+  showToast("Verifying Razorpay payment with server... 🔄");
 
   try {
-    const activeId = regId || 'REG1000';
-    const payId = rzpPaymentId || `pay_auto_${Date.now()}`;
+    const res = await fetch('/api/payments/razorpay/fetch-and-verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        registration_id: regId,
+        payment_id: rzpPaymentId
+      })
+    });
 
-    try {
-      await fetch('/api/payments/razorpay/fetch-and-verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          registration_id: activeId,
-          payment_id: payId
-        })
-      });
-    } catch (apiErr) {}
-
+    const data = await res.json();
     if (loader) loader.style.display = 'none';
 
-    if (activeId) localStorage.setItem(`dys_payment_completed_${activeId}`, '1');
-    localStorage.setItem('dys_payment_completed', '1');
-    sessionStorage.setItem('dys_payment_completed', '1');
-    currentPaymentData = { method: 'RAZORPAY', status: 'VERIFIED', utr: rzpPaymentId };
-    showToast("Payment Verified with Razorpay! Opening Registration Details ➔");
-
-    const modal = document.getElementById('lang-select-modal');
-    if (modal) modal.classList.add('hidden');
-    switchScreen(null, 'screen-registration');
-    return true;
+    if (res.ok && data.verified) {
+      sessionStorage.setItem(`dys_payment_completed_${regId}`, '1');
+      localStorage.setItem(`dys_payment_completed_${regId}`, '1');
+      currentPaymentData = { method: 'RAZORPAY', status: 'VERIFIED', utr: rzpPaymentId };
+      showToast("Payment Verified with Razorpay! Opening Registration Details ➔");
+      const modal = document.getElementById('lang-select-modal');
+      if (modal) modal.classList.add('hidden');
+      gotoRegistrationScreen();
+      return true;
+    } else {
+      showToast(data.error || "Payment not verified on Razorpay. Please complete payment.");
+      return false;
+    }
   } catch (err) {
-    console.warn("Auto verification notice:", err);
+    console.warn("Auto verification error:", err);
     if (loader) loader.style.display = 'none';
-    if (regId) localStorage.setItem(`dys_payment_completed_${regId}`, '1');
-    localStorage.setItem('dys_payment_completed', '1');
-    sessionStorage.setItem('dys_payment_completed', '1');
-    currentPaymentData = { method: 'RAZORPAY', status: 'VERIFIED', utr: rzpPaymentId };
-    showToast("Payment Verified! Opening Registration Details ➔");
-
-    const modal = document.getElementById('lang-select-modal');
-    if (modal) modal.classList.add('hidden');
-    switchScreen(null, 'screen-registration');
-    return true;
+    showToast("Could not verify payment automatically. Please complete payment.");
+    return false;
   }
 }
 
 // Initial Load Event Listener
 document.addEventListener('DOMContentLoaded', async () => {
+  // Purge any legacy un-scoped key
+  try {
+    localStorage.removeItem('dys_payment_completed');
+    sessionStorage.removeItem('dys_payment_completed');
+  } catch (e) {}
+
   const savedLang = localStorage.getItem('dys_app_lang');
   if (savedLang && (savedLang === 'en' || savedLang === 'hi')) {
     currentLang = savedLang;
@@ -738,16 +755,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   setupEventListeners();
 
-  const isAutoVerified = await autoVerifyPaymentOnLoad();
-  if (isAutoVerified) {
-    const modal = document.getElementById('lang-select-modal');
-    if (modal) modal.classList.add('hidden');
-    switchScreen(null, 'screen-registration');
-    return;
+  const searchParams = new URLSearchParams(window.location.search);
+  const rzpPaymentId = searchParams.get('razorpay_payment_id') || searchParams.get('payment_id');
+
+  if (rzpPaymentId) {
+    const isAutoVerified = await autoVerifyPaymentOnLoad();
+    if (isAutoVerified) return;
   }
 
   const restored = restoreAppState();
-  if (!restored) {
+  if (restored) {
+    await autoVerifyPaymentOnLoad();
+  } else {
     // Fresh load — clear any stale state and show language selector
     clearAppState();
     const modal = document.getElementById('lang-select-modal');
@@ -1265,33 +1284,23 @@ function renderRazorpayPaymentButton(buttonId) {
 }
 
 function checkIsPaymentCompleted() {
-  const regId = currentRegistrationId || localStorage.getItem('dys_active_reg_id');
-  if (regId && localStorage.getItem(`dys_payment_completed_${regId}`) === '1') {
+  if (!lastCalculatedResult) {
+    return false;
+  }
+  const regId = currentRegistrationId || sessionStorage.getItem('dys_active_reg_id') || localStorage.getItem('dys_active_reg_id');
+  if (!regId) return false;
+
+  if (currentPaymentData && currentPaymentData.status === 'VERIFIED') {
     return true;
   }
-  if (localStorage.getItem('dys_payment_completed') === '1') {
+  if (sessionStorage.getItem(`dys_payment_completed_${regId}`) === '1') {
     return true;
   }
-
-  const searchParams = new URLSearchParams(window.location.search);
-  const hasRzpPayId = searchParams.get('razorpay_payment_id') || searchParams.get('payment_id') || searchParams.get('razorpay_payment_link_id');
-  const hasStatusSuccess = searchParams.get('razorpay_payment_link_status') === 'paid' || searchParams.get('status') === 'success' || searchParams.get('paid') === '1';
-  const hasAnyRazorpayParam = Array.from(searchParams.keys()).some(k => 
-    k.toLowerCase().includes('razorpay') || 
-    k.toLowerCase().includes('payment') || 
-    k.toLowerCase().includes('status') || 
-    k.toLowerCase().includes('paid') || 
-    k.toLowerCase().includes('success')
-  );
-
-  if (hasRzpPayId || hasStatusSuccess || hasAnyRazorpayParam) {
-    if (regId) localStorage.setItem(`dys_payment_completed_${regId}`, '1');
-    localStorage.setItem('dys_payment_completed', '1');
-    sessionStorage.setItem('dys_payment_completed', '1');
+  if (localStorage.getItem(`dys_payment_completed_${regId}`) === '1') {
     return true;
   }
 
-  return sessionStorage.getItem('dys_payment_completed') === '1';
+  return false;
 }
 
 let pendingConsentTarget = null;
@@ -1485,7 +1494,10 @@ async function verifyCashPaymentWithPin() {
     const data = await res.json();
 
     if (res.ok && data.verified) {
-      sessionStorage.setItem('dys_payment_completed', '1');
+      const regId = currentRegistrationId || sessionStorage.getItem('dys_active_reg_id');
+      if (regId) {
+        sessionStorage.setItem(`dys_payment_completed_${regId}`, '1');
+      }
       currentPaymentData = { method: 'cash', status: 'CASH_VERIFIED' };
       const msgTag = document.getElementById('verified-success-msg');
       if (msgTag) msgTag.innerText = "🎉 Cash Payment Verified by Admin! ✓";
@@ -1506,7 +1518,10 @@ async function verifyCashPaymentWithPin() {
   } catch (err) {
     console.warn("Backend verify cash notice:", err);
     if (passcode === '108108' || passcode === 'admin123') {
-      sessionStorage.setItem('dys_payment_completed', '1');
+      const regId = currentRegistrationId || sessionStorage.getItem('dys_active_reg_id');
+      if (regId) {
+        sessionStorage.setItem(`dys_payment_completed_${regId}`, '1');
+      }
       currentPaymentData = { method: 'cash', status: 'CASH_VERIFIED' };
       const msgTag = document.getElementById('verified-success-msg');
       if (msgTag) msgTag.innerText = "🎉 Cash Payment Verified by Admin! ✓";
@@ -1551,7 +1566,12 @@ async function verifyRazorpayPaymentFromInput() {
     const data = await res.json();
 
     if (res.ok && data.verified) {
-      sessionStorage.setItem('dys_payment_completed', '1');
+      const regId = currentRegistrationId || sessionStorage.getItem('dys_active_reg_id') || localStorage.getItem('dys_active_reg_id');
+      if (regId) {
+        sessionStorage.setItem(`dys_payment_completed_${regId}`, '1');
+        localStorage.setItem(`dys_payment_completed_${regId}`, '1');
+      }
+      currentPaymentData = { method: 'RAZORPAY', status: 'VERIFIED', utr: payId };
       const proceedContainer = document.getElementById('proceed-registration-container');
       if (proceedContainer) {
         proceedContainer.classList.remove('hidden');
@@ -1561,27 +1581,13 @@ async function verifyRazorpayPaymentFromInput() {
       showToast("Payment Verified with Razorpay ✓ Proceeding to Registration ➔");
       setTimeout(() => {
         gotoRegistrationScreen();
-      }, 1000);
+      }, 800);
     } else {
       showToast(data.error || "Payment not captured on Razorpay. Please complete payment first.");
     }
   } catch (err) {
-    console.warn("Backend verification notice (accepting valid pay_ format):", err);
-    if (payId.startsWith('pay_')) {
-      sessionStorage.setItem('dys_payment_completed', '1');
-      const proceedContainer = document.getElementById('proceed-registration-container');
-      if (proceedContainer) {
-        proceedContainer.classList.remove('hidden');
-        proceedContainer.style.display = 'block';
-        proceedContainer.scrollIntoView({ behavior: 'smooth' });
-      }
-      showToast("Payment ID Accepted ✓ Opening Registration ➔");
-      setTimeout(() => {
-        gotoRegistrationScreen();
-      }, 1000);
-    } else {
-      showToast("Could not verify Payment ID. Please check and try again.");
-    }
+    console.error("Backend verification error:", err);
+    showToast("Could not verify Payment ID with server. Please check your connection and try again.");
   }
 }
 
@@ -1630,6 +1636,7 @@ async function gotoPaymentScreen() {
 
   // Update Payment UI Elements (Bold Fee Display)
   if (document.getElementById('res-payable-amt')) document.getElementById('res-payable-amt').innerText = `₹${payableAmt}`;
+  if (document.getElementById('rzp-btn-amount-tag')) document.getElementById('rzp-btn-amount-tag').innerText = `₹${payableAmt}`;
   if (document.getElementById('pay-summary-score')) {
     document.getElementById('pay-summary-score').innerText = `${netScore} / 20 Marks`;
   }
@@ -1751,14 +1758,11 @@ async function payWithRazorpay() {
     description: "DYS Course Registration Payment",
     image: "iskcon_logo.png",
     handler: async function (response) {
-      showToast("Payment Successful! Confirming registration...");
-      const regId = currentRegistrationId || localStorage.getItem('dys_active_reg_id');
-      if (regId) localStorage.setItem(`dys_payment_completed_${regId}`, '1');
-      localStorage.setItem('dys_payment_completed', '1');
-      sessionStorage.setItem('dys_payment_completed', '1');
+      showToast("Payment captured! Verifying signature with server... 🔄");
+      const regId = currentRegistrationId || sessionStorage.getItem('dys_active_reg_id') || localStorage.getItem('dys_active_reg_id');
 
       try {
-        await fetch('/api/payments/razorpay/verify', {
+        const verifyRes = await fetch('/api/payments/razorpay/verify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -1768,12 +1772,25 @@ async function payWithRazorpay() {
             razorpay_signature: response.razorpay_signature
           })
         });
-      } catch (err) {}
 
-      showToast("Payment Verified ✓ Proceeding to Registration Details ➔");
-      setTimeout(() => {
-        gotoRegistrationScreen();
-      }, 800);
+        const verifyData = await verifyRes.json();
+        if (verifyRes.ok && verifyData.success) {
+          if (regId) {
+            sessionStorage.setItem(`dys_payment_completed_${regId}`, '1');
+            localStorage.setItem(`dys_payment_completed_${regId}`, '1');
+          }
+          currentPaymentData = { method: 'RAZORPAY', status: 'VERIFIED', utr: response.razorpay_payment_id };
+          showToast("Payment Verified ✓ Proceeding to Registration Details ➔");
+          setTimeout(() => {
+            gotoRegistrationScreen();
+          }, 600);
+        } else {
+          showToast(verifyData.error || "Payment signature verification failed. Please contact support.");
+        }
+      } catch (err) {
+        console.error("Verification network error:", err);
+        showToast("Network error verifying payment. Please retry or contact support.");
+      }
     },
     prefill: {
       name: studentData.name || '',
@@ -1841,7 +1858,19 @@ function updatePaymentStatusBanner(status, customMessage) {
 
 // Redirect to Post-Payment Registration Form
 function gotoRegistrationScreen() {
-  switchScreen('screen-payment', 'screen-registration');
+  if (!lastCalculatedResult) {
+    showToast("Please complete the quiz test first!");
+    switchScreen(null, 'screen-quiz');
+    return;
+  }
+
+  if (!checkIsPaymentCompleted()) {
+    showToast("Payment verification required before proceeding.");
+    switchScreen(null, 'screen-payment');
+    return;
+  }
+
+  switchScreen(null, 'screen-registration');
 }
 
 // Occupation Selector Toggle ('student' vs 'job')
@@ -1950,6 +1979,18 @@ let isSubmittingRegistration = false;
 // Complete Registration & Generate Pass Ticket
 async function completeRegistrationAndGeneratePass() {
   if (isSubmittingRegistration) return;
+
+  if (!lastCalculatedResult) {
+    showToast("Quiz test record missing. Please complete the quiz first.");
+    switchScreen(null, 'screen-quiz');
+    return;
+  }
+
+  if (!checkIsPaymentCompleted()) {
+    showToast("Payment verification required before generating pass.");
+    switchScreen(null, 'screen-payment');
+    return;
+  }
 
   const name = document.getElementById('input-name').value.trim();
   const age = document.getElementById('input-age').value.trim();
@@ -2131,9 +2172,9 @@ async function saveRegistrationToSupabase(record) {
       branch: sData.branch || null,
       marital_status: sData.maritalStatus,
       gender: sData.gender || null,
-      quiz_score: (record.result && record.result.netScore !== undefined) ? record.result.netScore : (lastCalculatedResult ? lastCalculatedResult.netScore : 20),
-      percentage: (record.result && record.result.finalPercent !== undefined) ? record.result.finalPercent : (lastCalculatedResult ? lastCalculatedResult.finalPercent : 100),
-      paid_amount: (record.result && record.result.payableAmount !== undefined) ? record.result.payableAmount : (lastCalculatedResult ? lastCalculatedResult.payableAmount : 150),
+      quiz_score: (record.result && record.result.netScore !== undefined) ? record.result.netScore : (lastCalculatedResult ? lastCalculatedResult.netScore : 0),
+      percentage: (record.result && record.result.finalPercent !== undefined) ? record.result.finalPercent : (lastCalculatedResult ? lastCalculatedResult.finalPercent : 0),
+      paid_amount: (record.result && record.result.payableAmount !== undefined) ? record.result.payableAmount : (lastCalculatedResult ? lastCalculatedResult.payableAmount : 0),
       address: sData.address || null,
       payment_mode: payMethod,
       language: currentLang,
@@ -2628,19 +2669,71 @@ function setupRazorpayReturnListeners() {
     if (document.visibilityState === 'visible') handleReturnCheck();
   });
 
-  window.addEventListener('message', (event) => {
+  window.addEventListener('message', async (event) => {
     try {
+      if (!event || !event.data) return;
       const dataStr = typeof event.data === 'string' ? event.data : JSON.stringify(event.data || {});
       const lower = dataStr.toLowerCase();
-      if (lower.includes('razorpay') || lower.includes('payment') || lower.includes('success') || lower.includes('captured') || lower.includes('done')) {
-        const regId = currentRegistrationId || localStorage.getItem('dys_active_reg_id');
-        if (regId) localStorage.setItem(`dys_payment_completed_${regId}`, '1');
-        localStorage.setItem('dys_payment_completed', '1');
-        sessionStorage.setItem('dys_payment_completed', '1');
-        const modal = document.getElementById('lang-select-modal');
-        if (modal) modal.classList.add('hidden');
-        showToast("Payment Complete! Opening Candidate Registration Details ➔");
-        gotoRegistrationScreen();
+
+      // If user explicitly cancelled, closed or modal failed, NEVER mark as paid!
+      if (lower.includes('cancel') || lower.includes('close') || lower.includes('dismiss') || lower.includes('failed') || lower.includes('error')) {
+        console.log("Razorpay checkout was cancelled or closed by user.");
+        const regId = currentRegistrationId || sessionStorage.getItem('dys_active_reg_id') || localStorage.getItem('dys_active_reg_id');
+        if (regId) {
+          sessionStorage.removeItem(`dys_payment_completed_${regId}`);
+          localStorage.removeItem(`dys_payment_completed_${regId}`);
+        }
+        return;
+      }
+
+      // Check if message contains an actual success event with payment ID
+      let payId = null;
+      if (typeof event.data === 'object' && event.data !== null) {
+        if (event.data.razorpay_payment_id) {
+          payId = event.data.razorpay_payment_id;
+        } else if (event.data.data && event.data.data.payment_id) {
+          payId = event.data.data.payment_id;
+        } else if (event.data.payment_id) {
+          payId = event.data.payment_id;
+        }
+      }
+
+      if (!payId && typeof event.data === 'string') {
+        const match = event.data.match(/pay_[a-zA-Z0-9]+/);
+        if (match && (lower.includes('success') || lower.includes('captured'))) {
+          payId = match[0];
+        }
+      }
+
+      // Only if an actual payment ID was received, verify with the server
+      if (payId) {
+        const regId = currentRegistrationId || sessionStorage.getItem('dys_active_reg_id') || localStorage.getItem('dys_active_reg_id');
+        if (!regId) return;
+
+        try {
+          const res = await fetch('/api/payments/razorpay/fetch-and-verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              registration_id: regId,
+              payment_id: payId
+            })
+          });
+          const data = await res.json();
+          if (res.ok && data.verified) {
+            sessionStorage.setItem(`dys_payment_completed_${regId}`, '1');
+            localStorage.setItem(`dys_payment_completed_${regId}`, '1');
+            currentPaymentData = { method: 'RAZORPAY', status: 'VERIFIED', utr: payId };
+            showToast("Payment Verified with Razorpay ✓ Opening Registration Details ➔");
+            setTimeout(() => {
+              gotoRegistrationScreen();
+            }, 600);
+          } else {
+            console.warn("Payment verification notice:", data.error);
+          }
+        } catch (err) {
+          console.warn("Server verification network error:", err);
+        }
       }
     } catch (e) {}
   });

@@ -395,14 +395,18 @@ app.post('/api/payments/razorpay/create-order', async (req, res) => {
 });
 
 // 3.6. Razorpay Payment Verification (Signature Validation)
-app.post('/api/payments/razorpay/verify', (req, res) => {
+app.post('/api/payments/razorpay/verify', async (req, res) => {
   try {
     const { registration_id, razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
     if (!registration_id || !razorpay_payment_id) {
       return res.status(400).json({ error: 'Missing required Razorpay payment parameters.' });
     }
 
-    if (RAZORPAY_KEY_SECRET && razorpay_order_id && razorpay_signature) {
+    if (RAZORPAY_KEY_SECRET) {
+      if (!razorpay_order_id || !razorpay_signature) {
+        return res.status(400).json({ error: 'Missing Razorpay order ID or signature for verification.' });
+      }
+
       const body = razorpay_order_id + "|" + razorpay_payment_id;
       const expectedSignature = crypto
         .createHmac('sha256', RAZORPAY_KEY_SECRET)
@@ -410,7 +414,22 @@ app.post('/api/payments/razorpay/verify', (req, res) => {
         .digest('hex');
 
       if (expectedSignature !== razorpay_signature) {
-        return res.status(400).json({ error: 'Invalid Razorpay payment signature.' });
+        return res.status(400).json({ error: 'Invalid Razorpay payment signature. Payment verification failed.' });
+      }
+    } else if (razorpayInstance) {
+      // Secret not provided directly, verify payment status via Razorpay API fetch
+      try {
+        const paymentDetails = await razorpayInstance.payments.fetch(razorpay_payment_id);
+        if (!paymentDetails || (paymentDetails.status !== 'captured' && paymentDetails.status !== 'authorized')) {
+          return res.status(400).json({ error: 'Payment is not captured on Razorpay.' });
+        }
+      } catch (err) {
+        return res.status(400).json({ error: 'Failed to verify payment with Razorpay: ' + err.message });
+      }
+    } else {
+      // In production, reject if credentials missing. In localhost development, require explicit dev mock flag
+      if (process.env.NODE_ENV === 'production' || process.env.ALLOW_DEV_MOCK !== 'true') {
+        return res.status(400).json({ error: 'Razorpay secret key not configured on server. Cannot verify payment signature.' });
       }
     }
 
@@ -474,17 +493,16 @@ app.post('/api/payments/razorpay/fetch-and-verify', async (req, res) => {
           isCaptured = true;
         }
       } catch (rzpErr) {
-        console.warn("Razorpay API fetch notice:", rzpErr.message);
+        console.warn("Razorpay API fetch error:", rzpErr.message || rzpErr);
+      }
+    } else if (process.env.ALLOW_DEV_MOCK === 'true') {
+      if (payment_id && payment_id.startsWith('pay_') && payment_id.length >= 14) {
+        isCaptured = true;
       }
     }
 
-    // If payment_id starts with pay_
-    if (!isCaptured && payment_id.startsWith('pay_')) {
-      isCaptured = true;
-    }
-
     if (!isCaptured) {
-      return res.status(400).json({ error: 'Payment is not captured on Razorpay. Please complete payment first.' });
+      return res.status(400).json({ error: 'Payment is not captured or not verified on Razorpay. Please complete payment first.' });
     }
 
     const regId = registration_id || 'REG1000';
@@ -912,11 +930,15 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Start Server
-app.listen(PORT, () => {
-  console.log(`=======================================================`);
-  console.log(`🚀 DYS Portal Server Running on http://localhost:${PORT}`);
-  console.log(`💳 UPI ID: ${UPI_ID}`);
-  console.log(`👤 Payee: ${UPI_PAYEE_NAME}`);
-  console.log(`=======================================================`);
-});
+// Start Server if run directly (localhost / traditional server)
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`=======================================================`);
+    console.log(`🚀 DYS Portal Server Running on http://localhost:${PORT}`);
+    console.log(`💳 UPI ID: ${UPI_ID}`);
+    console.log(`👤 Payee: ${UPI_PAYEE_NAME}`);
+    console.log(`=======================================================`);
+  });
+}
+
+module.exports = app;

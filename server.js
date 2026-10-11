@@ -878,12 +878,16 @@ app.post('/api/registrations/complete', (req, res) => {
     studentContainer.status = 'REGISTERED';
     studentContainer.updated_at = new Date().toISOString();
 
+    const pToken = req.body.pass_token || crypto.randomBytes(6).toString('hex');
+    studentContainer.pass_token = studentContainer.pass_token || pToken;
+
     writeDB(db);
 
     return res.json({
       success: true,
       message: 'Student container successfully saved.',
-      student: studentContainer
+      student: studentContainer,
+      pass_token: studentContainer.pass_token
     });
   } catch (err) {
     console.error("Error saving student container:", err);
@@ -922,6 +926,105 @@ app.get('/api/registrations', (req, res) => {
     });
   } catch (err) {
     return res.status(500).json({ error: 'Error fetching registrations list.' });
+  }
+});
+
+// Secure Token-Based Pass Lookup (Survives cookie wipe, device switches, incognito tabs)
+app.get('/api/pass/lookup', async (req, res) => {
+  try {
+    const { pass_id, token } = req.query;
+    if (!pass_id || !token) {
+      return res.status(400).json({ error: 'Both pass_id and token are required for lookup.' });
+    }
+
+    const db = readDB();
+    let student = db.registrations.find(r => r.pass_id === pass_id || r.registration_id === pass_id);
+
+    // If not found in local memory DB, look up Supabase
+    if (!student && SUPABASE_URL && SUPABASE_KEY) {
+      try {
+        const cleanUrl = SUPABASE_URL.trim().replace(/\/rest\/v1\/?$/i, '').replace(/\/+$/, '') + `/rest/v1/registrations?pass_id=eq.${encodeURIComponent(pass_id)}&select=*`;
+        const sbRes = await fetch(cleanUrl, {
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`
+          }
+        });
+        if (sbRes.ok) {
+          const sbData = await sbRes.json();
+          if (sbData && sbData.length > 0) {
+            const row = sbData[0];
+            student = {
+              registration_id: row.pass_id,
+              pass_id: row.pass_id,
+              full_name: row.full_name,
+              age: row.age,
+              whatsapp_number: row.whatsapp_number,
+              occupation: row.occupation,
+              institution_or_company: row.institution_or_company,
+              degree_or_position: row.degree_or_position,
+              branch: row.branch,
+              marital_status: row.marital_status,
+              gender: row.gender,
+              quiz_score: row.quiz_score,
+              percentage: row.percentage,
+              calculated_fee: row.paid_amount,
+              pass_token: token // Verified on first lookup
+            };
+          }
+        }
+      } catch (sbErr) {
+        console.warn("Supabase pass lookup notice:", sbErr.message);
+      }
+    }
+
+    if (!student) {
+      return res.status(404).json({ error: 'Pass record not found.' });
+    }
+
+    // Verify token match
+    if (student.pass_token && student.pass_token !== token) {
+      return res.status(403).json({ error: 'Access denied: Invalid security token for this pass.' });
+    }
+
+    // Mask phone number for privacy on token views
+    const rawPhone = student.whatsapp_number || '';
+    const maskedPhone = rawPhone.length > 5
+      ? rawPhone.slice(0, 4) + '****' + rawPhone.slice(-2)
+      : rawPhone;
+
+    const passRecord = {
+      regPassId: student.pass_id,
+      studentData: {
+        name: student.full_name,
+        age: student.age,
+        phone: maskedPhone,
+        occupation: student.occupation,
+        college: student.institution_or_company,
+        company: student.institution_or_company,
+        degree: student.degree_or_position,
+        position: student.degree_or_position,
+        branch: student.branch,
+        maritalStatus: student.marital_status,
+        gender: student.gender
+      },
+      result: {
+        netScore: student.quiz_score,
+        finalPercent: student.percentage,
+        payableAmount: student.calculated_fee
+      },
+      pass_token: student.pass_token || token,
+      timestamp: student.created_at || new Date().toISOString(),
+      isPaid: true
+    };
+
+    return res.json({
+      success: true,
+      pass: passRecord
+    });
+  } catch (err) {
+    console.error("Pass lookup error:", err);
+    return res.status(500).json({ error: 'Failed to look up pass.' });
   }
 });
 

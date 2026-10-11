@@ -780,6 +780,32 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const searchParams = new URLSearchParams(window.location.search);
   const rzpPaymentId = searchParams.get('razorpay_payment_id') || searchParams.get('payment_id');
+  const paramPassId = searchParams.get('pass_id');
+  const paramToken = searchParams.get('token');
+
+  // If visiting via a Permanent Token Pass URL (survives cookie clears, new phones, incognito)
+  if (paramPassId && paramToken) {
+    try {
+      showToast("Loading verified pass ticket from cloud... 🔄");
+      const res = await fetch(`/api/pass/lookup?pass_id=${encodeURIComponent(paramPassId)}&token=${encodeURIComponent(paramToken)}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.pass) {
+          renderPassScreenFromRecord(data.pass);
+          localStorage.setItem('dys_current_pass_record', JSON.stringify(data.pass));
+          const modal = document.getElementById('lang-select-modal');
+          if (modal) modal.classList.add('hidden');
+          switchScreen(null, 'screen-pass');
+          showToast("Pass verified & loaded successfully! ✓");
+          return;
+        }
+      } else {
+        showToast("Invalid or expired pass security link.");
+      }
+    } catch (lookupErr) {
+      console.warn("Pass lookup error:", lookupErr);
+    }
+  }
 
   // If candidate already has an active completed pass record, stay on Pass Screen!
   const savedPassRaw = localStorage.getItem('dys_current_pass_record');
@@ -2067,12 +2093,15 @@ function renderPassScreenFromRecord(record) {
   if (timeEl) timeEl.innerText = nowStr;
 
   const qrBox = document.getElementById('pass-qrcode-container');
+  const passToken = record.pass_token || 'verified';
+  const permUrl = `${window.location.origin}/?pass_id=${encodeURIComponent(passId)}&token=${encodeURIComponent(passToken)}`;
+
   if (qrBox) {
     qrBox.innerHTML = '';
     if (window.QRCode) {
       try {
         new QRCode(qrBox, {
-          text: `DYS-PASS:${passId}:${sData.name || ''}:${sData.phone || ''}`,
+          text: permUrl,
           width: 72,
           height: 72,
           colorDark: "#000000",
@@ -2087,6 +2116,29 @@ function renderPassScreenFromRecord(record) {
 
   studentData = sData;
   updatePassWhatsAppButton();
+}
+
+function copyPassPermanentLink() {
+  const savedPassRaw = localStorage.getItem('dys_current_pass_record');
+  let passId = 'DYS-PASS';
+  let passToken = 'verified';
+  if (savedPassRaw) {
+    try {
+      const p = JSON.parse(savedPassRaw);
+      if (p.regPassId) passId = p.regPassId;
+      if (p.pass_token) passToken = p.pass_token;
+    } catch (e) {}
+  }
+  const permUrl = `${window.location.origin}/?pass_id=${encodeURIComponent(passId)}&token=${encodeURIComponent(passToken)}`;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(permUrl).then(() => {
+      showToast("Permanent Pass Link copied to clipboard! 📋");
+    }).catch(() => {
+      prompt("Copy your permanent pass link:", permUrl);
+    });
+  } else {
+    prompt("Copy your permanent pass link:", permUrl);
+  }
 }
 
 function startNewRegistrationSession() {
@@ -2191,12 +2243,14 @@ async function completeRegistrationAndGeneratePass() {
   if (!regPassId) {
     regPassId = await getNextPassId(categoryTable);
   }
-  // Create Complete Record
+  // Create Complete Record with Secure Lookup Token
+  const passToken = Math.random().toString(36).substring(2, 8) + Math.random().toString(36).substring(2, 8);
   const record = {
     studentData,
     userAnswers,
     result: lastCalculatedResult,
     regPassId,
+    pass_token: passToken,
     timestamp: new Date().toISOString(),
     isPaid: true
   };
@@ -2323,6 +2377,7 @@ async function saveRegistrationToSupabase(record) {
           studentData: sData,
           result: record.result || lastCalculatedResult,
           regPassId: record.regPassId,
+          pass_token: record.pass_token,
           userAnswers: record.userAnswers || userAnswers,
           timestamp: record.timestamp
         })
